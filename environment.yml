@@ -1,0 +1,12 @@
+name: muimock
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - bokeh=1.0.4
+  - ipywidgets=7.4.2
+  - jupyterlab=0.35.4
+  - python=3.7.2
+  - tornado=5.1.1
