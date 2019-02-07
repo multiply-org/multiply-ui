@@ -1,4 +1,6 @@
 import concurrent.futures
+import logging
+import signal
 
 import tornado.ioloop
 import tornado.log
@@ -8,21 +10,35 @@ PORT = 9090
 JOBS = {}
 EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
+LOGGER = logging.getLogger('muimock')
+
 
 def make_app():
     return tornado.web.Application([
-        (r"/execute", ExecuteHandler),
-        (r"/status/([0-9]+)", StatusHandler),
-        (r"/cancel/([0-9]+)", CancelHandler),
-        (r"/list", ListHandler),
+        (r"/jobs/execute", ExecuteHandler),
+        (r"/jobs/list", ListHandler),
+        (r"/jobs/([0-9]+)", StatusHandler),
+        (r"/jobs/cancel/([0-9]+)", CancelHandler),
     ])
 
 
 def main():
+    def shut_down():
+        LOGGER.info(f"Shutting down...")
+        tornado.ioloop.IOLoop.current().stop()
+
+    def sig_handler(sig, frame):
+        LOGGER.warning(f'Caught signal {sig}')
+        tornado.ioloop.IOLoop.current().add_callback_from_signal(shut_down)
+
+    signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
+
     tornado.log.enable_pretty_logging()
     app = make_app()
     app.listen(PORT)
-    print(f"Server listening on port {PORT}...")
+
+    LOGGER.info(f"Server listening on port {PORT}...")
     tornado.ioloop.IOLoop.current().start()
 
 
@@ -94,7 +110,7 @@ class CancelHandler(tornado.web.RequestHandler):
         if job is None:
             self.send_error(404, reason="Job not found")
             return
-        job.status = "cancelled"
+        job.cancel()
         self.write(job.to_dict())
 
 
