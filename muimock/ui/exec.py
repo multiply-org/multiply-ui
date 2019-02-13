@@ -97,6 +97,19 @@ class Job:
         return self._call_api(STATUS_URL.format(job_id=self._id), JobStatus)
 
     @classmethod
+    def num_jobs(cls) -> int:
+        def apply_func(json_obj: Dict):
+            return len(json_obj["jobs"])
+
+        return cls._call_api(LIST_URL, apply_func)
+
+    @property
+    def progress(self) -> float:
+        def apply_func(job_status_dict: Dict) -> float:
+            return job_status_dict["progress"]
+        return self._call_api(STATUS_URL.format(job_id=self._id), apply_func)
+
+    @classmethod
     def _call_api(cls, url: str, apply_func=None) -> Any:
         try:
             with urllib.request.urlopen(url) as response:
