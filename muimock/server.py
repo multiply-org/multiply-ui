@@ -1,7 +1,9 @@
 import concurrent.futures
 import logging
+import numpy as np
 import random
 import signal
+import xarray as xr
 
 import tornado.ioloop
 import tornado.log
@@ -25,7 +27,8 @@ def make_app():
         (r"/jobs/([0-9]+)", StatusHandler),
         (r"/jobs/cancel/([0-9]+)", CancelHandler),
         (r"/jobs/results/([0-9]+)", ResultsFromJobHandler),
-        (r"/result/([0-9]+)", ResultHandler)
+        (r"/result/([0-9]+)", ResultHandler),
+        (r"/results/open/([0-9]+)", ResultsOpenHandler)
     ])
 
 
@@ -56,15 +59,41 @@ class Result:
     :param duration: Job execution in seconds
     """
 
+    LON = np.array([[8, 9.3, 10.6, 11.9],
+                    [8, 9.2, 10.4, 11.6],
+                    [8, 9.1, 10.2, 11.3]], dtype=np.float32)
+    LAT = np.array([[56, 56.1, 56.2, 56.3],
+                    [55, 55.2, 55.4, 55.6],
+                    [54, 54.3, 54.6, 54.9]], dtype=np.float32)
+
     def __init__(self, result_id: int, result_group_id: int, parameter_name: str):
         self._result_id = result_id
         self._result_group_id = result_group_id
         self._parameter_name = parameter_name
+        self._dataset = None
 
     def to_dict(self):
         return dict(result_id=self._result_id,
                     result_group_id=self._result_group_id,
                     parameter_name=self._parameter_name)
+
+    def open(self) -> xr.Dataset:
+        if self._dataset is None:
+            values = np.random.rand(3, 4)
+            data_vars = dict(
+                lon=(('y', 'x'), Result.LON, dict(
+                    long_name="longitude",
+                    units="degrees_east",
+                )),
+                lat=(('y', 'x'), Result.LAT, dict(
+                    long_name="latitude",
+                    units="degrees_north",
+                )))
+            data_vars[self._parameter_name] = values
+            attrs = dict(start_date='14-APR-2017 10:27:50.183264',
+                         stop_date='14-APR-2017 10:31:42.736226')
+            self._dataset = xr.Dataset(data_vars, attrs)
+        return self._dataset
 
 
 class ResultGroup:
@@ -76,6 +105,7 @@ class ResultGroup:
 
     def __init__(self, results: List[Result]):
         self._results = results
+        self._dataset = None
 
     def to_dict(self):
         return dict(results=[result.to_dict() for result in self._results])
@@ -88,6 +118,12 @@ class ResultGroup:
                 return result_as_dict
         return None
 
+    def open(self) -> xr.Dataset:
+        if self._dataset is None:
+            self._dataset = self._results[0].open()
+            for i in range(1, len(self._results)):
+                self._dataset =  self._dataset.merge(self._results[1].open())
+        return  self._dataset
 
 class Job:
     """
@@ -128,7 +164,6 @@ class Job:
         results = self._create_results()
         RESULTS[self.id] = results
         return results
-
 
     def _create_results(self) -> ResultGroup:
         num_params = random.randint(1, 10)
@@ -222,6 +257,21 @@ class ResultHandler(tornado.web.RequestHandler):
             self.send_error(404, reason="No result for parameter {} provided".format(parameter))
             return
         self.write(result)
+
+
+# noinspection PyAbstractClass
+class ResultsOpenHandler(tornado.web.RequestHandler):
+    def get(self, job_id: str):
+        job_id = int(job_id)
+        job = JOBS.get(job_id)
+        if job is None:
+            self.send_error(404, reason="Job not found")
+            return
+        results = job.results()
+        if results is None:
+            self.send_error(404, reason="No results provided yet")
+            return
+        self.write(results.open())
 
 
 if __name__ == "__main__":

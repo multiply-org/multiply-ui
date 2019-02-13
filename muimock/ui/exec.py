@@ -13,12 +13,26 @@ JOB_STATUS_URL = URL_BASE + "jobs/{job_id}"
 JOB_CANCEL_URL = URL_BASE + "jobs/cancel/{job_id}"
 JOB_RESULTS_URL = URL_BASE + "jobs/results/{job_id}"
 RESULT_URL = URL_BASE + "result/{job_id}?parameter={parameter}"
+RESULT_OPEN_URL = URL_BASE + "/results/open/{id})"
 
 
 def exec_ui():
     _interact = ipywidgets.interact.options(manual=True, manual_name="Execute Job")
     _interact(Job.execute_job,
               duration=ipywidgets.IntSlider(min=10, max=1000, step=10, value=60))
+
+
+def _call_api(url: str, apply_func=None) -> Any:
+    try:
+        with urllib.request.urlopen(url) as response:
+            json_obj = json.loads(response.read())
+            return apply_func(json_obj) if apply_func is not None else json_obj
+    except urllib.error.HTTPError as e:
+        print(f"Server error: {e}")
+        return None
+    except urllib.error.URLError as e:
+        print(f"Connection error: {e}")
+        return None
 
 
 class Result:
@@ -130,54 +144,41 @@ class Job:
         def apply_func(json_obj: Dict):
             return Job(json_obj["id"])
 
-        return cls._call_api(JOB_EXECUTE_URL.format(duration=duration), apply_func)
+        return _call_api(JOB_EXECUTE_URL.format(duration=duration), apply_func)
 
     @classmethod
     def get_all(cls) -> JobStatusList:
         def apply_func(json_obj: Dict):
             return JobStatusList(json_obj["jobs"])
 
-        return cls._call_api(JOB_LIST_URL, apply_func)
+        return _call_api(JOB_LIST_URL, apply_func)
 
     @classmethod
     def num_jobs(cls) -> int:
         def apply_func(json_obj: Dict):
             return len(json_obj["jobs"])
 
-        return cls._call_api(JOB_LIST_URL, apply_func)
+        return _call_api(JOB_LIST_URL, apply_func)
 
     def cancel(self) -> JobStatus:
-        return self._call_api(JOB_CANCEL_URL.format(job_id=self._id), JobStatus)
+        return _call_api(JOB_CANCEL_URL.format(job_id=self._id), JobStatus)
 
     def result(self, parameter: Union[str, int]) -> Result:
-        return self._call_api(RESULT_URL.format(job_id=self._id, parameter=parameter), Result)
+        return _call_api(RESULT_URL.format(job_id=self._id, parameter=parameter), Result)
 
     @property
     def status(self) -> JobStatus:
-        return self._call_api(JOB_STATUS_URL.format(job_id=self._id), JobStatus)
+        return _call_api(JOB_STATUS_URL.format(job_id=self._id), JobStatus)
 
     @property
     def progress(self) -> float:
         def apply_func(job_status_dict: Dict) -> float:
             return job_status_dict["progress"]
-        return self._call_api(JOB_STATUS_URL.format(job_id=self._id), apply_func)
+        return _call_api(JOB_STATUS_URL.format(job_id=self._id), apply_func)
 
     @property
     def results(self) -> Optional[ResultGroup]:
-        return self._call_api(JOB_RESULTS_URL.format(job_id=self._id), ResultGroup)
-
-    @classmethod
-    def _call_api(cls, url: str, apply_func=None) -> Any:
-        try:
-            with urllib.request.urlopen(url) as response:
-                json_obj = json.loads(response.read())
-                return apply_func(json_obj) if apply_func is not None else json_obj
-        except urllib.error.HTTPError as e:
-            print(f"Server error: {e}")
-            return None
-        except urllib.error.URLError as e:
-            print(f"Connection error: {e}")
-            return None
+        return _call_api(JOB_RESULTS_URL.format(job_id=self._id), ResultGroup)
 
     def _repr_html_(self):
         return f"<h4>Job #{self._id}</h4>"
