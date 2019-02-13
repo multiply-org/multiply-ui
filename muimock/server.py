@@ -1,13 +1,18 @@
 import concurrent.futures
 import logging
+import random
 import signal
 
 import tornado.ioloop
 import tornado.log
 import tornado.web
 
+from typing import Dict, List, Optional, Union
+
 PORT = 9090
 JOBS = {}
+RESULTS = dict()
+SUPPORTED_VARIABLES = ['lai', 'cab', 'cb', 'car', 'cw', 'cdm', 'n', 'ala', 'h', 'bsoil', 'psoil']
 EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
 LOGGER = logging.getLogger('muimock')
@@ -19,6 +24,8 @@ def make_app():
         (r"/jobs/list", ListHandler),
         (r"/jobs/([0-9]+)", StatusHandler),
         (r"/jobs/cancel/([0-9]+)", CancelHandler),
+        (r"/jobs/results/([0-9]+)", ResultsFromJobHandler),
+        (r"/result/([0-9]+)", ResultHandler)
     ])
 
 
@@ -42,6 +49,46 @@ def main():
     tornado.ioloop.IOLoop.current().start()
 
 
+class Result:
+    """
+    A result from a job.
+
+    :param duration: Job execution in seconds
+    """
+
+    def __init__(self, result_id: int, result_group_id: int, parameter_name: str):
+        self._result_id = result_id
+        self._result_group_id = result_group_id
+        self._parameter_name = parameter_name
+
+    def to_dict(self):
+        return dict(result_id=self._result_id,
+                    result_group_id=self._result_group_id,
+                    parameter_name=self._parameter_name)
+
+
+class ResultGroup:
+    """
+    A group of results from a job.
+
+    :param duration: Job execution in seconds
+    """
+
+    def __init__(self, results: List[Result]):
+        self._results = results
+
+    def to_dict(self):
+        return dict(results=[result.to_dict() for result in self._results])
+
+    def get_result_as_dict(self, parameter: Union[str, int]) -> Optional[Dict]:
+        for result in self._results:
+            result_as_dict = result.to_dict()
+            if ("result_id" in result_as_dict and parameter == result_as_dict["result_id"]) or \
+                    ("parameter_name" in result_as_dict and parameter == result_as_dict["parameter_name"]):
+                return result_as_dict
+        return None
+
+
 class Job:
     """
     Some job.
@@ -54,25 +101,43 @@ class Job:
     def __init__(self, duration: int):
         self.id = Job._CURRENT_ID
         self.duration = duration
-        self.progress = None
+        self.progress = 0.0
         self.status = "new"
         Job._CURRENT_ID += 1
 
     def execute(self):
         import time
         self.status = "running"
-        self.progress = 0
+        self.progress = 0.0
         steps = 10 * self.duration
         for i in range(steps):
             if self.status == "cancelled":
                 return
             self.progress = (i + 1.0) / steps
-            # print(self.to_dict())
             time.sleep(0.1)
         self.status = "success"
 
     def cancel(self):
         self.status = "cancelled"
+
+    def results(self) -> Optional[ResultGroup]:
+        if self.status != "success":
+            return None
+        if self.id in RESULTS:
+            return RESULTS[self.id]
+        results = self._create_results()
+        RESULTS[self.id] = results
+        return results
+
+
+    def _create_results(self) -> ResultGroup:
+        num_params = random.randint(1, 10)
+        random_indexes = [i for i in range(10)]
+        random.shuffle(random_indexes)
+        results = []
+        for i in range(num_params):
+            results.append(Result(i, self.id, SUPPORTED_VARIABLES[random_indexes[i]]))
+        return ResultGroup(results)
 
     def to_dict(self):
         return dict(id=self.id,
@@ -118,6 +183,45 @@ class CancelHandler(tornado.web.RequestHandler):
 class ListHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(dict(jobs=[job.to_dict() for job in JOBS.values()]))
+
+
+# noinspection PyAbstractClass
+class ResultsFromJobHandler(tornado.web.RequestHandler):
+    def get(self, job_id: str):
+        job_id = int(job_id)
+        job = JOBS.get(job_id)
+        if job is None:
+            self.send_error(404, reason="Job not found")
+            return
+        results = job.results()
+        if results is None:
+            self.send_error(404, reason="No results provided yet")
+            return
+        self.write(results.to_dict())
+
+
+# noinspection PyAbstractClass
+class ResultHandler(tornado.web.RequestHandler):
+    def get(self, job_id: str):
+        job_id = int(job_id)
+        job = JOBS.get(job_id)
+        if job is None:
+            self.send_error(404, reason="Job not found")
+            return
+        results = job.results()
+        if results is None:
+            self.send_error(404, reason="No results provided yet")
+            return
+        parameter = self.get_query_argument("parameter")
+        try:
+            parameter = int(parameter)
+        except:
+            parameter = parameter
+        result = results.get_result_as_dict(parameter)
+        if result is None:
+            self.send_error(404, reason="No result for parameter {} provided".format(parameter))
+            return
+        self.write(result)
 
 
 if __name__ == "__main__":
