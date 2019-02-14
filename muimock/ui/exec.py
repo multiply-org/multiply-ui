@@ -2,7 +2,9 @@ import json
 import urllib.error
 import urllib.request
 from typing import Dict, List, Any, Optional, Union
-
+from IPython.display import display
+import threading
+import time
 import ipywidgets
 
 URL_BASE = "http://localhost:9090/"
@@ -20,6 +22,36 @@ def exec_ui():
     _interact = ipywidgets.interact.options(manual=True, manual_name="Execute Job")
     _interact(Job.execute_job,
               duration=ipywidgets.IntSlider(min=10, max=1000, step=10, value=60))
+
+
+def job_monitor():
+    header_box = ipywidgets.HBox([ipywidgets.Label('Job ID'), ipywidgets.Label('Duration'),
+                                  ipywidgets.Label('Progress'), ipywidgets.Label('Status')])
+    boxes = [header_box]
+    job_status_list = Job.get_all().get_as_dict_list()
+    progress_bars = []
+    for job_status_dict in job_status_list:
+        progress = ipywidgets.FloatProgress(value=job_status_dict["progress"], min=0.0, max=1.0)
+        box = ipywidgets.HBox([ipywidgets.Label(str(job_status_dict["id"])),
+                               ipywidgets.Label(str(job_status_dict["duration"])),
+                               progress, ipywidgets.Label(str(job_status_dict["status"]))])
+        progress_bars.append(progress)
+        boxes.append(box)
+    def monitor():
+        monitored_all = False
+        while not monitored_all:
+            monitored_all = True
+            time.sleep(5)
+            for index, job_status_dict in enumerate(job_status_list):
+                if job_status_dict["status"] == "running":
+                    id = job_status_dict["id"]
+                    progress_bars[index].value = Job(id).progress
+                    if progress_bars[index].value < 1.0:
+                        monitored_all = False
+    job_monitor = ipywidgets.VBox(boxes)
+    display(job_monitor)
+    monitor_thread = threading.Thread(target=monitor(), daemon=True)
+    monitor_thread.start()
 
 
 def _call_api(url: str, apply_func=None) -> Any:
@@ -132,6 +164,9 @@ class JobStatusList:
 
     def _repr_html_(self):
         return JobStatus.html_table(self._status_dict_list)
+
+    def get_as_dict_list(self) -> List[Dict]:
+        return self._status_dict_list
 
 
 class Job:
