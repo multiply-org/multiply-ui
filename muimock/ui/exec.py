@@ -30,27 +30,49 @@ def job_monitor():
     boxes = [header_box]
     job_status_list = Job.get_all().get_as_dict_list()
     progress_bars = []
+    status_labels = []
     for job_status_dict in job_status_list:
         progress = ipywidgets.FloatProgress(value=job_status_dict["progress"], min=0.0, max=1.0)
+        status_label = ipywidgets.Label(str(job_status_dict["status"]))
         box = ipywidgets.HBox([ipywidgets.Label(str(job_status_dict["id"])),
                                ipywidgets.Label(str(job_status_dict["duration"])),
-                               progress, ipywidgets.Label(str(job_status_dict["status"]))])
+                               progress, status_label])
         progress_bars.append(progress)
+        status_labels.append(status_label)
         boxes.append(box)
-    def monitor():
-        monitored_all = False
-        while not monitored_all:
-            monitored_all = True
-            time.sleep(5)
+    def monitor(boxes, progress_bars, status_labels):
+        while True:
+            job_status_list = Job.get_all().get_as_dict_list()
+            num_progress_bars = len(progress_bars)
             for index, job_status_dict in enumerate(job_status_list):
-                if job_status_dict["status"] == "running":
-                    id = job_status_dict["id"]
-                    progress_bars[index].value = Job(id).progress
-                    if progress_bars[index].value < 1.0:
-                        monitored_all = False
+                if index < num_progress_bars:
+                    if status_labels[index].value == "new":
+                        if job_status_dict["status"] == "new":
+                            continue
+                            progress_bars[index].value = job_status_dict["progress"]
+                        status_labels[index].value = job_status_dict["status"]
+                    elif status_labels[index].value == "cancelled" and job_status_dict["status"] != "cancelled":
+                        progress_bars[index].value = job_status_dict["progress"]
+                        status_labels[index].value = "cancelled"
+                    elif status_labels[index].value == "success" and job_status_dict["status"] != "success":
+                        progress_bars[index].value = job_status_dict["progress"]
+                        status_labels[index].value = "success"
+                    elif status_labels[index].value == "running":
+                        progress_bars[index].value = job_status_dict["progress"]
+                        status_labels[index].value = job_status_dict["status"]
+                else:
+                    progress = ipywidgets.FloatProgress(value=job_status_dict["progress"], min=0.0, max=1.0)
+                    status_label = ipywidgets.Label(str(job_status_dict["status"]))
+                    box = ipywidgets.HBox([ipywidgets.Label(str(job_status_dict["id"])),
+                                           ipywidgets.Label(str(job_status_dict["duration"])),
+                                           progress, status_label])
+                    progress_bars.append(progress)
+                    status_labels.append(status_label)
+                    boxes.append(box)
+            time.sleep(0.5)
     job_monitor = ipywidgets.VBox(boxes)
+    monitor_thread = threading.Thread(target=monitor, args=(boxes, progress_bars, status_labels))
     display(job_monitor)
-    monitor_thread = threading.Thread(target=monitor(), daemon=True)
     monitor_thread.start()
 
 
