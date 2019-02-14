@@ -79,7 +79,11 @@ class Result:
 
     def open(self) -> xr.Dataset:
         if self._dataset is None:
-            values = np.random.rand(3, 4)
+            data_var = (('y', 'x'), np.random.rand(3, 4), dict(
+                long_name=self._parameter_name,
+                units="",
+                _FillValue=np.nan,
+            ))
             data_vars = dict(
                 lon=(('y', 'x'), Result.LON, dict(
                     long_name="longitude",
@@ -89,10 +93,10 @@ class Result:
                     long_name="latitude",
                     units="degrees_north",
                 )))
-            data_vars[self._parameter_name] = values
+            data_vars[self._parameter_name] = data_var
             attrs = dict(start_date='14-APR-2017 10:27:50.183264',
                          stop_date='14-APR-2017 10:31:42.736226')
-            self._dataset = xr.Dataset(data_vars, attrs)
+            self._dataset = xr.Dataset(data_vars=data_vars, attrs=attrs)
         return self._dataset
 
 
