@@ -1,11 +1,11 @@
-# multiply-uimock
+# multiply-ui
 
-A GUI mock for the [Multiply](https://github.com/multiply-org) project based on
+A Jupyter-based UI for the [Multiply](https://github.com/multiply-org) project based on
 [Jupyter Widgets](https://ipywidgets.readthedocs.io) and [Bokeh](https://bokeh.pydata.org).
 
 # Concept
 
-The Multiply Docker images include Jupyter Lab, a dedicated Multiply REST server
+The Multiply images include Jupyter Lab, a dedicated Multiply REST server
 and a Multiply Notebook API. 
 
 When the Docker is started on its host VM, the Jupyter Lab server and the Multiply
@@ -53,7 +53,7 @@ Multiply use cases. Users can use them as starting points.
 
 Create environment:
 
-    $ cd multiply-uimock
+    $ cd multiply-ui
     $ conda env create
 
 Activate environment and install sources:
