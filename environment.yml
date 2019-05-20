@@ -1,4 +1,4 @@
-name: muimock
+name: multiply-ui
 
 channels:
   - conda-forge
