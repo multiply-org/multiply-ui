@@ -58,19 +58,23 @@ Create environment:
 
 Activate environment and install sources:
 
-    $ source activate muimock
+    $ conda activate multiply-ui
 
 Install jupyter-widgets extension for Jupyter-Lab
 
     $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
-Install muimock from source code:
+Install multiply-ui from source code:
 
     $ python setup.py develop
 
+Run multiply-ui web service:
+
+    $ mui-server
+
 Run Jupyter Lab
 
-    $ jupyter-lab notebooks/muimock.ipynb
+    $ jupyter-lab notebooks/multiply-ui-1.ipynb
 
 # Related Reads
 

@@ -5,9 +5,10 @@ channels:
   - defaults
 
 dependencies:
-  - bokeh=1.0.4
-  - ipywidgets=7.4.2
-  - jupyterlab=0.35.4
-  - python=3.7.2
-  - tornado=5.1.1
+  - bokeh =1.0.4
+  - click =7.0
+  - ipywidgets =7.4.2
+  - jupyterlab =0.35.4
+  - python =3.7.2
+  - tornado =5.1.1
   - xarray =0.10.8
