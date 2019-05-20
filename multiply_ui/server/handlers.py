@@ -7,7 +7,6 @@ import tornado.web
 
 from .context import ServiceContext
 
-_JOBS = {}
 _EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
 
@@ -177,7 +176,8 @@ class ResultHandler(ServiceRequestHandler):
 class ResultsOpenHandler(ServiceRequestHandler):
     def get(self, job_id: str):
         job_id = int(job_id)
-        job = _JOBS.get(job_id)
+
+        job = self.ctx.get_job(job_id)
         if job is None:
             self.send_error(404, reason="Job not found")
             return
