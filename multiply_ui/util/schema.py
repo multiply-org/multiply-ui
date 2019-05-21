@@ -18,7 +18,7 @@ class TypeDef:
 
     @property
     def optional(self) -> bool:
-        return self.optional
+        return self._optional
 
     @property
     def item_type(self) -> Optional['TypeDef']:
@@ -28,38 +28,40 @@ class TypeDef:
     def properties(self) -> Optional[List['PropertyDef']]:
         return self._properties
 
-    def validate(self, value: Any, ctx: str = ''):
+    def validate(self, value: Any, prefix: str = ''):
 
-        if value is None and not self._optional:
-            raise ValueError(f'{ctx}value is not optional, but found null')
+        if value is None:
+            if self.optional:
+                return
+            raise ValueError(f'{prefix}value is not optional, but found null')
 
-        if not isinstance(value, self._data_type):
-            raise ValueError(f'{ctx}value is expected to have type {self._data_type.__name__}, '
-                             f'but found {type(value).__name__}')
+        if value is not None and not self._optional and not isinstance(value, self._data_type):
+            raise ValueError(f'{prefix}value is expected to have type {self._data_type.__name__!r}, '
+                             f'but found type {type(value).__name__!r}')
 
         if isinstance(value, list) and self._item_type is not None:
-            self._validate_list(value, ctx)
+            self._validate_list(value, prefix)
         elif isinstance(value, dict) and self._properties is not None:
-            self._validate_dict(value, ctx)
+            self._validate_dict(value, prefix)
 
-    def _validate_list(self, value, ctx):
+    def _validate_list(self, value, prefix):
         index = 0
         for item in value:
-            self._item_type.validate(item, ctx=ctx + f'index {index}: ')
+            self._item_type.validate(item, prefix=prefix + f'index {index}: ')
             index += 1
 
-    def _validate_dict(self, value, ctx):
+    def _validate_dict(self, value, prefix):
 
         for p in self._properties:
             if p.name not in value and not p.optional:
-                raise ValueError(f'{ctx}missing property "{p.name}"')
-            p.validate(value[p.name], ctx=ctx + f'property "{p.name}": ')
+                raise ValueError(f'{prefix}missing property {p.name!r}')
+            p.validate(value[p.name], prefix=prefix + f'property {p.name!r}: ')
 
         illegal_property_names = set(value.keys()).difference(set(p.name for p in self._properties))
         if len(illegal_property_names) == 1:
-            raise ValueError(f'{ctx}unexpected property "{next(list(illegal_property_names))}" found ')
+            raise ValueError(f'{prefix}unexpected property {list(illegal_property_names)[0]!r} found')
         elif len(illegal_property_names) > 1:
-            raise ValueError(f'{ctx}unexpected properties found: {list(illegal_property_names)!r}')
+            raise ValueError(f'{prefix}unexpected properties found: {list(illegal_property_names)!r}')
 
 
 class PropertyDef:
@@ -87,5 +89,5 @@ class PropertyDef:
     def properties(self) -> Optional[List['PropertyDef']]:
         return self._type.properties
 
-    def validate(self, value: Any, ctx: str = ''):
-        self._type.validate(value, ctx=ctx)
+    def validate(self, value: Any, prefix: str = ''):
+        self._type.validate(value, prefix=prefix)

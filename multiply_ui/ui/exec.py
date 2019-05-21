@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Union
 import ipywidgets
 from IPython.display import display
 
-from .callapi import call_api
+from ..util.callapi import call_api
 
 URL_BASE = "http://localhost:9090/"
 

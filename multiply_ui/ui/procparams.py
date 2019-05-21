@@ -1,10 +1,7 @@
-import json
 from typing import Dict, Any, List, Optional
 
-import pkg_resources
-
+from ..util.callapi import call_api
 from ..util.schema import PropertyDef, TypeDef
-
 
 URL_BASE = "http://localhost:9090/"
 
@@ -12,7 +9,7 @@ GET_PROC_PARAMS_URL = URL_BASE + "multiply/api/processing/parameters"
 
 
 class Variable:
-    def __init(self, data: Dict[str, Any]):
+    def __init__(self, data: Dict[str, Any]):
         self._data = data
 
     @property
@@ -61,7 +58,7 @@ class Variable:
 
 
 class Variables:
-    def __init(self, variables: Dict[str, Variable]):
+    def __init__(self, variables: Dict[str, Variable]):
         self._variables = variables
 
     @property
@@ -76,7 +73,7 @@ class Variables:
 
 
 class ForwardModel:
-    def __init(self, data: Dict[str, Any]):
+    def __init__(self, data: Dict[str, Any]):
         self._data = data
 
     @property
@@ -131,7 +128,7 @@ class ForwardModel:
 
 
 class ForwardModels:
-    def __init(self, forward_models: Dict[str, ForwardModel]):
+    def __init__(self, forward_models: Dict[str, ForwardModel]):
         self._forward_models = forward_models
 
     @property
@@ -142,20 +139,26 @@ class ForwardModels:
         return self._forward_models[fm_id]
 
     def _repr_html_(self):
-        return Variable.html_table(list(self._forward_models.values()))
+        return ForwardModel.html_table(list(self._forward_models.values()))
 
 
 class ProcessingParameters:
 
-    def __init__(self):
-        json_text = pkg_resources.resource_string("multiply_ui", "server/resources/processing-parameters.json")
-        data = json.loads(json_text)
-        prefix = 'processing parameters: '
-        PARAMETERS_TYPE.validate(data, ctx=prefix)
+    @classmethod
+    def load(cls):
+        def apply_func(json_obj: Dict) -> ProcessingParameters:
+            return ProcessingParameters(json_obj)
 
-        input_types = data['inputTypes']
-        forward_models = data['forwardModels']
-        variables = {variable['id']: variable for variable in data['variables']}
+        return call_api(GET_PROC_PARAMS_URL, apply_func)
+
+    def __init__(self, raw_data):
+
+        prefix = 'processing parameters: '
+        PARAMETERS_TYPE.validate(raw_data, prefix=prefix)
+
+        input_types = raw_data['inputTypes']
+        forward_models = raw_data['forwardModels']
+        variables = {variable['id']: variable for variable in raw_data['variables']}
 
         for forward_model in forward_models:
             forward_model_variable_ids = forward_model['variables']
@@ -168,7 +171,7 @@ class ProcessingParameters:
                     variable['forwardModels'] = []
                 variable['forwardModels'].append(forward_model['id'])
 
-        self._input_types = {input_type['id']: input_type for input_type in data['inputTypes']}
+        self._input_types = {input_type['id']: input_type for input_type in input_types}
         self._forward_models = ForwardModels({forward_model['id']: ForwardModel(forward_model)
                                               for forward_model in forward_models})
         self._variables = Variables({variable['id']: Variable(variable)
