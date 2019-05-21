@@ -1,11 +1,12 @@
 import json
+import threading
+import time
 import urllib.error
 import urllib.request
 from typing import Dict, List, Any, Optional, Union
-from IPython.display import display
-import threading
-import time
+
 import ipywidgets
+from IPython.display import display
 
 URL_BASE = "http://localhost:9090/"
 
@@ -40,6 +41,7 @@ def job_monitor():
         progress_bars.append(progress)
         status_labels.append(status_label)
         boxes.append(box)
+
     def monitor(boxes, progress_bars, status_labels):
         while True:
             job_status_list = Job.get_all().get_as_dict_list()
@@ -70,6 +72,7 @@ def job_monitor():
                     status_labels.append(status_label)
                     boxes.append(box)
             time.sleep(0.5)
+
     job_monitor = ipywidgets.VBox(boxes)
     monitor_thread = threading.Thread(target=monitor, args=(boxes, progress_bars, status_labels))
     display(job_monitor)
@@ -231,6 +234,7 @@ class Job:
     def progress(self) -> float:
         def apply_func(job_status_dict: Dict) -> float:
             return job_status_dict["progress"]
+
         return _call_api(JOB_STATUS_URL.format(job_id=self._id), apply_func)
 
     @property
