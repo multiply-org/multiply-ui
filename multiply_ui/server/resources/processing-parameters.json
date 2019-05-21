@@ -3,7 +3,7 @@
     {
       "id": "S2_L1C",
       "name": "Sentinel-2 MSI L1C",
-      "timeRange": ["06-23-2015", ""]
+      "timeRange": ["06-23-2015", null]
     }
   ],
   "variables": [
@@ -13,8 +13,7 @@
       "unit": "m2/m2",
       "description": "Effective Leaf Area Index",
       "valueRange": "",
-      "applications": [],
-	  "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "cab",
@@ -22,8 +21,7 @@
       "unit": "ug/cm2",
       "description": "Leaf Chlorophyll Content",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "cb",
@@ -31,8 +29,7 @@
       "unit": "",
       "description": "Leaf Senescent Material",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "car",
@@ -40,8 +37,7 @@
       "unit": "ug/cm2",
       "description": "Leaf Carotonoid Content",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "cw",
@@ -49,8 +45,7 @@
       "unit": "cm",
       "description": "Leaf Water Content",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "cdm",
@@ -67,8 +62,7 @@
       "unit": "",
       "description": "Leaf Structure Parameter",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "ala",
@@ -76,8 +70,7 @@
       "unit": "degrees",
       "description": "Average Leaf Angle",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "bsoil",
@@ -85,8 +78,7 @@
       "unit": "",
       "description": "Soil Brightness Parameter",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "psoil",
@@ -94,8 +86,7 @@
       "unit": "",
       "description": "Soil Wetness Parameter",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "GeoCBI",
@@ -103,8 +94,7 @@
       "unit": "",
       "description": "It is a measure of burned severity fire in terms of the level of damage of vegetation and substrate after a wildfire is fully extinguished. GeoCBI is a modified version of CBI that takes into account the fraction of cover of the different vegetation strata used to compute the CBI.",
       "valueRange": "0 (unburned) - 3 (completely burned)",
-      "applications": ["Burned Area Discrimination", "Fire Severity Estimation"],
-      "forwardModels": []
+      "applications": ["Burned Area Discrimination", "Fire Severity Estimation"]
     }
   ],
   "forwardModels": [
