@@ -82,7 +82,7 @@ class ServiceRequestHandler(tornado.web.RequestHandler):
 class GetParametersHandler(ServiceRequestHandler):
     def get(self):
         self.set_header('Content-Type', 'application/json')
-        parameters = Controller.get_instance().get_parameters()
+        parameters = self.ctx.controller.get_parameters()
         json.dump(parameters, self)
 
 

@@ -6,7 +6,7 @@ from .handlers import GetParametersHandler, ExecuteHandler, ListHandler, StatusH
 
 def new_application():
     return tornado.web.Application([
-        (r"/multiply/api/processing/GetParameters", GetParametersHandler),
+        (r"/multiply/api/processing/parameters", GetParametersHandler),
         (r"/jobs/execute", ExecuteHandler),
         (r"/jobs/list", ListHandler),
         (r"/jobs/([0-9]+)", StatusHandler),
