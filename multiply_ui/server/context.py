@@ -2,7 +2,6 @@ from typing import Optional, List
 
 from .model import Job
 
-
 class ServiceContext:
     def __init__(self):
         self._jobs = {}

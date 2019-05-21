@@ -1,11 +1,12 @@
 import tornado.web
 
-from .handlers import ExecuteHandler, ListHandler, StatusHandler, CancelHandler, \
-    ResultsFromJobHandler, ResultHandler, ResultsOpenHandler
+from .handlers import GetParametersHandler, ExecuteHandler, ListHandler, StatusHandler, \
+    CancelHandler, ResultsFromJobHandler, ResultHandler, ResultsOpenHandler
 
 
 def new_application():
     return tornado.web.Application([
+        (r"/multiply/api/processing/parameters", GetParametersHandler),
         (r"/jobs/execute", ExecuteHandler),
         (r"/jobs/list", ListHandler),
         (r"/jobs/([0-9]+)", StatusHandler),

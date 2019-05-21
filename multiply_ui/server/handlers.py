@@ -6,6 +6,7 @@ import tornado.escape
 import tornado.web
 
 from .context import ServiceContext
+from multiply_ui.server import controller
 
 _EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
@@ -74,6 +75,14 @@ class ServiceRequestHandler(tornado.web.RequestHandler):
         except (json.JSONDecodeError, TypeError, ValueError) as e:
             raise tornado.web.HTTPError(status_code=400,
                                         log_message=f"Invalid or missing {name} in request body") from e
+
+
+# noinspection PyAbstractClass
+class GetParametersHandler(ServiceRequestHandler):
+    def get(self):
+        self.set_header('Content-Type', 'application/json')
+        parameters = controller.get_parameters(self.ctx)
+        json.dump(parameters, self)
 
 
 # noinspection PyAbstractClass
