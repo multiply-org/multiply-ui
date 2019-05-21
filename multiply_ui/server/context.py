@@ -1,13 +1,10 @@
 from typing import Optional, List
 
 from .model import Job
-from .controllers.controller import Controller
-
 
 class ServiceContext:
     def __init__(self):
         self._jobs = {}
-        self.controller = Controller()
 
     def new_job(self, duration: int) -> Job:
         job = Job(duration)

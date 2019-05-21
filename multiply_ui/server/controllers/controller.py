@@ -1,8 +1,6 @@
 import json
+import pkg_resources
 
-
-class Controller(object):
-
-    def get_parameters(self):
-        with open('test/test_data/example_parameters.json') as f:
-            return json.load(f)
+def get_parameters(ctx):
+    json_text = pkg_resources.resource_string("multiply_ui", "server/resources/processing-parameters.json")
+    return json.loads(json_text)

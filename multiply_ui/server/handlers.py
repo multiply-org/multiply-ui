@@ -6,8 +6,7 @@ import tornado.escape
 import tornado.web
 
 from .context import ServiceContext
-
-from multiply_ui.server.controllers.controller import Controller
+from .controllers import controller
 
 _EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
@@ -82,7 +81,7 @@ class ServiceRequestHandler(tornado.web.RequestHandler):
 class GetParametersHandler(ServiceRequestHandler):
     def get(self):
         self.set_header('Content-Type', 'application/json')
-        parameters = self.ctx.controller.get_parameters()
+        parameters = controller.get_parameters(self.ctx)
         json.dump(parameters, self)
 
 
