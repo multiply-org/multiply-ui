@@ -1,0 +1,111 @@
+{
+  "inputTypes": [
+    {
+      "id": "S2_L1C",
+      "name": "Sentinel-2 MSI L1C",
+      "timeRange": ["06-23-2015", null]
+    }
+  ],
+  "variables": [
+    {
+      "id": "lai",
+      "name": "Effective Leaf Area Index",
+      "unit": "m2/m2",
+      "description": "Effective Leaf Area Index",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "cab",
+      "name": "Leaf Chlorophyll Content",
+      "unit": "ug/cm2",
+      "description": "Leaf Chlorophyll Content",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "cb",
+      "name": "Leaf Senescent Material",
+      "unit": "",
+      "description": "Leaf Senescent Material",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "car",
+      "name": "Leaf Carotonoid Content",
+      "unit": "ug/cm2",
+      "description": "Leaf Carotonoid Content",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "cw",
+      "name": "Leaf Water Content",
+      "unit": "cm",
+      "description": "Leaf Water Content",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "cdm",
+      "name": "Leaf Dry Mass",
+      "unit": "g/cm2",
+      "description": "Leaf Dry Mass",
+      "valueRange": "",
+      "applications": [],
+      "forwardModels": ["s2_prosail"]
+    },
+    {
+      "id": "n",
+      "name": "Leaf Structure Parameter",
+      "unit": "",
+      "description": "Leaf Structure Parameter",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "ala",
+      "name": "Average Leaf Angle",
+      "unit": "degrees",
+      "description": "Average Leaf Angle",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "bsoil",
+      "name": "Soil Brightness",
+      "unit": "",
+      "description": "Soil Brightness Parameter",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "psoil",
+      "name": "Soil Wetness",
+      "unit": "",
+      "description": "Soil Wetness Parameter",
+      "valueRange": "",
+      "applications": []
+    },
+    {
+      "id": "GeoCBI",
+      "name": "Geometrically Structured Composite Burned Index",
+      "unit": "",
+      "description": "It is a measure of burned severity fire in terms of the level of damage of vegetation and substrate after a wildfire is fully extinguished. GeoCBI is a modified version of CBI that takes into account the fraction of cover of the different vegetation strata used to compute the CBI.",
+      "valueRange": "0 (unburned) - 3 (completely burned)",
+      "applications": ["Burned Area Discrimination", "Fire Severity Estimation"]
+    }
+  ],
+  "forwardModels": [
+    {
+      "id": "s2_prosail",
+      "name": "PROSAIL for Sentinel-2",
+      "description": "Coupling of PROSPECT leaf optical properties model and SAIL canopy bidirectional reflectance model. It links the spectral variation of canopy reflectance, which is mainly related to leaf biochemical contents, with its directional variation, which is primarily related to canopy architecture and soil/vegetation contrast.",
+      "modelAuthor": "",
+      "modelurl": "http://teledetection.ipgp.jussieu.fr/prosail/",
+      "inputType": "S2_L1C",
+      "variables": ["n", "cab", "car", "cb", "cw", "cm", "lai", "ala", "bsoil", "psoil"]
+    }
+  ]
+}
