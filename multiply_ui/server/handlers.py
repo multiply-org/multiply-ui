@@ -6,7 +6,7 @@ import tornado.escape
 import tornado.web
 
 from .context import ServiceContext
-from .controllers import controller
+from multiply_ui.server import controller
 
 _EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
