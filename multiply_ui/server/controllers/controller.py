@@ -20,5 +20,5 @@ class Controller(object):
             Controller.__instance = self
 
     def get_parameters(self):
-        with open('variables-test.json') as f:
+        with open('test/test_data/example_parameters.json') as f:
             return json.load(f)
