@@ -23,7 +23,7 @@
       "description": "Leaf Chlorophyll Content",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "cb",
@@ -32,7 +32,7 @@
       "description": "Leaf Senescent Material",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "car",
@@ -41,8 +41,7 @@
       "description": "Leaf Carotonoid Content",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
-
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "cw",
@@ -51,7 +50,7 @@
       "description": "Leaf Water Content",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "cdm",
@@ -60,7 +59,7 @@
       "description": "Leaf Dry Mass",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "n",
@@ -69,7 +68,7 @@
       "description": "Leaf Structure Parameter",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "ala",
@@ -78,16 +77,7 @@
       "description": "Average Leaf Angle",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
-    },
-    {
-      "id": "h",
-      "name": "Hotspot Parameter",
-      "unit": "",
-      "description": "Hotspot Parameter",
-      "valueRange": "",
-      "applications": [],
-      "forward_models": ["s2_prosail"]
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "bsoil",
@@ -96,7 +86,7 @@
       "description": "Soil Brightness Parameter",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "psoil",
@@ -105,7 +95,7 @@
       "description": "Soil Wetness Parameter",
       "valueRange": "",
       "applications": [],
-      "forward_models": ["s2_prosail"]
+      "forwardModels": ["s2_prosail"]
     },
     {
       "id": "GeoCBI",
@@ -114,7 +104,7 @@
       "description": "It is a measure of burned severity fire in terms of the level of damage of vegetation and substrate after a wildfire is fully extinguished. GeoCBI is a modified version of CBI that takes into account the fraction of cover of the different vegetation strata used to compute the CBI.",
       "valueRange": "0 (unburned) - 3 (completely burned)",
       "applications": ["Burned Area Discrimination", "Fire Severity Estimation"],
-      "forward_models": []
+      "forwardModels": []
     }
   ],
   "forwardModels": [
@@ -122,9 +112,10 @@
       "id": "s2_prosail",
       "name": "PROSAIL for Sentinel-2",
       "description": "Coupling of PROSPECT leaf optical properties model and SAIL canopy bidirectional reflectance model. It links the spectral variation of canopy reflectance, which is mainly related to leaf biochemical contents, with its directional variation, which is primarily related to canopy architecture and soil/vegetation contrast.",
-      "url": "http://teledetection.ipgp.jussieu.fr/prosail/",
+      "modelAuthor": "",
+      "modelurl": "http://teledetection.ipgp.jussieu.fr/prosail/",
       "inputType": "S2_L1C",
-      "variables": ["n", "cab", "car", "cbrown", "cw", "cm", "lai", "ala", "bsoil", "psoil"]
+      "variables": ["n", "cab", "car", "cb", "cw", "cm", "lai", "ala", "bsoil", "psoil"]
     }
   ]
 }
