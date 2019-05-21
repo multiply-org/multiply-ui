@@ -86,6 +86,15 @@ class GetParametersHandler(ServiceRequestHandler):
 
 
 # noinspection PyAbstractClass
+class GetRequestHandler(ServiceRequestHandler):
+    def post(self):
+        self.set_header('Content-Type', 'application/json')
+        parameters = self.get_body_as_json_object()
+        request = controller.get_request(self.ctx, parameters)
+        json.dump(request, self)
+
+
+# noinspection PyAbstractClass
 class ExecuteHandler(ServiceRequestHandler):
     def get(self):
         duration = int(self.get_query_argument("duration"))
