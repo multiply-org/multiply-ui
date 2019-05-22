@@ -53,8 +53,7 @@
       "unit": "g/cm2",
       "description": "Leaf Dry Mass",
       "valueRange": "",
-      "applications": [],
-      "forwardModels": ["s2_prosail"]
+      "applications": []
     },
     {
       "id": "n",
@@ -105,7 +104,7 @@
       "modelAuthors": "",
       "modelUrl": "http://teledetection.ipgp.jussieu.fr/prosail/",
       "inputType": "S2_L1C",
-      "variables": ["n", "cab", "car", "cb", "cw", "cm", "lai", "ala", "bsoil", "psoil"]
+      "variables": ["n", "cab", "car", "cb", "cw", "cdm", "lai", "ala", "bsoil", "psoil"]
     }
   ]
 }

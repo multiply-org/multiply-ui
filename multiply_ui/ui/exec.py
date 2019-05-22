@@ -1,11 +1,11 @@
-import json
-import urllib.error
-import urllib.request
-from typing import Dict, List, Any, Optional, Union
-from IPython.display import display
 import threading
 import time
+from typing import Dict, List, Optional, Union
+
 import ipywidgets
+from IPython.display import display
+
+from ..util.callapi import call_api
 
 URL_BASE = "http://localhost:9090/"
 
@@ -40,6 +40,7 @@ def job_monitor():
         progress_bars.append(progress)
         status_labels.append(status_label)
         boxes.append(box)
+
     def monitor(boxes, progress_bars, status_labels):
         while True:
             job_status_list = Job.get_all().get_as_dict_list()
@@ -70,23 +71,11 @@ def job_monitor():
                     status_labels.append(status_label)
                     boxes.append(box)
             time.sleep(0.5)
+
     job_monitor = ipywidgets.VBox(boxes)
     monitor_thread = threading.Thread(target=monitor, args=(boxes, progress_bars, status_labels))
     display(job_monitor)
     monitor_thread.start()
-
-
-def _call_api(url: str, apply_func=None) -> Any:
-    try:
-        with urllib.request.urlopen(url) as response:
-            json_obj = json.loads(response.read())
-            return apply_func(json_obj) if apply_func is not None else json_obj
-    except urllib.error.HTTPError as e:
-        print(f"Server error: {e}")
-        return None
-    except urllib.error.URLError as e:
-        print(f"Connection error: {e}")
-        return None
 
 
 class Result:
@@ -201,41 +190,42 @@ class Job:
         def apply_func(json_obj: Dict):
             return Job(json_obj["id"])
 
-        return _call_api(JOB_EXECUTE_URL.format(duration=duration), apply_func)
+        return call_api(JOB_EXECUTE_URL.format(duration=duration), apply_func)
 
     @classmethod
     def get_all(cls) -> JobStatusList:
         def apply_func(json_obj: Dict):
             return JobStatusList(json_obj["jobs"])
 
-        return _call_api(JOB_LIST_URL, apply_func)
+        return call_api(JOB_LIST_URL, apply_func)
 
     @classmethod
     def num_jobs(cls) -> int:
         def apply_func(json_obj: Dict):
             return len(json_obj["jobs"])
 
-        return _call_api(JOB_LIST_URL, apply_func)
+        return call_api(JOB_LIST_URL, apply_func)
 
     def cancel(self) -> JobStatus:
-        return _call_api(JOB_CANCEL_URL.format(job_id=self._id), JobStatus)
+        return call_api(JOB_CANCEL_URL.format(job_id=self._id), JobStatus)
 
     def result(self, parameter: Union[str, int]) -> Result:
-        return _call_api(RESULT_URL.format(job_id=self._id, parameter=parameter), Result)
+        return call_api(RESULT_URL.format(job_id=self._id, parameter=parameter), Result)
 
     @property
     def status(self) -> JobStatus:
-        return _call_api(JOB_STATUS_URL.format(job_id=self._id), JobStatus)
+        return call_api(JOB_STATUS_URL.format(job_id=self._id), JobStatus)
 
     @property
     def progress(self) -> float:
         def apply_func(job_status_dict: Dict) -> float:
             return job_status_dict["progress"]
-        return _call_api(JOB_STATUS_URL.format(job_id=self._id), apply_func)
+
+        return call_api(JOB_STATUS_URL.format(job_id=self._id), apply_func)
 
     @property
     def results(self) -> Optional[ResultGroup]:
-        return _call_api(JOB_RESULTS_URL.format(job_id=self._id), ResultGroup)
+        return call_api(JOB_RESULTS_URL.format(job_id=self._id), ResultGroup)
 
     def _repr_html_(self):
         return f"<h4>Job #{self._id}</h4>"
