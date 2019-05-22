@@ -1,11 +1,19 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
+from multiply_ui.ui.html import html_table, html_tag
 from ..util.callapi import call_api
 from ..util.schema import PropertyDef, TypeDef
 
 URL_BASE = "http://localhost:9090/"
 
 GET_PROC_PARAMS_URL = URL_BASE + "multiply/api/processing/parameters"
+
+
+def get_processing_parameters():
+    def apply_func(json_obj: Dict) -> ProcessingParameters:
+        return ProcessingParameters(json_obj)
+
+    return call_api(GET_PROC_PARAMS_URL, apply_func)
 
 
 class Variable:
@@ -32,29 +40,12 @@ class Variable:
         return self.html_table([self])
 
     @classmethod
-    def html_table(cls, variables: List['Variable']):
-        table_header = (f"<tr>"
-                        f"<th>Variable ID</th>"
-                        f"<th>Name</th>"
-                        f"<th>Units</th>"
-                        f"<th>Description</th>"
-                        f"</tr>")
+    def html_table(cls, variables: List['Variable'], title=None):
+        def data_row(variable: Variable):
+            return [variable.id, variable.name, variable.unit, variable.description]
 
-        table_rows = []
-        for variable in variables:
-            table_rows.append(f"<tr>"
-                              f"<td>{variable.id}</td>"
-                              f"<td>{variable.name}</td>"
-                              f"<td>{variable.unit}</td>"
-                              f"<td>{variable.description}</td>"
-                              f"</tr>")
-
-        return (
-            f"<table>"
-            f"  {table_header}"
-            f"  {''.join(table_rows)}"
-            f"</table>"
-        )
+        data_rows = list(map(data_row, variables))
+        return html_table(data_rows, header_row=['Id', 'Name', 'Units', 'Description'], title=title)
 
 
 class Variables:
@@ -69,7 +60,7 @@ class Variables:
         return self._variables[var_id]
 
     def _repr_html_(self):
-        return Variable.html_table(list(self._variables.values()))
+        return Variable.html_table(list(self._variables.values()), title='Variables')
 
 
 class ForwardModel:
@@ -90,7 +81,7 @@ class ForwardModel:
 
     @property
     def model_authors(self) -> Optional[str]:
-        return self._data['modelAuthors']
+        return self._data['modelAuthor']
 
     @property
     def model_url(self) -> Optional[str]:
@@ -100,31 +91,17 @@ class ForwardModel:
         return self.html_table([self])
 
     @classmethod
-    def html_table(cls, items: List['ForwardModel']):
-        table_header = (f"<tr>"
-                        f"<th>Forward Model ID</th>"
-                        f"<th>Name</th>"
-                        f"<th>Description</th>"
-                        f"<th>Author(s)</th>"
-                        f"<th>URL</th>"
-                        f"</tr>")
+    def html_table(cls, items: List['ForwardModel'], title=None):
+        def anchor(item: str):
+            return html_tag('a', value='More...', attributes=dict(href=item))
 
-        table_rows = []
-        for item in items:
-            table_rows.append(f"<tr>"
-                              f"<td>{item.id}</td>"
-                              f"<td>{item.name}</td>"
-                              f"<td>{item.description}</td>"
-                              f"<td>{item.model_authors}</td>"
-                              f"<td>{item.model_url}</td>"
-                              f"</tr>")
+        def data_row(item: ForwardModel):
+            return [item.id, item.name, item.description, item.model_authors, item.model_url]
 
-        return (
-            f"<table>"
-            f"  {table_header}"
-            f"  {''.join(table_rows)}"
-            f"</table>"
-        )
+        return html_table(list(map(data_row, items)),
+                          header_row=['Id', 'Name', 'Description', 'Author(s)', ''],
+                          title=title,
+                          converters={4: anchor})
 
 
 class ForwardModels:
@@ -139,14 +116,51 @@ class ForwardModels:
         return self._forward_models[fm_id]
 
     def _repr_html_(self):
-        return ForwardModel.html_table(list(self._forward_models.values()))
+        return ForwardModel.html_table(list(self._forward_models.values()), title="Forward Models")
 
 
-def get_proc_params():
-    def apply_func(json_obj: Dict) -> ProcessingParameters:
-        return ProcessingParameters(json_obj)
+class InputType:
+    def __init__(self, data: Dict[str, Any]):
+        self._data = data
 
-    return call_api(GET_PROC_PARAMS_URL, apply_func)
+    @property
+    def id(self) -> str:
+        return self._data['id']
+
+    @property
+    def name(self) -> str:
+        return self._data['name']
+
+    @property
+    def time_range(self) -> Tuple[Optional[str], Optional[str]]:
+        return self._data['timeRange'][0], self._data['timeRange'][1]
+
+    def _repr_html_(self):
+        return self.html_table([self])
+
+    @classmethod
+    def html_table(cls, items: List['InputType'], title=None):
+        def data_row(item: InputType):
+            return [item.id, item.name, item.time_range]
+
+        return html_table(list(map(data_row, items)),
+                          header_row=['Id', 'Name', 'Time Range'],
+                          title=title)
+
+
+class InputTypes:
+    def __init__(self, input_types: Dict[str, InputType]):
+        self._input_types = input_types
+
+    @property
+    def ids(self) -> List[str]:
+        return list(self._input_types.keys())
+
+    def get(self, it_id: str) -> InputType:
+        return self._input_types[it_id]
+
+    def _repr_html_(self):
+        return InputType.html_table(list(self._input_types.values()), title="Input Types")
 
 
 class ProcessingParameters:
@@ -171,7 +185,7 @@ class ProcessingParameters:
                     variable['forwardModels'] = []
                 variable['forwardModels'].append(forward_model['id'])
 
-        self._input_types = {input_type['id']: input_type for input_type in input_types}
+        self._input_types = InputTypes({input_type['id']: InputType(input_type) for input_type in input_types})
         self._forward_models = ForwardModels({forward_model['id']: ForwardModel(forward_model)
                                               for forward_model in forward_models})
         self._variables = Variables({variable['id']: Variable(variable)
@@ -185,11 +199,17 @@ class ProcessingParameters:
     def forward_models(self) -> ForwardModels:
         return self._forward_models
 
+    @property
+    def input_types(self) -> InputTypes:
+        return self._input_types
+
+
+TIME_RANGE_TYPE = TypeDef(list, item_type=TypeDef(str, optional=True), num_items=2)
 
 INPUT_TYPES_TYPE = TypeDef(dict, properties=[
     PropertyDef('id', TypeDef(str)),
     PropertyDef('name', TypeDef(str)),
-    PropertyDef('timeRange', TypeDef(list)),
+    PropertyDef('timeRange', TIME_RANGE_TYPE),
 ])
 
 VARIABLE_TYPE = TypeDef(dict, properties=[

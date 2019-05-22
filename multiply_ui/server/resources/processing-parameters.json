@@ -94,14 +94,6 @@
       "description": "It is a measure of burned severity fire in terms of the level of damage of vegetation and substrate after a wildfire is fully extinguished. GeoCBI is a modified version of CBI that takes into account the fraction of cover of the different vegetation strata used to compute the CBI.",
       "valueRange": "0 (unburned) - 3 (completely burned)",
       "applications": ["Burned Area Discrimination", "Fire Severity Estimation"]
-    },
-    {
-      "id": "cm",
-      "name": "?",
-      "unit": "?",
-      "description": "?",
-      "valueRange": "?",
-      "applications": []
     }
   ],
   "forwardModels": [
@@ -112,7 +104,7 @@
       "modelAuthor": "",
       "modelurl": "http://teledetection.ipgp.jussieu.fr/prosail/",
       "inputType": "S2_L1C",
-      "variables": ["n", "cab", "car", "cb", "cw", "cm", "lai", "ala", "bsoil", "psoil"]
+      "variables": ["n", "cab", "car", "cb", "cw", "cdm", "lai", "ala", "bsoil", "psoil"]
     }
   ]
 }

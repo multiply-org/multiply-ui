@@ -6,10 +6,15 @@ class TypeDef:
                  data_type: Type[Any] = str,
                  optional: bool = False,
                  item_type: 'TypeDef' = None,
+                 num_items: int = None,
+                 num_items_min: int = None,
+                 num_items_max: int = None,
                  properties: List['PropertyDef'] = None):
         self._data_type = data_type
         self._optional = optional
         self._item_type = item_type
+        self._num_items_min = num_items_min if num_items_min is not None else num_items
+        self._num_items_max = num_items_max if num_items_max is not None else num_items
         self._properties = properties
 
     @property
@@ -44,7 +49,19 @@ class TypeDef:
         elif isinstance(value, dict) and self._properties is not None:
             self._validate_dict(value, prefix)
 
-    def _validate_list(self, value, prefix):
+    def _validate_list(self, value: List[Any], prefix):
+        if self._num_items_min is not None or self._num_items_max is not None:
+            num_items = len(value)
+            if self._num_items_min == self._num_items_max and num_items != self._num_items_min:
+                raise ValueError(f'{prefix}number of items must be {self._num_items_min}, '
+                                 f'but was {num_items}')
+            if self._num_items_min is not None and len(value) < self._num_items_min:
+                raise ValueError(f'{prefix}number of items must not be less than {self._num_items_min}, '
+                                 f'but was {num_items}')
+            if self._num_items_max is not None and len(value) > self._num_items_max:
+                raise ValueError(f'{prefix}number of items must not be greater than {self._num_items_max}, '
+                                 f'but was {num_items}')
+
         index = 0
         for item in value:
             self._item_type.validate(item, prefix=prefix + f'index {index}: ')
@@ -61,7 +78,7 @@ class TypeDef:
         if len(illegal_property_names) == 1:
             raise ValueError(f'{prefix}unexpected property {list(illegal_property_names)[0]!r} found')
         elif len(illegal_property_names) > 1:
-            raise ValueError(f'{prefix}unexpected properties found: {list(illegal_property_names)!r}')
+            raise ValueError(f'{prefix}unexpected properties found: {sorted(list(illegal_property_names))!r}')
 
 
 class PropertyDef:

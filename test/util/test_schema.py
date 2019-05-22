@@ -48,6 +48,21 @@ class TypeDefTest(unittest.TestCase):
         self.assertEqual('index 2: value is not optional, but found null',
                          f'{cm.exception}')
 
+        with self.assertRaises(ValueError) as cm:
+            TypeDef(list, item_type=TypeDef(int), num_items=3).validate([1, 2])
+        self.assertEqual('number of items must be 3, but was 2',
+                         f'{cm.exception}')
+
+        with self.assertRaises(ValueError) as cm:
+            TypeDef(list, item_type=TypeDef(int), num_items_min=3).validate([1, 2])
+        self.assertEqual('number of items must not be less than 3, but was 2',
+                         f'{cm.exception}')
+
+        with self.assertRaises(ValueError) as cm:
+            TypeDef(list, item_type=TypeDef(int), num_items_max=3).validate([1, 2, 3, 4])
+        self.assertEqual('number of items must not be greater than 3, but was 4',
+                         f'{cm.exception}')
+
     def test_dict(self):
         self.assertIsNone(TypeDef(dict, optional=True).validate(None))
         self.assertIsNone(TypeDef(dict).validate({}))
