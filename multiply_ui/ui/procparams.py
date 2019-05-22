@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional, Tuple
 
-from multiply_ui.ui.html import html_table, html_tag
+from ..util.html import html_table, html_element
 from ..util.callapi import call_api
 from ..util.schema import PropertyDef, TypeDef
 
@@ -93,7 +93,7 @@ class ForwardModel:
     @classmethod
     def html_table(cls, items: List['ForwardModel'], title=None):
         def anchor(item: str):
-            return html_tag('a', value='More...', attributes=dict(href=item))
+            return html_element('a', value='More...', attributes=dict(href=item))
 
         def data_row(item: ForwardModel):
             return [item.id, item.name, item.description, item.model_authors, item.model_url]
@@ -101,7 +101,7 @@ class ForwardModel:
         return html_table(list(map(data_row, items)),
                           header_row=['Id', 'Name', 'Description', 'Author(s)', ''],
                           title=title,
-                          converters={4: anchor})
+                          col_converter={4: anchor})
 
 
 class ForwardModels:
