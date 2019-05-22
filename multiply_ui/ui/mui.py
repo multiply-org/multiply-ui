@@ -1,8 +1,15 @@
 from .procparams import get_processing_parameters, ProcessingParameters, Variables, ForwardModels, InputTypes
-from .inputs import inputs_ui
+from .procreq import processing_request_ui
 
 
 class MultiplyUI:
+    """
+    Main interface users will interact within in a Jupyter Notebook.
+
+    Property and method names are intentionally short
+    so they can be remembered and quickly typed into a notebook.
+    """
+
     def __init__(self):
         self._processing_parameters = None
 
@@ -24,8 +31,8 @@ class MultiplyUI:
     def itypes(self) -> InputTypes:
         return self.processing_parameters.input_types
 
-    def inputs(self):
-        return inputs_ui(self.processing_parameters)
+    def proc_req_ui(self):
+        return processing_request_ui(self.processing_parameters)
 
 
 mui = MultiplyUI()

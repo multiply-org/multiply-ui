@@ -1,16 +1,17 @@
 import datetime
-import ipywidgets as widgets
-from typing import List
+from typing import List, Dict
 
-from multiply_ui.util.callapi import call_api
+import ipywidgets as widgets
+
 from ..ui.procparams import ProcessingParameters
+from ..util.callapi import call_api
 
 URL_BASE = "http://localhost:9090/"
 
 GET_INPUTS_URL = URL_BASE + "multiply/api/processing/inputs"
 
 
-def inputs_ui(processing_parameters: ProcessingParameters):
+def processing_request_ui(processing_parameters: ProcessingParameters):
     form_item_layout = widgets.Layout(
         display='flex',
         flex_flow='row',
@@ -55,16 +56,17 @@ def inputs_ui(processing_parameters: ProcessingParameters):
         inputs_request = dict(
             requestName=request_name.value,
             timeRange=[start_date.value, end_date.value],
-            regionBBox=[lon_range.value[0], lat_range.value[0], lon_range.value[1], lat_range.value[1]]
+            regionBox=[lon_range.value[0], lat_range.value[0], lon_range.value[1], lat_range.value[1]]
         )
-        def apply(inputs_response):
+
+        def apply_func(inputs_response: Dict):
             # TODO: merge inputs_response with variables, fmodels, etc to create a processing request
             # TODO: insert new cell that contains a NB variable whose value is of type ProcessingRequest
             #  that can render HTML
             # TODO: Users can later call the GUI with that object to edit it
-            pass
-        call_api(GET_INPUTS_URL, apply_func=apply)
-        #globals()[request_name.value] = inputs_request
+            print(inputs_response)
+
+        call_api(GET_INPUTS_URL, apply_func=apply_func)
 
     new_button = widgets.Button(description="New", icon="search")
     new_button.on_click(handle_new_button_clicked)
