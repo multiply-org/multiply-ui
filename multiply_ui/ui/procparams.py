@@ -142,14 +142,14 @@ class ForwardModels:
         return ForwardModel.html_table(list(self._forward_models.values()))
 
 
+def get_proc_params():
+    def apply_func(json_obj: Dict) -> ProcessingParameters:
+        return ProcessingParameters(json_obj)
+
+    return call_api(GET_PROC_PARAMS_URL, apply_func)
+
+
 class ProcessingParameters:
-
-    @classmethod
-    def load(cls):
-        def apply_func(json_obj: Dict) -> ProcessingParameters:
-            return ProcessingParameters(json_obj)
-
-        return call_api(GET_PROC_PARAMS_URL, apply_func)
 
     def __init__(self, raw_data):
 
