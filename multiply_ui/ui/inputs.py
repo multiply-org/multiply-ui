@@ -1,11 +1,16 @@
 import datetime
-
 import ipywidgets as widgets
+from typing import List
 
+from multiply_ui.util.callapi import call_api
 from ..ui.procparams import ProcessingParameters
 
+URL_BASE = "http://localhost:9090/"
 
-def processsing_request_ui(processing_parameters: ProcessingParameters):
+GET_INPUTS_URL = URL_BASE + "multiply/api/processing/inputs"
+
+
+def inputs_ui(processing_parameters: ProcessingParameters):
     form_item_layout = widgets.Layout(
         display='flex',
         flex_flow='row',
@@ -17,23 +22,8 @@ def processsing_request_ui(processing_parameters: ProcessingParameters):
         justify_content='center',
     )
 
-    num_cols = 4
-    v_box_item_lists = [[] for i in range(num_cols)]
-    index = 0
-    for var_id in processing_parameters.variables.ids:
-        col = index % num_cols
-        v_box_item_lists[col].append(widgets.Checkbox(
-            value=False,
-            description=var_id,
-            disabled=False
-        ))
-        # left_box = widgets.VBox([items[0], items[1]])
-        index += 1
-
-    v_boxes = []
-    for v_box_item_list in v_box_item_lists:
-        v_boxes.append(widgets.VBox(v_box_item_list))
-    h_box = widgets.HBox(v_boxes)
+    variables_box = _get_checkbox_list(processing_parameters.variables.ids)
+    forward_models_box = _get_checkbox_list(processing_parameters.forward_models.ids)
 
     # output_variables =
 
@@ -61,20 +51,28 @@ def processsing_request_ui(processing_parameters: ProcessingParameters):
 
     # noinspection PyUnusedLocal
     def handle_new_button_clicked(*args, **kwargs):
-        processing_request_request = dict(
+        print("Heeelllooooooo!!!!" * 10)
+        inputs_request = dict(
             requestName=request_name.value,
             timeRange=[start_date.value, end_date.value],
             regionBBox=[lon_range.value[0], lat_range.value[0], lon_range.value[1], lat_range.value[1]]
         )
-        # TODO: call_api()
+        def apply(inputs_response):
+            # TODO: merge inputs_response with variables, fmodels, etc to create a processing request
+            # TODO: insert new cell that contains a NB variable whose value is of type ProcessingRequest
+            #  that can render HTML
+            # TODO: Users can later call the GUI with that object to edit it
+            pass
+        call_api(GET_INPUTS_URL, apply_func=apply)
+        #globals()[request_name.value] = inputs_request
 
     new_button = widgets.Button(description="New", icon="search")
     new_button.on_click(handle_new_button_clicked)
     form_items = [
         widgets.Box([widgets.Label(value='Output variables')], layout=form_item_layout),
-        widgets.Box([h_box], layout=var_checks_layout),
+        widgets.Box([variables_box], layout=var_checks_layout),
         widgets.Box([widgets.Label(value='Forward models')], layout=form_item_layout),
-        widgets.Box([h_box], layout=var_checks_layout),
+        widgets.Box([forward_models_box], layout=var_checks_layout),
         widgets.Box([widgets.Label(value='Start date'), start_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='End date'), end_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Longitude'), lon_range], layout=form_item_layout),
@@ -92,3 +90,22 @@ def processsing_request_ui(processing_parameters: ProcessingParameters):
     ))
 
     return form
+
+
+def _get_checkbox_list(ids: List[str]) -> widgets.HBox:
+    num_cols = 4
+    v_box_item_lists = [[] for i in range(num_cols)]
+    index = 0
+    for var_id in ids:
+        col = index % num_cols
+        v_box_item_lists[col].append(widgets.Checkbox(
+            value=False,
+            description=var_id,
+            disabled=False
+        ))
+        index += 1
+
+    v_boxes = []
+    for v_box_item_list in v_box_item_lists:
+        v_boxes.append(widgets.VBox(v_box_item_list))
+    return widgets.HBox(v_boxes)
