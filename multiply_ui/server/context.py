@@ -8,9 +8,9 @@ class ServiceContext:
     def __init__(self):
         self._jobs = {}
         self.data_access_component = multiply_data_access.data_access_component.DataAccessComponent()
-        self._get_mundi_datastore()
+        self._restrict_to_mundi_datastore()
 
-    def _get_mundi_datastore(self):
+    def _restrict_to_mundi_datastore(self):
         for data_store in self.data_access_component._data_stores:
             if data_store._id == "Mundi":
                 self.data_access_component._data_stores = [data_store]
