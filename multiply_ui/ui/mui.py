@@ -1,4 +1,5 @@
-from multiply_ui.ui.procparams import get_processing_parameters, ProcessingParameters, Variables, ForwardModels, InputTypes
+from .procparams import get_processing_parameters, ProcessingParameters, Variables, ForwardModels, InputTypes
+from .procreq import processsing_request_ui
 
 
 class MultiplyUI:
@@ -22,6 +23,9 @@ class MultiplyUI:
     @property
     def itypes(self) -> InputTypes:
         return self.processing_parameters.input_types
+
+    def procreq(self):
+        return processsing_request_ui(self.processing_parameters)
 
 
 mui = MultiplyUI()
