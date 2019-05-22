@@ -17,3 +17,4 @@ def test_get_request():
     assert "request-1" == request["request"]["id"]
     assert 50 == len(request["request"]["productIdentifiers"]["S2_L1C"])
 
+
