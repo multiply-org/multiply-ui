@@ -10,6 +10,7 @@ class ServiceContext:
         self.data_access_component = multiply_data_access.data_access_component.DataAccessComponent()
         self._restrict_to_mundi_datastore()
 
+    # TODO: require an interface of data access to select data stores to be used
     def _restrict_to_mundi_datastore(self):
         for data_store in self.data_access_component._data_stores:
             if data_store._id == "Mundi":
