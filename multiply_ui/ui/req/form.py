@@ -3,12 +3,8 @@ from typing import List, Dict
 
 import ipywidgets as widgets
 
-from ..ui.procparams import ProcessingParameters
-from ..util.callapi import call_api
-
-URL_BASE = "http://localhost:9090/"
-
-GET_INPUTS_URL = URL_BASE + "multiply/api/processing/inputs"
+from .api import get_inputs
+from ..params.model import ProcessingParameters
 
 
 def sel_params_form(processing_parameters: ProcessingParameters):
@@ -52,7 +48,6 @@ def sel_params_form(processing_parameters: ProcessingParameters):
 
     # noinspection PyUnusedLocal
     def handle_new_button_clicked(*args, **kwargs):
-        print("Heeelllooooooo!!!!" * 10)
         inputs_request = dict(
             requestName=request_name.value,
             timeRange=[start_date.value, end_date.value],
@@ -66,9 +61,9 @@ def sel_params_form(processing_parameters: ProcessingParameters):
             # TODO: Users can later call the GUI with that object to edit it
             print(inputs_response)
 
-        call_api(GET_INPUTS_URL, apply_func=apply_func)
+        get_inputs(inputs_request, apply_func=apply_func)
 
-    new_button = widgets.Button(description="New", icon="search")
+    new_button = widgets.Button(description="New Request", icon="search")
     new_button.on_click(handle_new_button_clicked)
     form_items = [
         widgets.Box([widgets.Label(value='Output variables')], layout=form_item_layout),

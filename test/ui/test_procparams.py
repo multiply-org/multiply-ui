@@ -3,7 +3,7 @@ import unittest
 
 import pkg_resources
 
-from multiply_ui.ui.procparams import ProcessingParameters, Variables, ForwardModels, InputTypes
+from multiply_ui.ui.params.model import ProcessingParameters, Variables, ForwardModels, InputTypes
 
 RAW_DATA = json.loads(pkg_resources.resource_string("multiply_ui", "server/resources/processing-parameters.json"))
 

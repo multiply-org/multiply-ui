@@ -1,19 +1,7 @@
 from typing import Dict, Any, List, Optional, Tuple
 
-from ..util.html import html_table, html_element
-from ..util.callapi import call_api
-from ..util.schema import PropertyDef, TypeDef
-
-URL_BASE = "http://localhost:9090/"
-
-GET_PROC_PARAMS_URL = URL_BASE + "multiply/api/processing/parameters"
-
-
-def get_processing_parameters():
-    def apply_func(json_obj: Dict) -> ProcessingParameters:
-        return ProcessingParameters(json_obj)
-
-    return call_api(GET_PROC_PARAMS_URL, apply_func)
+from ...util.html import html_table, html_element
+from ...util.schema import PropertyDef, TypeDef
 
 
 class Variable:

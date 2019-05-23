@@ -1,5 +1,6 @@
-from .procparams import get_processing_parameters, ProcessingParameters, Variables, ForwardModels, InputTypes
-from .procreq import sel_params_form
+from .params.api import get_processing_parameters
+from .params.model import ProcessingParameters, Variables, ForwardModels, InputTypes
+from .req.form import sel_params_form
 
 
 class MultiplyUI:
