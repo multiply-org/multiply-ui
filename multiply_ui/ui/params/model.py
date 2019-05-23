@@ -154,7 +154,8 @@ class InputType:
 
     @property
     def time_range(self) -> Tuple[Optional[str], Optional[str]]:
-        return self._data['timeRange'][0], self._data['timeRange'][1]
+        start, stop = self._data['timeRange']
+        return start, stop
 
     def _repr_html_(self):
         return self.html_table([self])

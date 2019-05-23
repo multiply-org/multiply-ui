@@ -1,4 +1,4 @@
-from .params.api import get_processing_parameters
+from .params.api import fetch_processing_parameters
 from .params.model import ProcessingParameters, Variables, ForwardModels, InputTypes
 from .req.form import sel_params_form
 
@@ -17,7 +17,7 @@ class MultiplyUI:
     @property
     def processing_parameters(self) -> ProcessingParameters:
         if self._processing_parameters is None:
-            self._processing_parameters = get_processing_parameters()
+            self._processing_parameters = fetch_processing_parameters()
         return self._processing_parameters
 
     @property

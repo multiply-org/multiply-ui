@@ -1,9 +1,10 @@
 import datetime
-from typing import List, Dict
+from typing import List
 
 import ipywidgets as widgets
 
-from .api import get_inputs
+from multiply_ui.ui.req.model import InputRequest, ProcessingRequest
+from .api import fetch_inputs
 from ..params.model import ProcessingParameters
 
 
@@ -48,20 +49,24 @@ def sel_params_form(processing_parameters: ProcessingParameters):
 
     # noinspection PyUnusedLocal
     def handle_new_button_clicked(*args, **kwargs):
-        inputs_request = dict(
-            requestName=request_name.value,
+        # TODO: infer input types
+        input_types = ['S2_L1C']
+        x1, x2 = lon_range.value[0], lon_range.value[1]
+        y1, y2 = lat_range.value[0], lat_range.value[1]
+
+        inputs_request = InputRequest(dict(
+            name=request_name.value,
             timeRange=[start_date.value, end_date.value],
-            regionBox=[lon_range.value[0], lat_range.value[0], lon_range.value[1], lat_range.value[1]]
-        )
+            bbox=f'{x1},{y1},{x2},{y2}',
+            inputTypes=input_types,
+        ))
 
-        def apply_func(inputs_response: Dict):
-            # TODO: merge inputs_response with variables, fmodels, etc to create a processing request
-            # TODO: insert new cell that contains a NB variable whose value is of type ProcessingRequest
-            #  that can render HTML
+        def handle_processing_request(processing_request: ProcessingRequest):
+            # TODO: insert new cell that contains a NB variable whose value is processing_request
             # TODO: Users can later call the GUI with that object to edit it
-            print(inputs_response)
+            print(processing_request)
 
-        get_inputs(inputs_request, apply_func=apply_func)
+        fetch_inputs(inputs_request, apply_func=handle_processing_request)
 
     new_button = widgets.Button(description="New Request", icon="search")
     new_button.on_click(handle_new_button_clicked)
