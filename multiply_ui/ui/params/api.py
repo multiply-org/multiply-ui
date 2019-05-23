@@ -8,7 +8,7 @@ URL_BASE = "http://localhost:9090/"
 GET_PROC_PARAMS_URL = URL_BASE + "multiply/api/processing/parameters"
 
 
-def get_processing_parameters():
+def fetch_processing_parameters():
     def apply_func(json_obj: Dict) -> ProcessingParameters:
         return ProcessingParameters(json_obj)
 

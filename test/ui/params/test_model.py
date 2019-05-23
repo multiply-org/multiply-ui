@@ -12,7 +12,7 @@ class ProcessingParametersTest(unittest.TestCase):
 
     def test_instantiation_from_raw_data(self):
         proc_params = ProcessingParameters(RAW_DATA)
-        self.assertIsNotNone(proc_params)
+
         self.assertIsInstance(proc_params.variables, Variables)
         self.assertEqual(['lai', 'cab', 'cb', 'car', 'cw', 'cdm', 'n', 'ala', 'bsoil', 'psoil', 'GeoCBI'],
                          proc_params.variables.ids)
