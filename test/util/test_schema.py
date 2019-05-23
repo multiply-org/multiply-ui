@@ -67,48 +67,59 @@ class TypeDefTest(unittest.TestCase):
         self.assertIsNone(TypeDef(dict, optional=True).validate(None))
         self.assertIsNone(TypeDef(dict).validate({}))
         self.assertIsNone(TypeDef(dict).validate(dict(A=2, B='X')))
-        self.assertIsNone(TypeDef(dict, properties=[PropertyDef('A', TypeDef(int)),
-                                                    PropertyDef('B', TypeDef(str))]).validate(dict(A=2, B='X')))
+        self.assertIsNone(TypeDef(dict, item_type=TypeDef(int))
+                          .validate(dict(A=2, B=3)))
+        self.assertIsNone(TypeDef(dict, key_type=TypeDef(str))
+                          .validate(dict(A=2, B='X')))
+        self.assertIsNone(TypeDef(dict, key_type=TypeDef(str), item_type=TypeDef(int))
+                          .validate(dict(A=2, B=3)))
+
+    def test_object(self):
+        self.assertIsNone(TypeDef(object, optional=True).validate(None))
+        self.assertIsNone(TypeDef(object).validate({}))
+        self.assertIsNone(TypeDef(object).validate(dict(A=2, B='X')))
+        self.assertIsNone(TypeDef(object, properties=[PropertyDef('A', TypeDef(int)),
+                                                      PropertyDef('B', TypeDef(str))]).validate(dict(A=2, B='X')))
 
         with self.assertRaises(ValueError) as cm:
-            TypeDef(dict).validate(None)
+            TypeDef(object).validate(None)
         self.assertEqual('value is not optional, but found null',
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
-            TypeDef(dict).validate('bibo')
+            TypeDef(object).validate('bibo')
         self.assertEqual("value is expected to have type 'dict', but found type 'str'",
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
-            TypeDef(dict, properties=[PropertyDef('A', TypeDef(int)),
-                                      PropertyDef('B', TypeDef(str))]).validate(dict(A=1, B=2))
+            TypeDef(object, properties=[PropertyDef('A', TypeDef(int)),
+                                        PropertyDef('B', TypeDef(str))]).validate(dict(A=1, B=2))
         self.assertEqual("property 'B': value is expected to have type 'str', but found type 'int'",
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
-            TypeDef(dict, properties=[PropertyDef('A', TypeDef(int)),
-                                      PropertyDef('B', TypeDef(str))]).validate(dict(A=1, B='X', C=True))
+            TypeDef(object, properties=[PropertyDef('A', TypeDef(int)),
+                                        PropertyDef('B', TypeDef(str))]).validate(dict(A=1, B='X', C=True))
         self.assertEqual("unexpected property 'C' found",
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
-            TypeDef(dict, properties=[PropertyDef('A', TypeDef(int)),
-                                      PropertyDef('B', TypeDef(str))]).validate(dict(A=1, B='X', X=1.5, Y=9.1))
+            TypeDef(object, properties=[PropertyDef('A', TypeDef(int)),
+                                        PropertyDef('B', TypeDef(str))]).validate(dict(A=1, B='X', X=1.5, Y=9.1))
         self.assertEqual("unexpected properties found: ['X', 'Y']",
                          f'{cm.exception}')
 
-    def test_dict_in_list_in_dict(self):
+    def test_object_in_list_in_object(self):
         with self.assertRaises(ValueError) as cm:
-            TypeDef(dict, properties=[PropertyDef('A', TypeDef(int)),
-                                      PropertyDef('B',
-                                                  TypeDef(list, item_type=TypeDef(dict, properties=[
-                                                      PropertyDef('X', TypeDef(float)),
-                                                      PropertyDef('Y', TypeDef(float)),
-                                                  ])))]).validate(dict(A=1,
-                                                                       B=[dict(X=1.2, Y=5.2),
-                                                                          dict(X=2.3, Y=-4.8),
-                                                                          dict(X=2.3, Y='6.4')]))
+            TypeDef(object, properties=[PropertyDef('A', TypeDef(int)),
+                                        PropertyDef('B',
+                                                    TypeDef(list, item_type=TypeDef(object, properties=[
+                                                        PropertyDef('X', TypeDef(float)),
+                                                        PropertyDef('Y', TypeDef(float)),
+                                                    ])))]).validate(dict(A=1,
+                                                                         B=[dict(X=1.2, Y=5.2),
+                                                                            dict(X=2.3, Y=-4.8),
+                                                                            dict(X=2.3, Y='6.4')]))
         self.assertEqual("property 'B': index 2: property 'Y': "
                          "value is expected to have type 'float', but found type 'str'",
                          f'{cm.exception}')

@@ -3,6 +3,39 @@ from typing import Dict, Any, List, Optional, Tuple
 from ...util.html import html_table, html_element
 from ...util.schema import PropertyDef, TypeDef
 
+TIME_RANGE_TYPE = TypeDef(list, item_type=TypeDef(str, optional=True), num_items=2)
+
+INPUT_TYPES_TYPE = TypeDef(object, properties=[
+    PropertyDef('id', TypeDef(str)),
+    PropertyDef('name', TypeDef(str)),
+    PropertyDef('timeRange', TIME_RANGE_TYPE),
+])
+
+VARIABLE_TYPE = TypeDef(object, properties=[
+    PropertyDef('id', TypeDef(str)),
+    PropertyDef('name', TypeDef(str)),
+    PropertyDef('unit', TypeDef(str, optional=True)),
+    PropertyDef('description', TypeDef(str, optional=True)),
+    PropertyDef('valueRange', TypeDef(str, optional=True)),
+    PropertyDef('applications', TypeDef(list, optional=True, item_type=TypeDef(str))),
+])
+
+FORWARD_MODEL_TYPE = TypeDef(object, properties=[
+    PropertyDef('id', TypeDef(str)),
+    PropertyDef('name', TypeDef(str)),
+    PropertyDef('description', TypeDef(str, optional=True)),
+    PropertyDef('modelAuthor', TypeDef(str, optional=True)),
+    PropertyDef('modelurl', TypeDef(str, optional=True)),
+    PropertyDef('inputType', TypeDef(str)),
+    PropertyDef('variables', TypeDef(list, item_type=TypeDef(str))),
+])
+
+PARAMETERS_TYPE = TypeDef(object, properties=[
+    PropertyDef("inputTypes", TypeDef(list, item_type=INPUT_TYPES_TYPE)),
+    PropertyDef("variables", TypeDef(list, item_type=VARIABLE_TYPE)),
+    PropertyDef("forwardModels", TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
+])
+
 
 class Variable:
     def __init__(self, data: Dict[str, Any]):
@@ -190,37 +223,3 @@ class ProcessingParameters:
     @property
     def input_types(self) -> InputTypes:
         return self._input_types
-
-
-TIME_RANGE_TYPE = TypeDef(list, item_type=TypeDef(str, optional=True), num_items=2)
-
-INPUT_TYPES_TYPE = TypeDef(dict, properties=[
-    PropertyDef('id', TypeDef(str)),
-    PropertyDef('name', TypeDef(str)),
-    PropertyDef('timeRange', TIME_RANGE_TYPE),
-])
-
-VARIABLE_TYPE = TypeDef(dict, properties=[
-    PropertyDef('id', TypeDef(str)),
-    PropertyDef('name', TypeDef(str)),
-    PropertyDef('unit', TypeDef(str, optional=True)),
-    PropertyDef('description', TypeDef(str, optional=True)),
-    PropertyDef('valueRange', TypeDef(str, optional=True)),
-    PropertyDef('applications', TypeDef(list, optional=True, item_type=TypeDef(str))),
-])
-
-FORWARD_MODEL_TYPE = TypeDef(dict, properties=[
-    PropertyDef('id', TypeDef(str)),
-    PropertyDef('name', TypeDef(str)),
-    PropertyDef('description', TypeDef(str, optional=True)),
-    PropertyDef('modelAuthor', TypeDef(str, optional=True)),
-    PropertyDef('modelurl', TypeDef(str, optional=True)),
-    PropertyDef('inputType', TypeDef(str)),
-    PropertyDef('variables', TypeDef(list, item_type=TypeDef(str))),
-])
-
-PARAMETERS_TYPE = TypeDef(dict, properties=[
-    PropertyDef("inputTypes", TypeDef(list, item_type=INPUT_TYPES_TYPE)),
-    PropertyDef("variables", TypeDef(list, item_type=VARIABLE_TYPE)),
-    PropertyDef("forwardModels", TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
-])
