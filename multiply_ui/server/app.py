@@ -1,6 +1,6 @@
 import tornado.web
 
-from .handlers import GetParametersHandler, GetRequestHandler, ExecuteHandler, ListHandler, StatusHandler, \
+from .handlers import GetParametersHandler, GetInputsHandler, ExecuteHandler, ListHandler, StatusHandler, \
     CancelHandler, ResultsFromJobHandler, ResultHandler, ResultsOpenHandler
 
 

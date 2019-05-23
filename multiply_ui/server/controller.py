@@ -13,8 +13,8 @@ def get_inputs(ctx, parameters):
     region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
                                                                    minLon, maxLat, minLon, minLat)
     input_types = parameters["inputTypes"]
-    parameters["productIdentifiers"] = {}
+    parameters["inputIdentifiers"] = {}
     for input_type in input_types:
         data_set_meta_infos = ctx.data_access_component.query(region_wkt, time_range[0], time_range[1], input_type)
-        parameters["productIdentifiers"][input_type] = [entry._identifier for entry in data_set_meta_infos]
+        parameters["inputIdentifiers"][input_type] = [entry._identifier for entry in data_set_meta_infos]
     return parameters
