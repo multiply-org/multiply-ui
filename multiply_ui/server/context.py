@@ -3,12 +3,16 @@ from typing import Optional, List
 from .model import Job
 
 import multiply_data_access.data_access_component
+# check out with git clone -b share https://github.com/bcdev/calvalus-instances
+# and add the calvalus-instances as content root to project structure
+import share.bin.pmserver as pmserver
 
 class ServiceContext:
     def __init__(self):
         self._jobs = {}
         self.data_access_component = multiply_data_access.data_access_component.DataAccessComponent()
         self._restrict_to_mundi_datastore()
+        self.pm_server = pmserver.PMServer()
 
     # TODO: require an interface of data access to select data stores to be used
     def _restrict_to_mundi_datastore(self):

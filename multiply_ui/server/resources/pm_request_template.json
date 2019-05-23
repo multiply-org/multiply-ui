@@ -1,0 +1,89 @@
+{
+    "requestName" : "NAME",
+    "productionType" : "multiply-adapted-iterative-6",
+    "simulation" : "True",
+    "data_root" : "WORKDIR",
+
+    "General" : {
+        "roi" : "POLYGON",
+        "start_time" : "START_DATE",
+        "end_time" : "STOP_DATE",
+        "time_interval" : "TIME_STEP",
+        "spatial_resolution" : "SPATIAL_RESOLUTION",
+        "output_directory_root" : "HOPETHATOUTPUTDIRECTORYROOTISNOTUSED"
+    },
+
+    "Inference" : {
+        "parameters" : [ "VARIABLE", "VARIABLE", "..." ],
+        "optical_operator_library" : "some_operator.nc",
+        "sar_operator_library" : "some_other_operator.nc",
+        "a" : "identity",
+        "inflation" : "1e3",
+        "time_interval" : "TIME_STEP"
+    },
+
+    "Prior" : {
+        "output_directory" : "PRIOR_WORKDIR",
+        "General" : {
+            "directory_data" : "/data/auxiliary/priors/Static/Vegetation/"
+        },
+        
+        "lai" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "cab" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "car" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "cw" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "cdm" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "n" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "cb" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "cm" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "ala" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "bsoil" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        },
+        "psoil" : {
+            "database" : {
+                "static_dir" : "same as General directory_data"
+            }
+        }
+    }
+}
+
+
