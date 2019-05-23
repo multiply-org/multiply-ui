@@ -63,7 +63,7 @@ class InputRequestMixin:
 
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
-        return self._data
+        return dict(self._data)
 
     def _repr_html_(self):
         # TODO: make it look nice
