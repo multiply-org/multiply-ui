@@ -1,8 +1,7 @@
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List
 
 from ...util.html import html_table
 from ...util.schema import PropertyDef, TypeDef
-
 
 TASK_TYPE = TypeDef(object, properties=[
     PropertyDef('name', TypeDef(str)),
@@ -10,7 +9,7 @@ TASK_TYPE = TypeDef(object, properties=[
     PropertyDef('status', TypeDef(str)),
 ])
 
-PARAMETERS_TYPE = TypeDef(object, properties=[
+JOB_TYPE = TypeDef(object, properties=[
     PropertyDef("name", TypeDef(str)),
     PropertyDef("progress", TypeDef(int)),
     PropertyDef("status", TypeDef(str)),
@@ -66,7 +65,7 @@ class Job:
 
     def __init__(self, raw_data):
         prefix = 'job: '
-        PARAMETERS_TYPE.validate(raw_data, prefix=prefix)
+        JOB_TYPE.validate(raw_data, prefix=prefix)
 
         self._name = raw_data['name']
         self._progress = raw_data['progress']
