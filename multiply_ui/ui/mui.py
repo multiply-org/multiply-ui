@@ -1,5 +1,5 @@
 from .procparams import get_processing_parameters, ProcessingParameters, Variables, ForwardModels, InputTypes
-from .procreq import processing_request_ui
+from .procreq import sel_params_form
 
 
 class MultiplyUI:
@@ -31,8 +31,8 @@ class MultiplyUI:
     def itypes(self) -> InputTypes:
         return self.processing_parameters.input_types
 
-    def proc_req_ui(self):
-        return processing_request_ui(self.processing_parameters)
+    def sel_params(self):
+        return sel_params_form(self.processing_parameters)
 
 
 mui = MultiplyUI()

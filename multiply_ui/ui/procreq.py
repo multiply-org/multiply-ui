@@ -11,7 +11,7 @@ URL_BASE = "http://localhost:9090/"
 GET_INPUTS_URL = URL_BASE + "multiply/api/processing/inputs"
 
 
-def processing_request_ui(processing_parameters: ProcessingParameters):
+def sel_params_form(processing_parameters: ProcessingParameters):
     form_item_layout = widgets.Layout(
         display='flex',
         flex_flow='row',
