@@ -11,6 +11,8 @@ setup(
     license='MIT',
     author='Norman Fomferra',
     packages=find_packages(exclude=["test", "test.*"]),
+    include_package_data=True,
+    data_files=[('multiply_ui', ['multiply_ui/server/resources/processing-parameters.json'])],
     entry_points={
         'console_scripts': [
             'mui-server = multiply_ui.server.cli:main',
