@@ -101,8 +101,8 @@
       "id": "s2_prosail",
       "name": "PROSAIL for Sentinel-2",
       "description": "Coupling of PROSPECT leaf optical properties model and SAIL canopy bidirectional reflectance model. It links the spectral variation of canopy reflectance, which is mainly related to leaf biochemical contents, with its directional variation, which is primarily related to canopy architecture and soil/vegetation contrast.",
-      "modelAuthor": "",
-      "modelurl": "http://teledetection.ipgp.jussieu.fr/prosail/",
+      "modelAuthors": "",
+      "modelUrl": "http://teledetection.ipgp.jussieu.fr/prosail/",
       "inputType": "S2_L1C",
       "variables": ["n", "cab", "car", "cb", "cw", "cdm", "lai", "ala", "bsoil", "psoil"]
     }

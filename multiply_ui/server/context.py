@@ -2,9 +2,21 @@ from typing import Optional, List
 
 from .model import Job
 
+import multiply_data_access.data_access_component
+
 class ServiceContext:
     def __init__(self):
         self._jobs = {}
+        self.data_access_component = multiply_data_access.data_access_component.DataAccessComponent()
+        self._restrict_to_mundi_datastore()
+
+    # TODO: require an interface of data access to select data stores to be used
+    def _restrict_to_mundi_datastore(self):
+        for data_store in self.data_access_component._data_stores:
+            if data_store._id == "Mundi":
+                self.data_access_component._data_stores = [data_store]
+                return
+        raise ValueError('data store Mundi not found in configuration')
 
     def new_job(self, duration: int) -> Job:
         job = Job(duration)

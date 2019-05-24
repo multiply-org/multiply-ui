@@ -1,0 +1,28 @@
+{
+    "name": "Model-1 Baikalsee LAI 2018",
+    "timeRange": [
+        "2018-01-01T01:01:00Z",
+        "2018-12-31T23:59:59Z"
+    ],
+    "timeStep": "10",
+    "bbox": "103.6,51.1,110.2,56.2",
+    "spatialResolution": "60",
+    "parameters": [
+        [
+            "lai",
+            "s2_prosail",
+            "S2_L1C"
+        ],
+        [
+            "bsoil",
+            "s2_prosail",
+            "S2_L1C"
+        ]
+    ],
+    "inputIdentifiers": {
+        "S2_L1C": [
+            "S2A_MSIL1C....",
+            "S2B_MSIL1C...."
+        ]
+    }
+}
