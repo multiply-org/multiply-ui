@@ -1,8 +1,9 @@
-import multiply_ui.server.controller as controller
 import json
-import multiply_ui.server.context as context
 import os
 import unittest
+
+from multiply_ui.server import controller
+
 
 class ControllerTest(unittest.TestCase):
 
@@ -13,6 +14,7 @@ class ControllerTest(unittest.TestCase):
 
     @unittest.skipIf(os.environ.get('MULTIPLY_DISABLE_WEB_TESTS') == '1', 'MULTIPLY_DISABLE_WEB_TESTS = 1')
     def test_get_inputs(self):
+        from multiply_ui.server import context
         with open(os.path.join(os.path.dirname(__file__), '..', 'test_data', 'example_request_parameters.json')) as fp:
             json_text = fp.read()
             parameters = json.loads(json_text)
