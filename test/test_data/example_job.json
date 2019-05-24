@@ -1,5 +1,6 @@
 {
-  "name": "7816-23af-e273",
+  "id": "7816-23af-e273",
+  "name": "My job #2",
   "progress": 15,
   "status": "running",
   "tasks": [

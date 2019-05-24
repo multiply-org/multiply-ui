@@ -11,8 +11,23 @@ from ...util.html import html_element, html_table
 
 _NUM_REQUESTS = 0
 
+_DEBUG_VIEW = None
+
 
 def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
+    debug_view = get_debug_view()
+
+    @debug_view.capture(clear_output=True)
+    def fetch_inputs_mock(input_request: InputRequest, apply_func):
+        debug_view.value = ''
+        import time
+        time.sleep(3)
+        input_identifiers = {input_type: [f'iid-{i}' for i in range(10)] for input_type in
+                             input_request.input_types}
+        processing_request_data = input_request.as_dict()
+        processing_request_data.update(dict(inputIdentifiers=input_identifiers))
+        apply_func(ProcessingRequest(processing_request_data))
+
     fetch_inputs_func = fetch_inputs_mock if mock else fetch_inputs
 
     form_item_layout = widgets.Layout(
@@ -72,6 +87,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
     output = widgets.HTML()
 
     # noinspection PyUnusedLocal
+    @debug_view.capture(clear_output=True)
     def handle_new_button_clicked(*args, **kwargs):
         req_var_name = python_var_name.value or None
         if req_var_name and not req_var_name.isidentifier():
@@ -167,18 +183,10 @@ def _get_checkbox_list(ids: List[str]) -> widgets.HBox:
     return widgets.HBox(v_boxes)
 
 
-_debug_view = widgets.Output(layout={'border': '2px solid red'})
-
-_shell = IPython.get_ipython()
-_shell.push({'debug_view': _debug_view}, interactive=True)
-
-
-@_debug_view.capture(clear_output=True)
-def fetch_inputs_mock(input_request: InputRequest, apply_func):
-    _debug_view.value = ''
-    import time
-    time.sleep(3)
-    input_identifiers = {input_type: [f'iid-{i}' for i in range(10)] for input_type in input_request.input_types}
-    processing_request_data = input_request.as_dict()
-    processing_request_data.update(dict(inputIdentifiers=input_identifiers))
-    apply_func(ProcessingRequest(processing_request_data))
+def get_debug_view():
+    global _DEBUG_VIEW
+    if _DEBUG_VIEW is None:
+        _DEBUG_VIEW = widgets.Output(layout={'border': '2px solid red'})
+        shell = IPython.get_ipython()
+        shell.push({'debug_view': _DEBUG_VIEW}, interactive=True)
+    return _DEBUG_VIEW

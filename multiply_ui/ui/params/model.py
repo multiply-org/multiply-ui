@@ -24,8 +24,8 @@ FORWARD_MODEL_TYPE = TypeDef(object, properties=[
     PropertyDef('id', TypeDef(str)),
     PropertyDef('name', TypeDef(str)),
     PropertyDef('description', TypeDef(str, optional=True)),
-    PropertyDef('modelAuthor', TypeDef(str, optional=True)),
-    PropertyDef('modelurl', TypeDef(str, optional=True)),
+    PropertyDef('modelAuthors', TypeDef(str, optional=True)),
+    PropertyDef('modelUrl', TypeDef(str, optional=True)),
     PropertyDef('inputType', TypeDef(str)),
     PropertyDef('variables', TypeDef(list, item_type=TypeDef(str))),
 ])
@@ -102,11 +102,11 @@ class ForwardModel:
 
     @property
     def model_authors(self) -> Optional[str]:
-        return self._data['modelAuthor']
+        return self._data['modelAuthors']
 
     @property
     def model_url(self) -> Optional[str]:
-        return self._data['modelurl']
+        return self._data['modelUrl']
 
     def _repr_html_(self):
         return self.html_table([self])
