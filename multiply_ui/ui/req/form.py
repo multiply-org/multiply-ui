@@ -7,11 +7,13 @@ import ipywidgets as widgets
 from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
 from ..params.model import ProcessingParameters
-from ...util.html import html_element
+from ...util.html import html_element, html_table
+
+_NUM_REQUESTS = 0
 
 
-def sel_params_form(processing_parameters: ProcessingParameters, fetch_inputs_func=None):
-    fetch_inputs_func = fetch_inputs_func or fetch_inputs
+def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
+    fetch_inputs_func = fetch_inputs_mock if mock else fetch_inputs
 
     form_item_layout = widgets.Layout(
         display='flex',
@@ -29,7 +31,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, fetch_inputs_fu
 
     # output_variables =
 
-    request_name = widgets.Text()
+    global _NUM_REQUESTS
+    _NUM_REQUESTS += 1
+    request_name = widgets.Text(f'My request #{_NUM_REQUESTS}')
+    python_var_name = widgets.Text(value='req')
 
     start_date = widgets.DatePicker(value=datetime.datetime(year=2010, month=1, day=1))
     end_date = widgets.DatePicker(value=datetime.datetime(year=2019, month=1, day=1))
@@ -68,13 +73,12 @@ def sel_params_form(processing_parameters: ProcessingParameters, fetch_inputs_fu
 
     # noinspection PyUnusedLocal
     def handle_new_button_clicked(*args, **kwargs):
-        req_var_name = str(request_name.value or '')
-        if req_var_name:
-            if not req_var_name.isidentifier():
-                output.value = html_element('h5',
-                                            att=dict(style='color:red'),
-                                            value=f'Error: request name must be a valid Python identifier')
-                return
+        req_var_name = python_var_name.value or None
+        if req_var_name and not req_var_name.isidentifier():
+            output.value = html_element('h5',
+                                        att=dict(style='color:red'),
+                                        value=f'Error: request name must be a valid Python identifier')
+            return
 
         # TODO: infer input types
         input_types = ['S2_L1C']
@@ -82,7 +86,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, fetch_inputs_fu
         y1, y2 = lat_range.value
 
         inputs_request = InputRequest(dict(
-            name=req_var_name,
+            name=request_name.value,
             timeRange=[start_date.value, end_date.value],
             bbox=f'{x1},{y1},{x2},{y2}',
             inputTypes=input_types,
@@ -90,18 +94,25 @@ def sel_params_form(processing_parameters: ProcessingParameters, fetch_inputs_fu
 
         def handle_processing_request(processing_request: ProcessingRequest):
 
+            input_identifiers = processing_request.input_identifiers
+            data_rows = []
+            for input_type, input_ids in input_identifiers.as_dict().items():
+                data_rows.append([input_type, len(input_ids)])
+
+            result_html = html_table(data_rows, header_row=['Input Type', 'Number of inputs found'])
+
             # insert shall variable whose value is processing_request
             # users can later call the GUI with that object to edit it
-            shell = IPython.get_ipython()
-            shell.push({req_var_name: processing_request}, interactive=True)
+            if req_var_name:
+                shell = IPython.get_ipython()
+                shell.push({req_var_name: processing_request}, interactive=True)
+                var_name_html = html_element('p',
+                                             value=f'Note: a new processing request has been '
+                                             f'stored in variable <code>{req_var_name}</code>.')
+                result_html = html_element('div',
+                                           value=result_html + var_name_html)
 
-            # noinspection PyProtectedMember
-            input_identifiers_html = processing_request.input_identifiers._repr_html_()
-            var_name_html = html_element('h5',
-                                         value=f'Processing request has been '
-                                         f'stored in variable <code>{req_var_name}</code>.')
-            output.value = html_element('div',
-                                        value=input_identifiers_html + var_name_html)
+            output.value = result_html
 
         output.value = html_element('h5', value='Fetching results...')
         fetch_inputs_func(inputs_request, apply_func=handle_processing_request)
@@ -120,6 +131,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, fetch_inputs_fu
         widgets.Box([widgets.Label(value='Latitude'), lat_range], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Resolution (m)'), spatial_resolution], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Request name'), request_name], layout=form_item_layout),
+        widgets.Box([widgets.Label(value='Python identifier'), python_var_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value=''), new_button], layout=form_item_layout),
         widgets.Box([output], layout=form_item_layout),
     ]
@@ -153,3 +165,20 @@ def _get_checkbox_list(ids: List[str]) -> widgets.HBox:
     for v_box_item_list in v_box_item_lists:
         v_boxes.append(widgets.VBox(v_box_item_list))
     return widgets.HBox(v_boxes)
+
+
+_debug_view = widgets.Output(layout={'border': '2px solid red'})
+
+_shell = IPython.get_ipython()
+_shell.push({'debug_view': _debug_view}, interactive=True)
+
+
+@_debug_view.capture(clear_output=True)
+def fetch_inputs_mock(input_request: InputRequest, apply_func):
+    _debug_view.value = ''
+    import time
+    time.sleep(3)
+    input_identifiers = {input_type: [f'iid-{i}' for i in range(10)] for input_type in input_request.input_types}
+    processing_request_data = input_request.as_dict()
+    processing_request_data.update(dict(inputIdentifiers=input_identifiers))
+    apply_func(ProcessingRequest(processing_request_data))

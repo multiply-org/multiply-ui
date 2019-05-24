@@ -29,6 +29,9 @@ class InputIdentifiers:
         INPUT_IDENTIFIERS_TYPE.validate(data)
         self._data = data
 
+    def as_dict(self) -> Dict:
+        return dict(self._data)
+
     def _repr_html_(self):
         data_rows = []
         for input_type, prod_ids in self._data.items():
