@@ -28,7 +28,7 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual((10.2, 51.2, 11.3, 53.6), input_request.bbox)
         self.assertEqual(('2018-07-06', '2018-07-20'), input_request.time_range)
         self.assertEqual(['S2_L1C'], input_request.input_types)
-        self.assertIsInstance(input_request.input_identifiers, InputIdentifiers)
+        self.assertIsInstance(input_request.inputs, InputIdentifiers)
         self.assertIsNotNone(input_request._repr_html_())
 
     def test_input_identifiers(self):

@@ -1,5 +1,6 @@
 from typing import Dict, Any, Tuple, Optional, List
 
+from multiply_ui.ui.job.model import Job
 from ..params.model import TIME_RANGE_TYPE
 from ...util.html import html_element, html_table
 from ...util.schema import PropertyDef, TypeDef
@@ -90,12 +91,20 @@ class ProcessingRequest(InputRequestMixin):
         self._data = data
 
     @property
-    def input_identifiers(self) -> InputIdentifiers:
+    def inputs(self) -> InputIdentifiers:
         return InputIdentifiers(self._data['inputIdentifiers'])
+
+    def submit(self) -> Job:
+        return Job(dict(id='523e-68fa-341d',
+                        name='test job!',
+                        progress=13,
+                        status='Running',
+                        tasks=[],
+                        ))
 
     def _repr_html_(self):
         input_request_html = super()._repr_html_()
         # noinspection PyProtectedMember
-        input_identifiers_html = self.input_identifiers._repr_html_()
+        input_identifiers_html = self.inputs._repr_html_()
         # TODO: make it look nice
         return html_element('div', value=input_request_html + input_identifiers_html)

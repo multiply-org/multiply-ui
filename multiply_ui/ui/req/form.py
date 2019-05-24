@@ -94,7 +94,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
 
         def handle_processing_request(processing_request: ProcessingRequest):
 
-            input_identifiers = processing_request.input_identifiers
+            input_identifiers = processing_request.inputs
             data_rows = []
             for input_type, input_ids in input_identifiers.as_dict().items():
                 data_rows.append([input_type, len(input_ids)])

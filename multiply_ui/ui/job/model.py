@@ -10,6 +10,7 @@ TASK_TYPE = TypeDef(object, properties=[
 ])
 
 JOB_TYPE = TypeDef(object, properties=[
+    PropertyDef("id", TypeDef(str)),
     PropertyDef("name", TypeDef(str)),
     PropertyDef("progress", TypeDef(int)),
     PropertyDef("status", TypeDef(str)),
@@ -64,14 +65,19 @@ class Tasks:
 class Job:
 
     def __init__(self, raw_data):
-        prefix = 'job: '
+        prefix = f'job {raw_data["id"] if "id" in raw_data else "?"}: '
         JOB_TYPE.validate(raw_data, prefix=prefix)
 
+        self._id = raw_data['id']
         self._name = raw_data['name']
         self._progress = raw_data['progress']
         self._status = raw_data['status']
         tasks = raw_data['tasks']
         self._tasks = Tasks({task['name']: Task(task) for task in tasks})
+
+    @property
+    def id(self) -> str:
+        return self._id
 
     @property
     def name(self) -> str:
