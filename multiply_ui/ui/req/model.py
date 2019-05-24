@@ -95,6 +95,4 @@ class ProcessingRequest(InputRequestMixin):
         # noinspection PyProtectedMember
         input_identifiers_html = self.input_identifiers._repr_html_()
         # TODO: make it look nice
-        return html_element('div',
-                            f'{input_request_html}'
-                            f'{input_identifiers_html}')
+        return html_element('div', value=input_request_html + input_identifiers_html)

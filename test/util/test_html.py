@@ -10,9 +10,10 @@ class HtmlTest(unittest.TestCase):
         self.assertEqual('<p>42</p>',
                          html_element('p', value=42))
         self.assertEqual('<img style="background-color:red" src="bibo.png"></img>',
-                         html_element('img',
-                                      attributes=dict(style='background-color:red',
+                         html_element('img', att=dict(style='background-color:red',
                                                       src='bibo.png')))
+        self.assertEqual('<a href="bibo.png">Bibo</a>',
+                         html_element('a', dict(href='bibo.png'), 'Bibo'))
 
     def test_html_table(self):
         self.assertEqual('<table></table>',
