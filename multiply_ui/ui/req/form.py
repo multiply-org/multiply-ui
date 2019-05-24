@@ -1,11 +1,13 @@
 import datetime
 from typing import List
 
+import IPython
 import ipywidgets as widgets
 
-from multiply_ui.ui.req.model import InputRequest, ProcessingRequest
 from .api import fetch_inputs
+from .model import InputRequest, ProcessingRequest
 from ..params.model import ProcessingParameters
+from ...util.html import html_element
 
 
 def sel_params_form(processing_parameters: ProcessingParameters, fetch_inputs_func=None):
@@ -66,38 +68,42 @@ def sel_params_form(processing_parameters: ProcessingParameters, fetch_inputs_fu
 
     # noinspection PyUnusedLocal
     def handle_new_button_clicked(*args, **kwargs):
+        req_var_name = str(request_name.value or '')
+        if req_var_name:
+            if not req_var_name.isidentifier():
+                output.value = html_element('h5',
+                                            att=dict(style='color:red'),
+                                            value=f'Error: request name must be a valid Python identifier')
+                return
+
         # TODO: infer input types
         input_types = ['S2_L1C']
         x1, x2 = lon_range.value
         y1, y2 = lat_range.value
 
-        try:
-            inputs_request = InputRequest(dict(
-                name=request_name.value,
-                timeRange=[start_date.value, end_date.value],
-                bbox=f'{x1},{y1},{x2},{y2}',
-                inputTypes=input_types,
-            ))
-            output.value = f'<h2>{str(inputs_request)}</h2>'
-        except Exception as e:
-            output.value = f'<h2>{str(e)}</h2>'
-            return
+        inputs_request = InputRequest(dict(
+            name=req_var_name,
+            timeRange=[start_date.value, end_date.value],
+            bbox=f'{x1},{y1},{x2},{y2}',
+            inputTypes=input_types,
+        ))
 
         def handle_processing_request(processing_request: ProcessingRequest):
-            #globals()['req'] = processing_request
-            import sys
-            module = sys.modules[__name__]
-            setattr(module, 'req', processing_request)
 
-            # TODO: insert new cell that contains a NB variable whose value is processing_request
-            # TODO: users can later call the GUI with that object to edit it
+            # insert shall variable whose value is processing_request
+            # users can later call the GUI with that object to edit it
+            shell = IPython.get_ipython()
+            shell.push({req_var_name: processing_request}, interactive=True)
 
             # noinspection PyProtectedMember
-            try:
-                output.value = processing_request._repr_html_()
-            except Exception as e:
-                output.value = f'<h2>{str(e)}</h2>'
+            input_identifiers_html = processing_request.input_identifiers._repr_html_()
+            var_name_html = html_element('h5',
+                                         value=f'Processing request has been '
+                                         f'stored in variable <code>{req_var_name}</code>.')
+            output.value = html_element('div',
+                                        value=input_identifiers_html + var_name_html)
 
+        output.value = html_element('h5', value='Fetching results...')
         fetch_inputs_func(inputs_request, apply_func=handle_processing_request)
 
     new_button = widgets.Button(description="New Request", icon="search")
