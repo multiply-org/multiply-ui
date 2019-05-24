@@ -6,12 +6,11 @@ import ipywidgets as widgets
 
 from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
+from ..debug import get_debug_view
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
 
 _NUM_REQUESTS = 0
-
-_DEBUG_VIEW = None
 
 
 def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
@@ -170,6 +169,7 @@ def _get_checkbox_list(ids: List[str]) -> widgets.HBox:
     index = 0
     for var_id in ids:
         col = index % num_cols
+        # noinspection PyTypeChecker
         v_box_item_lists[col].append(widgets.Checkbox(
             value=False,
             description=var_id,
@@ -181,12 +181,3 @@ def _get_checkbox_list(ids: List[str]) -> widgets.HBox:
     for v_box_item_list in v_box_item_lists:
         v_boxes.append(widgets.VBox(v_box_item_list))
     return widgets.HBox(v_boxes)
-
-
-def get_debug_view():
-    global _DEBUG_VIEW
-    if _DEBUG_VIEW is None:
-        _DEBUG_VIEW = widgets.Output(layout={'border': '2px solid red'})
-        shell = IPython.get_ipython()
-        shell.push({'debug_view': _DEBUG_VIEW}, interactive=True)
-    return _DEBUG_VIEW
