@@ -1,8 +1,8 @@
 import multiply_ui.server.controller as controller
 import json
 import multiply_ui.server.context as context
+import os
 import unittest
-
 
 class ControllerTest(unittest.TestCase):
 
@@ -11,9 +11,10 @@ class ControllerTest(unittest.TestCase):
         self.assertEqual(1, len(parameters["inputTypes"]))
         self.assertEqual(parameters["inputTypes"][0]["name"], "Sentinel-2 MSI L1C")
 
+    @unittest.skipIf(os.environ.get('MULTIPLY_DISABLE_WEB_TESTS') == '1', 'MULTIPLY_DISABLE_WEB_TESTS = 1')
     def test_get_inputs(self):
-        with open("test/test_data/example_request_parameters.json") as f:
-            json_text = f.read()
+        with open(os.path.join(os.path.dirname(__file__), '..', 'test_data', 'example_request_parameters.json')) as fp:
+            json_text = fp.read()
             parameters = json.loads(json_text)
             request = controller.get_inputs(context.ServiceContext(), parameters)
             self.assertEqual(50, len(request["productIdentifiers"]["S2_L1C"]))
