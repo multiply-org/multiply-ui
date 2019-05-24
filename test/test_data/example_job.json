@@ -1,0 +1,53 @@
+{
+  "id": "7816-23af-e273",
+  "name": "My job #2",
+  "progress": 15,
+  "status": "running",
+  "tasks": [
+    {
+      "name": "Fetching static Data",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Collecting Data from 2017-06-01 to 2017-06-10",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Collecting Data from 2017-06-11 to 2017-06-20",
+      "progress": 66,
+      "status": "running"
+    },
+    {
+      "name": "Performing atmospheric correction on Data from 2017-06-01 to 2017-06-10",
+      "progress": 33,
+      "status": "failed"
+    },
+    {
+      "name": "Performing atmospheric correction on Data from 2017-06-11 to 2017-06-20",
+      "progress": 0,
+      "status": "not started yet"
+    },
+    {
+      "name": "Retrieving prior information from 2017-06-01 to 2017-06-10",
+      "progress": 0,
+      "status": "not started yet"
+    },
+    {
+      "name": "Retrieving prior information from 2017-06-11 to 2017-06-20",
+      "progress": 0,
+      "status": "not started yet"
+    },
+    {
+      "name": "Inferring variables from 2017-06-01 to 2017-06-10",
+      "progress": 0,
+      "status": "not started yet"
+    },
+    {
+      "name": "Inferring variables from 2017-06-11 to 2017-06-20",
+      "progress": 0,
+      "status": "not started yet"
+    }
+  ]
+}

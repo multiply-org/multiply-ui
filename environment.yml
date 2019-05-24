@@ -12,3 +12,6 @@ dependencies:
   - python =3.7.2
   - tornado =5.1.1
   - xarray =0.10.8
+  # Testing
+  - pytest
+  - pytest-cov
