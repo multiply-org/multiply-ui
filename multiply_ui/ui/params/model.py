@@ -114,7 +114,7 @@ class ForwardModel:
     @classmethod
     def html_table(cls, items: List['ForwardModel'], title=None):
         def anchor(item: str):
-            return html_element('a', value='More...', attributes=dict(href=item))
+            return html_element('a', att=dict(href=item), value='More...')
 
         def data_row(item: ForwardModel):
             return [item.id, item.name, item.description, item.model_authors, item.model_url]

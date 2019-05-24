@@ -22,7 +22,7 @@ def html_table(data_rows: List[List[Any]],
                 except TypeError:
                     pass
             row.append(html_element('td', value=item))
-        rows.append(html_element('tr', ''.join(row)))
+        rows.append(html_element('tr', value=''.join(row)))
     rows = ''.join(rows)
 
     header = None
@@ -51,9 +51,9 @@ def html_table(data_rows: List[List[Any]],
     return html
 
 
-def html_element(name: str, value: Any = None, attributes: Dict[str, Any] = None):
-    if attributes:
-        attrs = ' '.join(map(lambda key: f'{key}="{attributes[key]}"', attributes.keys()))
-        return f'<{name} {attrs}>{value if value is not None else ""}</{name}>'
+def html_element(name: str, att: Dict[str, Any] = None, value: Any = None):
+    if att:
+        att_part = ' '.join(map(lambda key: f'{key}="{att[key]}"', att.keys()))
+        return f'<{name} {att_part}>{value if value is not None else ""}</{name}>'
     else:
         return f'<{name}>{value if value is not None else ""}</{name}>'

@@ -32,8 +32,8 @@ class MultiplyUI:
     def itypes(self) -> InputTypes:
         return self.processing_parameters.input_types
 
-    def sel_params(self):
-        return sel_params_form(self.processing_parameters)
+    def sel_params(self, mock=False):
+        return sel_params_form(self.processing_parameters, mock=mock)
 
 
 mui = MultiplyUI()

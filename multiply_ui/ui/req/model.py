@@ -29,6 +29,9 @@ class InputIdentifiers:
         INPUT_IDENTIFIERS_TYPE.validate(data)
         self._data = data
 
+    def as_dict(self) -> Dict:
+        return dict(self._data)
+
     def _repr_html_(self):
         data_rows = []
         for input_type, prod_ids in self._data.items():
@@ -63,7 +66,7 @@ class InputRequestMixin:
 
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
-        return self._data
+        return dict(self._data)
 
     def _repr_html_(self):
         # TODO: make it look nice
@@ -95,6 +98,4 @@ class ProcessingRequest(InputRequestMixin):
         # noinspection PyProtectedMember
         input_identifiers_html = self.input_identifiers._repr_html_()
         # TODO: make it look nice
-        return html_element('div',
-                            f'{input_request_html}'
-                            f'{input_identifiers_html}')
+        return html_element('div', value=input_request_html + input_identifiers_html)

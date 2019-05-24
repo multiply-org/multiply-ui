@@ -1,4 +1,5 @@
 import json
+import os
 import unittest
 
 import pkg_resources
@@ -11,8 +12,8 @@ RAW_DATA = json.loads(pkg_resources.resource_string("multiply_ui", "server/resou
 class JobModelTest(unittest.TestCase):
 
     def test_instantiation_from_raw_data(self):
-        with open("test/test_data/example_job.json") as f:
-            json_text = f.read()
+        with open(os.path.join(os.path.dirname(__file__), '..', '..', 'test_data', 'example_job.json')) as fp:
+            json_text = fp.read()
             parameters = json.loads(json_text)
             job = Job(parameters)
             self.assertIsNotNone(job)
@@ -30,4 +31,3 @@ class JobModelTest(unittest.TestCase):
                               "Inferring variables from 2017-06-11 to 2017-06-20"],
                              job.tasks.names)
             self.assertIsNotNone(job.tasks._repr_html_())
-
