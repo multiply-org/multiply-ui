@@ -10,10 +10,10 @@ DEFAULT_SERVER_ADDRESS = '0.0.0.0'
 @click.command('mui-server')
 @click.option('--port', '-p',
               type=int, default=DEFAULT_SERVER_PORT,
-              help=f'Service port number. Defaults to {DEFAULT_SERVER_PORT}.')
-@click.option('--address', '-p',
+              help=f'Set service port number. Defaults to {DEFAULT_SERVER_PORT}.')
+@click.option('--address', '-a',
               type=str, default=DEFAULT_SERVER_ADDRESS,
-              help=f'Service IP address. Defaults to "{DEFAULT_SERVER_ADDRESS}".')
+              help=f'Set service IP address. Defaults to "{DEFAULT_SERVER_ADDRESS}".')
 def mui_server(port, address):
     """
     Starts a service which exposes a RESTful API to the Multiply UI.
