@@ -1,10 +1,13 @@
-from typing import Any, Type, List, Optional
+from typing import Any, Type, List, Optional, TypeVar, Generic, Sequence
+
+T = TypeVar('T')
 
 
-class TypeDef:
+class TypeDef(Generic[T]):
     def __init__(self,
-                 data_type: Type[Any] = str,
+                 data_type: Type[T] = str,
                  optional: bool = False,
+                 choices: Sequence[T] = None,
                  key_type: 'TypeDef' = None,
                  item_type: 'TypeDef' = None,
                  num_items: int = None,
@@ -13,6 +16,7 @@ class TypeDef:
                  properties: List['PropertyDef'] = None):
         self._data_type = data_type
         self._optional = optional
+        self._choices = choices
         self._key_type = key_type
         self._item_type = item_type
         self._num_items_min = num_items_min if num_items_min is not None else num_items
@@ -20,12 +24,16 @@ class TypeDef:
         self._properties = properties
 
     @property
-    def data_type(self) -> Type[Any]:
+    def data_type(self) -> Type[T]:
         return self._data_type
 
     @property
     def optional(self) -> bool:
         return self._optional
+
+    @property
+    def choices(self) -> Sequence[T]:
+        return self._choices
 
     @property
     def item_type(self) -> Optional['TypeDef']:
@@ -40,17 +48,16 @@ class TypeDef:
         if value is None:
             if self.optional:
                 return
-            raise ValueError(f'{prefix}value is not optional, but found null')
+            raise ValueError(f'{prefix}value is not optional, but was null')
 
         if isinstance(value, list):
             self._validate_list(value, prefix)
         elif isinstance(value, dict):
             self._validate_dict(value, prefix)
+        elif self.data_type is object:
+            self._validate_data_type(value, dict, optional=False, prefix=prefix)
         else:
-            if self.data_type is object:
-                self._validate_data_type(value, dict, False, prefix)
-            else:
-                self._validate_type(value, prefix)
+            self._validate_type(value, prefix)
 
     def _validate_list(self, value: List[Any], prefix):
         self._validate_type(value, prefix)
@@ -78,7 +85,7 @@ class TypeDef:
                 for p in self._properties:
                     if p.name not in value and not p.optional:
                         raise ValueError(f'{prefix}missing property {p.name!r}')
-                    p.validate(value[p.name], prefix=prefix + f'property {p.name!r}: ')
+                    p.validate(value.get(p.name), prefix=prefix + f'property {p.name!r}: ')
 
                 illegal_property_names = set(value.keys()).difference(set(p.name for p in self._properties))
                 if len(illegal_property_names) == 1:
@@ -97,13 +104,16 @@ class TypeDef:
                         self._item_type.validate(value, prefix=prefix)
 
     def _validate_type(self, value, prefix):
-        self._validate_data_type(value, self._data_type, self._optional, prefix)
+        self._validate_data_type(value, self._data_type, optional=self._optional, choices=self._choices, prefix=prefix)
 
     @classmethod
-    def _validate_data_type(cls, value, data_type, optional, prefix):
+    def _validate_data_type(cls, value, data_type, optional=None, choices=None, prefix=''):
         if value is not None and not optional and not isinstance(value, data_type):
             raise ValueError(f'{prefix}value is expected to have type {data_type.__name__!r}, '
-                             f'but found type {type(value).__name__!r}')
+                             f'but was type {type(value).__name__!r}')
+        if choices is not None and value not in choices:
+            raise ValueError(f'{prefix}value is expected to be one of {choices!r}, '
+                             f'but was {value!r}')
 
 
 class PropertyDef:

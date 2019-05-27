@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 
-from ...util.html import html_table
+from ...util.html import html_table, html_element
 from ...util.schema import PropertyDef, TypeDef
 
 TASK_TYPE = TypeDef(object, properties=[
@@ -13,8 +13,8 @@ JOB_TYPE = TypeDef(object, properties=[
     PropertyDef("id", TypeDef(str)),
     PropertyDef("name", TypeDef(str)),
     PropertyDef("progress", TypeDef(int)),
-    PropertyDef("status", TypeDef(str)),
-    PropertyDef("tasks", TypeDef(list, item_type=TASK_TYPE)),
+    PropertyDef("status", TypeDef(str, choices=['new', 'running', 'succeeded', 'cancelling', 'cancelled'])),
+    PropertyDef("tasks", TypeDef(list, optional=True, item_type=TASK_TYPE)),
 ])
 
 
@@ -64,33 +64,47 @@ class Tasks:
 
 class Job:
 
-    def __init__(self, raw_data):
-        prefix = f'job {raw_data["id"] if "id" in raw_data else "?"}: '
-        JOB_TYPE.validate(raw_data, prefix=prefix)
-
-        self._id = raw_data['id']
-        self._name = raw_data['name']
-        self._progress = raw_data['progress']
-        self._status = raw_data['status']
-        tasks = raw_data['tasks']
-        self._tasks = Tasks({task['name']: Task(task) for task in tasks})
+    def __init__(self, data):
+        prefix = f'job {data["id"] if "id" in data else "?"}: '
+        JOB_TYPE.validate(data, prefix=prefix)
+        self._data = data
 
     @property
     def id(self) -> str:
-        return self._id
+        return self._data['id']
 
     @property
     def name(self) -> str:
-        return self._name
+        return self._data['name']
 
     @property
     def progress(self) -> int:
-        return self._progress
+        return self._data['progress']
 
     @property
-    def status(self) -> int:
-        return self._status
+    def status(self) -> str:
+        return self._data['status']
+
+    @property
+    def has_tasks(self) -> bool:
+        return 'tasks' in self._data
 
     @property
     def tasks(self) -> Tasks:
-        return self._tasks
+        if not self.has_tasks:
+            return Tasks({})
+        return Tasks({task['name']: Task(task) for task in self._data['tasks']})
+
+    def _repr_html_(self):
+        job_html = html_table([
+            ['Name:', self.name],
+            ['Status:', self.status],
+            ['Progress:', self.progress]
+        ], title=f'Job {self.id}')
+
+        if self.has_tasks:
+            # noinspection PyProtectedMember
+            tasks_html = self.tasks._repr_html_()
+            job_html = html_element('div', value=job_html + tasks_html)
+
+        return job_html

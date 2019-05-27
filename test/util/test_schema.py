@@ -9,15 +9,21 @@ class TypeDefTest(unittest.TestCase):
         self.assertIsNone(TypeDef(int).validate(234))
         self.assertIsNone(TypeDef(float).validate(1.234))
         self.assertIsNone(TypeDef(str).validate('bibo'))
+        self.assertIsNone(TypeDef(str, choices=['ernie', 'bibo', 'bert']).validate('bibo'))
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(int).validate(None)
-        self.assertEqual('value is not optional, but found null',
+        self.assertEqual('value is not optional, but was null',
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(int).validate('bibo')
-        self.assertEqual("value is expected to have type 'int', but found type 'str'",
+        self.assertEqual("value is expected to have type 'int', but was type 'str'",
+                         f'{cm.exception}')
+
+        with self.assertRaises(ValueError) as cm:
+            TypeDef(int, choices=[7, 11, 13, 17, 19]).validate(18)
+        self.assertEqual("value is expected to be one of [7, 11, 13, 17, 19], but was 18",
                          f'{cm.exception}')
 
     def test_list(self):
@@ -30,22 +36,22 @@ class TypeDefTest(unittest.TestCase):
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(list).validate(None)
-        self.assertEqual('value is not optional, but found null',
+        self.assertEqual('value is not optional, but was null',
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(list).validate('bibo')
-        self.assertEqual("value is expected to have type 'list', but found type 'str'",
+        self.assertEqual("value is expected to have type 'list', but was type 'str'",
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(list, item_type=TypeDef(int)).validate([1, 2, 3, 'A', 'B'])
-        self.assertEqual("index 3: value is expected to have type 'int', but found type 'str'",
+        self.assertEqual("index 3: value is expected to have type 'int', but was type 'str'",
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(list, item_type=TypeDef(int)).validate([1, 2, None])
-        self.assertEqual('index 2: value is not optional, but found null',
+        self.assertEqual('index 2: value is not optional, but was null',
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
@@ -83,18 +89,18 @@ class TypeDefTest(unittest.TestCase):
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(object).validate(None)
-        self.assertEqual('value is not optional, but found null',
+        self.assertEqual('value is not optional, but was null',
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(object).validate('bibo')
-        self.assertEqual("value is expected to have type 'dict', but found type 'str'",
+        self.assertEqual("value is expected to have type 'dict', but was type 'str'",
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
             TypeDef(object, properties=[PropertyDef('A', TypeDef(int)),
                                         PropertyDef('B', TypeDef(str))]).validate(dict(A=1, B=2))
-        self.assertEqual("property 'B': value is expected to have type 'str', but found type 'int'",
+        self.assertEqual("property 'B': value is expected to have type 'str', but was type 'int'",
                          f'{cm.exception}')
 
         with self.assertRaises(ValueError) as cm:
@@ -121,5 +127,5 @@ class TypeDefTest(unittest.TestCase):
                                                                             dict(X=2.3, Y=-4.8),
                                                                             dict(X=2.3, Y='6.4')]))
         self.assertEqual("property 'B': index 2: property 'Y': "
-                         "value is expected to have type 'float', but found type 'str'",
+                         "value is expected to have type 'float', but was type 'str'",
                          f'{cm.exception}')
