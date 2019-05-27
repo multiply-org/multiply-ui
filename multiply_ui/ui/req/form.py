@@ -8,6 +8,7 @@ import ipywidgets as widgets
 from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
 from ..debug import get_debug_view
+from ..job.api import submit_processing_request
 from ..job.model import Job
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
@@ -19,7 +20,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
     debug_view = get_debug_view()
 
     fetch_inputs_func = fetch_inputs
-
     if mock:
         @debug_view.capture(clear_output=True)
         def fetch_inputs_mock(input_request: InputRequest, apply_func):
@@ -33,6 +33,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
 
         fetch_inputs_func = fetch_inputs_mock
 
+    submit_processing_request_func = submit_processing_request
     if mock:
         @debug_view.capture(clear_output=True)
         def submit_processing_request_mock(input_request: InputRequest, apply_func):
