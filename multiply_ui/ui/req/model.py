@@ -97,9 +97,20 @@ class ProcessingRequest(InputRequestMixin):
     def submit(self) -> Job:
         return Job(dict(id='523e-68fa-341d',
                         name='test job!',
-                        progress=13,
-                        status='Running',
-                        tasks=[],
+                        progress=0,
+                        status='New',
+                        tasks=[
+                            {
+                                "name": "Fetching static Data",
+                                "progress": 0,
+                                "status": "New"
+                            },
+                            {
+                                "name": "Collecting Data from 2017-06-01 to 2017-06-10",
+                                "progress": 0,
+                                "status": "New"
+                            }
+                        ],
                         ))
 
     def _repr_html_(self):
