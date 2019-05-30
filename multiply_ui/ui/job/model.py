@@ -65,40 +65,46 @@ class Tasks:
 class Job:
 
     def __init__(self, raw_data):
-        prefix = f'job {raw_data["id"] if "id" in raw_data else "?"}: '
-        JOB_TYPE.validate(raw_data, prefix=prefix)
+        self._validate(raw_data)
         self._data = raw_data
-        # self._id = raw_data['id']
-        # self._name = raw_data['name']
-        # self._progress = raw_data['progress']
-        # self._status = raw_data['status']
         tasks = raw_data['tasks']
         self._tasks = Tasks({task['name']: Task(task) for task in tasks})
 
+    def _validate(self, data):
+        prefix = f'job {data["id"] if "id" in data else "?"}: '
+        JOB_TYPE.validate(data, prefix=prefix)
+
     @property
     def id(self) -> str:
-        # return self._id
         return self._data['id']
 
     @property
     def name(self) -> str:
-        # return self._name
         return self._data['name']
 
     @property
     def progress(self) -> int:
-        # return self._progress
         return self._data['progress']
 
     @property
     def status(self) -> int:
-        # return self._status
         return self._data['status']
 
     @property
+    def has_tasks(self) -> bool:
+        return 'tasks' in self._data
+
+    @property
     def tasks(self) -> Tasks:
-        return self._tasks
+        if not self.has_tasks:
+            return Tasks({})
+        return Tasks({task['name']: Task(task) for task in self._data['tasks']})
 
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
         return dict(self._data)
+
+    def update(self, new_state: dict):
+        self._validate(new_state)
+        if self.id == new_state['id'] and self.name == new_state['name']:
+            self._data = new_state
