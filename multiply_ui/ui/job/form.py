@@ -18,38 +18,40 @@ def obs_job_form(job: Job, mock=False):
             debug_view.value = ''
             import time
             time.sleep(1)
-            task_progress_1 = job.tasks.get("Fetching static Data").progress
-            task_progress_2 = job.tasks.get("Collecting Data from 2017-06-01 to 2017-06-10").progress
             job_status = "running"
-            task_status_1 = "running"
-            task_status_2 = "new"
-            if task_progress_1 < 100:
-                task_progress_1 += 5
-            elif task_progress_2 < 100:
-                task_progress_2 += 5
-                task_status_1 = "succeeded"
-            else:
-                task_status_1 = "succeeded"
-                task_status_2 = "succeeded"
+            job_progress = 0
+            previous_task_succeeded = True
+            task_list = []
+            for job_task_name in job.tasks.names:
+
+                task_progress = job.tasks.get(job_task_name).progress
+                task_status = job.tasks.get(job_task_name).status
+                if previous_task_succeeded and task_progress < 100:
+                    task_progress += 5
+                    task_progress = min(task_progress, 100)
+                    task_status = "running"
+                job_progress += task_progress
+                if task_progress == 100:
+                    task_status = "succeeded"
+                else:
+                    previous_task_succeeded = False
+                task_list.append(
+                    {
+                        "name": job_task_name,
+                        "progress": task_progress,
+                        "status": task_status
+                     }
+                )
+            print(task_list)
+            if previous_task_succeeded:
                 job_status = "succeeded"
-            job_progress = int((task_progress_1 + task_progress_2) / 2)
+            job_progress = int(job_progress / len(job.tasks.names))
             job_data_dict = {
                 "id": job_state.id,
                 "name": job_state.name,
                 "progress": job_progress,
                 "status": job_status,
-                "tasks": [
-                    {
-                        "name": "Fetching static Data",
-                        "progress": task_progress_1,
-                        "status": task_status_1
-                    },
-                    {
-                        "name": "Collecting Data from 2017-06-01 to 2017-06-10",
-                        "progress": task_progress_2,
-                        "status": task_status_2
-                    }
-                ]
+                "tasks": task_list
             }
             apply_func(Job(job_data_dict))
         get_job_func = get_job_mock
