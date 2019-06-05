@@ -31,19 +31,19 @@ def _submit_processing_request_mock(request: InputRequestMixin, apply_func):
     debug_view.value = ''
     time.sleep(2)
     apply_func(Job(dict(id='523e-68fa-341d',
-                        name='test job!',
+                        name=request.name,
                         progress=0,
-                        status='New',
+                        status='new',
                         tasks=[
                             {
-                                "name": "Fetching static Data",
+                                "name": "Collecting static Data",
                                 "progress": 0,
-                                "status": "New"
+                                "status": "new"
                             },
                             {
                                 "name": "Collecting Data from 2017-06-01 to 2017-06-10",
                                 "progress": 0,
-                                "status": "New"
+                                "status": "new"
                             }
                         ],
                         )))
