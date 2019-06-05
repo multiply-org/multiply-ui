@@ -61,8 +61,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
 
     global _NUM_REQUESTS
     _NUM_REQUESTS += 1
-    request_name = widgets.Text()
-    python_var_name = widgets.Text()
+    request_name = widgets.Text('Job')
+    python_var_name = widgets.Text('req')
 
     start_date = widgets.DatePicker(value=datetime.datetime(year=2010, month=1, day=1))
     end_date = widgets.DatePicker(value=datetime.datetime(year=2019, month=1, day=1))
