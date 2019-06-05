@@ -7,6 +7,7 @@ from ...util.callapi import call_api
 
 URL_BASE = "http://localhost:9090/"
 SUBMIT_PROCESSING_REQUEST_URL = URL_BASE + "multiply/api/jobs/execute"
+GET_JOB_URL = URL_BASE + "multiply/api/jobs/{}"
 
 debug_view = get_debug_view()
 
@@ -29,4 +30,26 @@ def _submit_processing_request(request: InputRequestMixin, apply_func):
 def _submit_processing_request_mock(request: InputRequestMixin, apply_func):
     debug_view.value = ''
     time.sleep(2)
-    apply_func(Job(dict(id='2346-2d34-6f54-34ea', name=request.name, progress=2, status='running')))
+    apply_func(Job(dict(id='523e-68fa-341d',
+                        name='test job!',
+                        progress=0,
+                        status='New',
+                        tasks=[
+                            {
+                                "name": "Fetching static Data",
+                                "progress": 0,
+                                "status": "New"
+                            },
+                            {
+                                "name": "Collecting Data from 2017-06-01 to 2017-06-10",
+                                "progress": 0,
+                                "status": "New"
+                            }
+                        ],
+                        )))
+
+
+def get_job(job_id: str, apply_func):
+    def _apply_func(response) -> Job:
+        return apply_func(Job(response))
+    call_api(GET_JOB_URL.format(job_id), apply_func=_apply_func)
