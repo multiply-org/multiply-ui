@@ -13,7 +13,7 @@ JOB_TYPE = TypeDef(object, properties=[
     PropertyDef("id", TypeDef(str)),
     PropertyDef("name", TypeDef(str)),
     PropertyDef("progress", TypeDef(int)),
-    PropertyDef("status", TypeDef(str, choices=['new', 'running', 'succeeded', 'cancelling', 'cancelled'])),
+    PropertyDef("status", TypeDef(str, choices=['new', 'running', 'succeeded', 'cancelling', 'cancelled', 'failed'])),
     PropertyDef("tasks", TypeDef(list, optional=True, item_type=TASK_TYPE)),
 ])
 
