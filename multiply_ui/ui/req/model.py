@@ -74,7 +74,7 @@ class InputRequestMixin:
         return f'<p>' \
             f'Name: {self.name}<br/>' \
             f'Time range: {self.time_range}<br/>' \
-            f'Region box: {self.bbox}' \
+            f'Region box: {self.bbox}<br/>' \
             f'Input types: {", ".join(self.input_types)}' \
             f'</p>'
 
