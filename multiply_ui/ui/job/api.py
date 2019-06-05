@@ -14,9 +14,9 @@ debug_view = get_debug_view()
 
 def submit_processing_request(request: InputRequestMixin, apply_func, mock=False):
     if mock:
-        _submit_processing_request(request, apply_func)
-    else:
         _submit_processing_request_mock(request, apply_func)
+    else:
+        _submit_processing_request(request, apply_func)
 
 
 def _submit_processing_request(request: InputRequestMixin, apply_func):
