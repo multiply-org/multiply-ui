@@ -33,16 +33,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
 
         fetch_inputs_func = fetch_inputs_mock
 
-    submit_processing_request_func = submit_processing_request
-    if mock:
-        @debug_view.capture(clear_output=True)
-        def submit_processing_request_mock(input_request: InputRequest, apply_func):
-            debug_view.value = ''
-            time.sleep(2)
-            apply_func(Job(dict(id='2346-2d34-6f54-34ea', name=input_request.name, progress=2, status='running')))
-
-        submit_processing_request_func = submit_processing_request_mock
-
     form_item_layout = widgets.Layout(
         display='flex',
         flex_flow='row',
@@ -170,7 +160,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, mock=False):
             output.value = result_html
 
         output.value = html_element('h5', value='Submitting processing request...')
-        submit_processing_request_func(inputs_request, apply_func=apply_func)
+        submit_processing_request(inputs_request, apply_func=apply_func, mock=mock)
 
     # TODO: make GUI form look nice
     new_button = widgets.Button(description="New Request", icon="search")

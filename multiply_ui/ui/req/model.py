@@ -100,7 +100,7 @@ class ProcessingRequest(InputRequestMixin):
             return InputIdentifiers({})
         return InputIdentifiers(self._data['inputIdentifiers'])
 
-    def submit(self, job_var_name: str) -> Job:
+    def submit(self, job_var_name: str, mock=False) -> Job:
         # TODO: test me, I have never been tested!
         from ..job.api import submit_processing_request
         import IPython
@@ -110,7 +110,7 @@ class ProcessingRequest(InputRequestMixin):
             ipython = IPython.get_ipython()
             ipython.push({job_var_name: job})
 
-        return submit_processing_request(self, apply_func)
+        return submit_processing_request(self, apply_func, mock=mock)
 
     def as_dict(self):
         return dict(self._data)
