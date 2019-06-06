@@ -1,5 +1,7 @@
 from typing import Dict, Any, List
 
+import time
+
 from ...util.html import html_table, html_element
 from ...util.schema import PropertyDef, TypeDef
 
@@ -72,7 +74,8 @@ class Job:
         if self.id not in JOBS:
             JOBS[f'{self.id}'] = self
 
-    def _validate(self, data):
+    @staticmethod
+    def _validate(data):
         prefix = f'job {data["id"] if "id" in data else "?"}: '
         JOB_TYPE.validate(data, prefix=prefix)
 
@@ -105,6 +108,29 @@ class Job:
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
         return dict(self._data)
+
+    def cancel(self, mock=False):
+        from ..job.api import cancel
+        cancel_func = cancel
+        if mock:
+
+            def cancel_mock(job_id: str, apply_func):
+                job = JOBS[job_id]
+                if job is not None:
+                    job_dict = job.as_dict()
+                    job_dict['status'] = 'cancelling'
+                    job.update(job_dict)
+                    apply_func(job)
+                    time.sleep(5)
+                    job_dict['status'] = 'cancelled'
+                    job.update(job_dict)
+
+            cancel_func = cancel_mock
+
+        def apply_func(job: Job):
+            print(f'Job {job.name} has been cancelled.')
+
+        cancel_func(self.id, apply_func)
 
     def update(self, new_state: dict):
         self._validate(new_state)

@@ -7,8 +7,9 @@ from ..req.model import InputRequestMixin
 from ...util.callapi import call_api
 
 URL_BASE = "http://localhost:9090/"
-SUBMIT_PROCESSING_REQUEST_URL = URL_BASE + "multiply/api/jobs/execute"
+CANCEL_URL = URL_BASE + "multiply/api/jobs/cancel/{}"
 GET_JOB_URL = URL_BASE + "multiply/api/jobs/{}"
+SUBMIT_PROCESSING_REQUEST_URL = URL_BASE + "multiply/api/jobs/execute"
 
 debug_view = get_debug_view()
 
@@ -48,6 +49,12 @@ def _submit_processing_request_mock(request: InputRequestMixin, apply_func):
                             }
                         ],
                         )))
+
+
+def cancel(job_id: str, apply_func):
+    def _apply_func(response):
+        return apply_func(Job(response))
+    call_api(CANCEL_URL.format(job_id), apply_func=_apply_func)
 
 
 def get_job(job_id: str, apply_func):
