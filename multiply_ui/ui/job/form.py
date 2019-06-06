@@ -122,6 +122,8 @@ def _get_job_func(job: Job, mock=False):
         debug_view.value = ''
         import time
         time.sleep(1)
+        if job.status != "new" and job.status != "running":
+            return
         job_status = "running"
         job_progress = 0
         previous_task_succeeded = True

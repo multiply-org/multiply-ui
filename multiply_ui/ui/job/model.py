@@ -119,10 +119,16 @@ class Job:
                 if job is not None:
                     job_dict = job.as_dict()
                     job_dict['status'] = 'cancelling'
+                    for task in job_dict['tasks']:
+                        if task['status'] == "new" or task['status'] == "running":
+                            task['status'] = "cancelling"
                     job.update(job_dict)
                     apply_func(job)
                     time.sleep(5)
                     job_dict['status'] = 'cancelled'
+                    for task in job_dict['tasks']:
+                        if task['status'] == "cancelling":
+                            task['status'] = "cancelled"
                     job.update(job_dict)
 
             cancel_func = cancel_mock

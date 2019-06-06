@@ -45,3 +45,12 @@ class JobModelTest(unittest.TestCase):
             job.cancel(mock=True)
 
             self.assertEqual('cancelled', job.status)
+
+            expected_states = ["succeeded", "succeeded", "cancelled", "failed", "cancelled", "cancelled", "cancelled",
+                               "cancelled", "cancelled"]
+
+            for index, task_name in enumerate(job.tasks.names):
+                task = job.tasks.get(task_name)
+                self.assertEqual(expected_states[index], task.status)
+
+
