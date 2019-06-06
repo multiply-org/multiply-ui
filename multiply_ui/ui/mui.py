@@ -1,5 +1,5 @@
 from .job.model import Job
-from .job.form import obs_job_form
+from .job.form import obs_job_form, obs_jobs_form
 from .params.api import fetch_processing_parameters
 from .params.model import ProcessingParameters, Variables, ForwardModels, InputTypes
 from .req.form import sel_params_form
@@ -39,5 +39,8 @@ class MultiplyUI:
 
     def obs_job(self, job: Job, mock=False):
         return obs_job_form(job, mock)
+
+    def obs_jobs(self, mock=False):
+        return obs_jobs_form(mock)
 
 mui = MultiplyUI()

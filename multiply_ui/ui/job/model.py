@@ -17,6 +17,8 @@ JOB_TYPE = TypeDef(object, properties=[
     PropertyDef("tasks", TypeDef(list, optional=True, item_type=TASK_TYPE)),
 ])
 
+JOBS = {}
+
 
 class Task:
     def __init__(self, data: Dict[str, Any]):
@@ -67,6 +69,8 @@ class Job:
     def __init__(self, data):
         self._validate(data)
         self._data = data
+        if self.id not in JOBS:
+            JOBS[f'{self.id}'] = self
 
     def _validate(self, data):
         prefix = f'job {data["id"] if "id" in data else "?"}: '

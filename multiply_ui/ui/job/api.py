@@ -1,4 +1,5 @@
-import time
+import random
+import string
 
 from .model import Job
 from ..debug import get_debug_view
@@ -29,8 +30,8 @@ def _submit_processing_request(request: InputRequestMixin, apply_func):
 @debug_view.capture(clear_output=True)
 def _submit_processing_request_mock(request: InputRequestMixin, apply_func):
     debug_view.value = ''
-    time.sleep(2)
-    apply_func(Job(dict(id='523e-68fa-341d',
+    random_id = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
+    apply_func(Job(dict(id=random_id,
                         name=request.name,
                         progress=0,
                         status='new',
