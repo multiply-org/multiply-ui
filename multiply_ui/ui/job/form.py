@@ -78,7 +78,8 @@ def obs_jobs_form(mock=False):
     job_header_name_label = widgets.Label('Job Name')
     job_header_progress_label = widgets.Label('Progress')
     job_header_status_label = widgets.Label('Status')
-    jobs_box_children = [job_header_id_label, job_header_name_label, job_header_progress_label, job_header_status_label]
+    jobs_box_children = [job_header_id_label, job_header_name_label, job_header_progress_label, job_header_status_label,
+                         widgets.Label()]
     grid_template_rows = 'auto'
     job_components = {}
     for job in JOBS.values():
@@ -86,17 +87,21 @@ def obs_jobs_form(mock=False):
         job_status_label = widgets.Label(job.status)
         job_id_label = widgets.Label(job.id)
         job_name_label = widgets.Label(job.name)
+        cancel_button = widgets.Button(description="Cancel", icon="times-circle")
+        # todo add functionality
+        # cancel_button.on_click(handle_new_button_clicked)
         jobs_box_children.append(job_id_label)
         jobs_box_children.append(job_name_label)
         jobs_box_children.append(job_progress_bar)
         jobs_box_children.append(job_status_label)
+        jobs_box_children.append(cancel_button)
         grid_template_rows = grid_template_rows + ' auto'
         job_components[f'{job.id}'] = (job_progress_bar, job_status_label, _get_job_func(job, mock), job)
     jobs_monitor_component = widgets.GridBox(children=jobs_box_children,
                                     layout=widgets.Layout(
-                                        width='70%',
+                                        width='80%',
                                         grid_template_rows=grid_template_rows,
-                                        grid_template_columns='20% 20% 40% 20%'
+                                        grid_template_columns='10% 20% 40% 10% 20%'
                                     )
                                     )
 
