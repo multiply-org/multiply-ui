@@ -3,7 +3,7 @@ from IPython.display import display
 import threading
 import time
 
-from .api import get_job
+from .api import cancel, get_job
 from .model import Job, JOBS
 from ..debug import get_debug_view
 
@@ -73,6 +73,18 @@ def obs_job_form(job: Job, mock=False):
     _monitor(monitor, job_monitor, monitor_components)
 
 
+def _get_handle_cancel_button_clicked(job_id: str, mock=False):
+    debug_view = get_debug_view()
+
+    @debug_view.capture(clear_output=True)
+    def handle_cancel_button_clicked(*args, **kwargs):
+        def apply_func(job: Job):
+            pass
+        cancel(job_id, apply_func=apply_func, mock=mock)
+
+    return handle_cancel_button_clicked
+
+
 def obs_jobs_form(mock=False):
     job_header_id_label = widgets.Label('Job ID')
     job_header_name_label = widgets.Label('Job Name')
@@ -87,16 +99,15 @@ def obs_jobs_form(mock=False):
         job_status_label = widgets.Label(job.status)
         job_id_label = widgets.Label(job.id)
         job_name_label = widgets.Label(job.name)
-        cancel_button = widgets.Button(description="Cancel", icon="times-circle")
-        # todo add functionality
-        # cancel_button.on_click(handle_new_button_clicked)
+        job_cancel_button = widgets.Button(description="Cancel", icon="times-circle")
+        job_cancel_button.on_click(_get_handle_cancel_button_clicked(job.id, mock))
         jobs_box_children.append(job_id_label)
         jobs_box_children.append(job_name_label)
         jobs_box_children.append(job_progress_bar)
         jobs_box_children.append(job_status_label)
-        jobs_box_children.append(cancel_button)
+        jobs_box_children.append(job_cancel_button)
         grid_template_rows = grid_template_rows + ' auto'
-        job_components[f'{job.id}'] = (job_progress_bar, job_status_label, _get_job_func(job, mock), job)
+        job_components[f'{job.id}'] = (job_progress_bar, job_status_label, job_cancel_button, _get_job_func(job, mock), job)
     jobs_monitor_component = widgets.GridBox(children=jobs_box_children,
                                     layout=widgets.Layout(
                                         width='80%',
@@ -107,9 +118,11 @@ def obs_jobs_form(mock=False):
 
     def jobs_monitor_func(components, empty):
         while True:
-            for progress_bar, status_label, job_func, component_job in components.values():
+            for progress_bar, status_label, cancel_button, job_func, component_job in components.values():
                 progress_bar.value = component_job.progress
                 status_label.value = component_job.status
+                if component_job.status != 'new' and component_job.status != 'running':
+                    cancel_button.disabled = True
                 job_func(component_job, _update_job)
             time.sleep(0.5)
 

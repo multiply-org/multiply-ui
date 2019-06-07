@@ -1,7 +1,8 @@
 import random
 import string
+import time
 
-from .model import Job
+from .model import Job, JOBS
 from ..req.model import InputRequestMixin
 from ...util.callapi import call_api
 
@@ -46,10 +47,35 @@ def _submit_processing_request_mock(request: InputRequestMixin, apply_func):
                         )))
 
 
-def cancel(job_id: str, apply_func):
+def cancel(job_id: str, apply_func, mock=False):
+    if mock:
+        _cancel_mock(job_id, apply_func)
+    else:
+        _cancel(job_id, apply_func)
+
+
+def _cancel(job_id: str, apply_func):
     def _apply_func(response):
         return apply_func(Job(response))
     call_api(CANCEL_URL.format(job_id), apply_func=_apply_func)
+
+
+def _cancel_mock(job_id: str, apply_func):
+    job = JOBS[job_id]
+    if job is not None:
+        job_dict = job.as_dict()
+        job_dict['status'] = 'cancelling'
+        for task in job_dict['tasks']:
+            if task['status'] == "new" or task['status'] == "running":
+                task['status'] = "cancelling"
+        job.update(job_dict)
+        apply_func(job)
+        time.sleep(5)
+        job_dict['status'] = 'cancelled'
+        for task in job_dict['tasks']:
+            if task['status'] == "cancelling":
+                task['status'] = "cancelled"
+        job.update(job_dict)
 
 
 def get_job(job_id: str, apply_func):

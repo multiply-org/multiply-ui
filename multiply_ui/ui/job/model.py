@@ -111,32 +111,11 @@ class Job:
 
     def cancel(self, mock=False):
         from ..job.api import cancel
-        cancel_func = cancel
-        if mock:
-
-            def cancel_mock(job_id: str, apply_func):
-                job = JOBS[job_id]
-                if job is not None:
-                    job_dict = job.as_dict()
-                    job_dict['status'] = 'cancelling'
-                    for task in job_dict['tasks']:
-                        if task['status'] == "new" or task['status'] == "running":
-                            task['status'] = "cancelling"
-                    job.update(job_dict)
-                    apply_func(job)
-                    time.sleep(5)
-                    job_dict['status'] = 'cancelled'
-                    for task in job_dict['tasks']:
-                        if task['status'] == "cancelling":
-                            task['status'] = "cancelled"
-                    job.update(job_dict)
-
-            cancel_func = cancel_mock
 
         def apply_func(job: Job):
             print(f'Job {job.name} has been cancelled.')
 
-        cancel_func(self.id, apply_func)
+        cancel(self.id, apply_func, mock)
 
     def update(self, new_state: dict):
         self._validate(new_state)
