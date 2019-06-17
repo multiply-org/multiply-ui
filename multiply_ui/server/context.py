@@ -4,6 +4,7 @@ from .model import Job
 
 import multiply_data_access.data_access_component
 
+
 class ServiceContext:
     def __init__(self):
         self._jobs = {}
