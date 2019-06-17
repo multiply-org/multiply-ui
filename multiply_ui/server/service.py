@@ -21,11 +21,13 @@ class Service:
         application = new_application()
         application._ctx = ServiceContext()
         application.listen(port, address)
+        self._shutdown_requested = False
         self._address = address
         self._port = port
 
     def start(self):
         tornado.ioloop.IOLoop.current().add_callback_from_signal(self.register_termination_handlers)
+        tornado.ioloop.PeriodicCallback(self._try_shutdown, 100).start()
         LOGGER.info(f"Server listening on port {self._port} at address {self._address}...")
         tornado.ioloop.IOLoop.current().start()
 
@@ -38,8 +40,12 @@ class Service:
     # noinspection PyUnusedLocal
     def sig_handler(self, sig, frame):
         LOGGER.warning(f'Caught signal {sig}')
-        tornado.ioloop.IOLoop.current().add_callback_from_signal(self.shut_down)
+        self._shutdown_requested = True
 
     def register_termination_handlers(self):
         signal.signal(signal.SIGINT, self.sig_handler)
         signal.signal(signal.SIGTERM, self.sig_handler)
+
+    def _try_shutdown(self):
+        if self._shutdown_requested:
+            self.shut_down()
