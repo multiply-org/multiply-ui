@@ -31,4 +31,5 @@ class JobModelTest(unittest.TestCase):
                               "Inferring variables from 2017-06-01 to 2017-06-10",
                               "Inferring variables from 2017-06-11 to 2017-06-20"],
                              job.tasks.names)
+            self.assertIsNotNone(job._repr_html_())
             self.assertIsNotNone(job.tasks._repr_html_())

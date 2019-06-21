@@ -38,7 +38,7 @@ class InputIdentifiers:
         for input_type, prod_ids in self._data.items():
             for prod_id in prod_ids:
                 data_rows.append([input_type, prod_id])
-        return html_table(data_rows, header_row=['Input Type', 'Product Identifier'], title='Inputs')
+        return html_table(data_rows, header_row=['Type', 'Identifier'], title='Inputs')
 
 
 class InputRequestMixin:
@@ -70,11 +70,11 @@ class InputRequestMixin:
         return dict(self._data)
 
     def _repr_html_(self):
-        # TODO: make it look nice
+        # TODO: make HTML look nice
         return f'<p>' \
             f'Name: {self.name}<br/>' \
             f'Time range: {self.time_range}<br/>' \
-            f'Region box: {self.bbox}' \
+            f'Region box: {self.bbox}<br/>' \
             f'Input types: {", ".join(self.input_types)}' \
             f'</p>'
 
@@ -91,20 +91,35 @@ class ProcessingRequest(InputRequestMixin):
         self._data = data
 
     @property
+    def has_inputs(self) -> bool:
+        return 'inputIdentifiers' in self._data
+
+    @property
     def inputs(self) -> InputIdentifiers:
+        if not self.has_inputs:
+            return InputIdentifiers({})
         return InputIdentifiers(self._data['inputIdentifiers'])
 
-    def submit(self) -> Job:
-        return Job(dict(id='523e-68fa-341d',
-                        name='test job!',
-                        progress=13,
-                        status='Running',
-                        tasks=[],
-                        ))
+    def submit(self, job_var_name: str, mock=False):
+        # TODO: test me, I have never been tested!
+        from ..job.api import submit_processing_request
+        import IPython
+
+        def apply_func(job: Job):
+            print(f'Job is being executed and a job proxy object has been assigned to variable {job_var_name}.')
+            ipython = IPython.get_ipython()
+            ipython.push({job_var_name: job})
+
+        submit_processing_request(self, apply_func, mock=mock)
+
+    def as_dict(self):
+        return dict(self._data)
 
     def _repr_html_(self):
+        # TODO: make HTML look nice
         input_request_html = super()._repr_html_()
-        # noinspection PyProtectedMember
-        input_identifiers_html = self.inputs._repr_html_()
-        # TODO: make it look nice
-        return html_element('div', value=input_request_html + input_identifiers_html)
+        if self.has_inputs:
+            # noinspection PyProtectedMember
+            input_identifiers_html = self.inputs._repr_html_()
+            input_request_html = html_element('div', value=input_request_html + input_identifiers_html)
+        return input_request_html
