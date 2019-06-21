@@ -31,4 +31,26 @@ class JobModelTest(unittest.TestCase):
                               "Inferring variables from 2017-06-01 to 2017-06-10",
                               "Inferring variables from 2017-06-11 to 2017-06-20"],
                              job.tasks.names)
+            self.assertIsNotNone(job._repr_html_())
             self.assertIsNotNone(job.tasks._repr_html_())
+
+    def test_cancel(self):
+        with open(os.path.join(os.path.dirname(__file__), '..', '..', 'test_data', 'example_job.json')) as fp:
+            json_text = fp.read()
+            parameters = json.loads(json_text)
+            job = Job(parameters)
+
+            self.assertEqual('running', job.status)
+
+            job.cancel(mock=True)
+
+            self.assertEqual('cancelled', job.status)
+
+            expected_states = ["succeeded", "succeeded", "cancelled", "failed", "cancelled", "cancelled", "cancelled",
+                               "cancelled", "cancelled"]
+
+            for index, task_name in enumerate(job.tasks.names):
+                task = job.tasks.get(task_name)
+                self.assertEqual(expected_states[index], task.status)
+
+
