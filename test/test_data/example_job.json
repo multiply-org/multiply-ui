@@ -7,12 +7,12 @@
     {
       "name": "Fetching static Data",
       "progress": 100,
-      "status": "completed"
+      "status": "succeeded"
     },
     {
       "name": "Collecting Data from 2017-06-01 to 2017-06-10",
       "progress": 100,
-      "status": "completed"
+      "status": "succeeded"
     },
     {
       "name": "Collecting Data from 2017-06-11 to 2017-06-20",
@@ -27,27 +27,27 @@
     {
       "name": "Performing atmospheric correction on Data from 2017-06-11 to 2017-06-20",
       "progress": 0,
-      "status": "not started yet"
+      "status": "new"
     },
     {
       "name": "Retrieving prior information from 2017-06-01 to 2017-06-10",
       "progress": 0,
-      "status": "not started yet"
+      "status": "new"
     },
     {
       "name": "Retrieving prior information from 2017-06-11 to 2017-06-20",
       "progress": 0,
-      "status": "not started yet"
+      "status": "new"
     },
     {
       "name": "Inferring variables from 2017-06-01 to 2017-06-10",
       "progress": 0,
-      "status": "not started yet"
+      "status": "new"
     },
     {
       "name": "Inferring variables from 2017-06-11 to 2017-06-20",
       "progress": 0,
-      "status": "not started yet"
+      "status": "new"
     }
   ]
 }

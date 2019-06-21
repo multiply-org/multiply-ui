@@ -1,5 +1,7 @@
 from typing import Dict, Any, List
 
+import time
+
 from ...util.html import html_table, html_element
 from ...util.schema import PropertyDef, TypeDef
 
@@ -16,6 +18,8 @@ JOB_TYPE = TypeDef(object, properties=[
     PropertyDef("status", TypeDef(str, choices=['new', 'running', 'succeeded', 'cancelling', 'cancelled', 'failed'])),
     PropertyDef("tasks", TypeDef(list, optional=True, item_type=TASK_TYPE)),
 ])
+
+JOBS = {}
 
 
 class Task:
@@ -65,9 +69,15 @@ class Tasks:
 class Job:
 
     def __init__(self, data):
+        self._validate(data)
+        self._data = data
+        if self.id not in JOBS:
+            JOBS[f'{self.id}'] = self
+
+    @staticmethod
+    def _validate(data):
         prefix = f'job {data["id"] if "id" in data else "?"}: '
         JOB_TYPE.validate(data, prefix=prefix)
-        self._data = data
 
     @property
     def id(self) -> str:
@@ -94,6 +104,23 @@ class Job:
         if not self.has_tasks:
             return Tasks({})
         return Tasks({task['name']: Task(task) for task in self._data['tasks']})
+
+    def as_dict(self) -> Dict:
+        # noinspection PyUnresolvedReferences
+        return dict(self._data)
+
+    def cancel(self, mock=False):
+        from ..job.api import cancel
+
+        def apply_func(job: Job):
+            print(f'Job {job.name} has been cancelled.')
+
+        cancel(self.id, apply_func, mock)
+
+    def update(self, new_state: dict):
+        self._validate(new_state)
+        if self.id == new_state['id'] and self.name == new_state['name']:
+            self._data = new_state
 
     def _repr_html_(self):
         job_html = html_table([
