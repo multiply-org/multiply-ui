@@ -60,9 +60,10 @@ Activate environment and install sources:
 
     $ conda activate multiply-ui
 
-Install jupyter-widgets extension for Jupyter-Lab
+Install jupyter-widgets and jupyter-leaflet extension for Jupyter-Lab
 
     $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
+    $ jupyter labextension install jupyter-leaflet
 
 Install multiply-ui from source code:
 

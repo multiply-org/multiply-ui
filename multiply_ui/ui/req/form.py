@@ -1,9 +1,11 @@
-import datetime
-import time
 from typing import List
+from ipyleaflet import Map, basemaps, basemap_to_tiles, DrawControl, GeoJSON
+from shapely.geometry import shape
 
+import datetime
 import IPython
 import ipywidgets as widgets
+import time
 
 from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
@@ -64,15 +66,25 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             return f" +{a} "
         return " 0 "
 
-    lon_range = widgets.SelectionRangeSlider(
-        options=[(format_angle(i - 180), i) for i in range(0, 361)],
-        index=(0, 360)
-    )
+    map_background_layer = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
+    geometry_layer = GeoJSON()
+    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=(39., -2.1), zoom=11)
+    draw_control = DrawControl()
+    draw_control.polyline = {}
+    draw_control.polygon = {}
+    draw_control.circlemarker = {}
+    draw_control.rectangle = {'shapeOptions': {}}
+    draw_control.edit = False
+    draw_control.remove = False
 
-    lat_range = widgets.SelectionRangeSlider(
-        options=[(format_angle(i - 90), i) for i in range(0, 181)],
-        index=(0, 180)
-    )
+    def _remove_previous_polygon(self, action, geo_json):
+        self.clear()
+        leaflet_map.remove_layer(leaflet_map.layers[1])
+        geometry_layer = GeoJSON(data=geo_json['geometry'])
+        leaflet_map.add_layer(geometry_layer)
+
+    draw_control.on_draw(_remove_previous_polygon)
+    leaflet_map.add_control(draw_control)
 
     spatial_resolution = widgets.Dropdown(
         options=['10', '20', '60', '300'],
@@ -92,8 +104,14 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     def new_input_request():
         # TODO: infer input types from selected variables and forward models
         input_types = ['S2_L1C']
-        x1, x2 = lon_range.value
-        y1, y2 = lat_range.value
+
+        roi_data = leaflet_map.layers[1].data
+        if not roi_data:
+            output.value = html_element('h5',
+                                        att=dict(style='color:red'),
+                                        value=f'Error: No region of Interest specified')
+        roi = shape(roi_data)
+        x1, y1, x2, y2 = roi.bounds
 
         return InputRequest(dict(
             name=request_name.value,
@@ -175,8 +193,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([widgets.Label(value='Start date'), start_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='End date'), end_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Time steps'), time_steps], layout=form_item_layout),
-        widgets.Box([widgets.Label(value='Longitude'), lon_range], layout=form_item_layout),
-        widgets.Box([widgets.Label(value='Latitude'), lat_range], layout=form_item_layout),
+        widgets.Box([widgets.Label(value="Region of Interest"), leaflet_map], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Resolution (m)'), spatial_resolution], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Request/job name'), request_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Python identifier'), python_var_name], layout=form_item_layout),
