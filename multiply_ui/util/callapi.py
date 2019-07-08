@@ -3,13 +3,18 @@ import requests
 from typing import Any
 
 
-def call_api(url: str, apply_func=None, data=None) -> Any:
+def _write_to_command_line(message: str):
+    print(message)
+
+
+def call_api(url: str, apply_func=None, data=None, message_func=_write_to_command_line) -> Any:
     """
     Call some external API.
 
     :param url: The API URL.
     :param apply_func: function called after API response has been received.
     :param data: JSON POST object, usually a dictionary if any.
+    :param message_func: A message function that will display a message from the back end
     :return: response JSON object, usually a dictionary.
     """
     try:
@@ -20,6 +25,5 @@ def call_api(url: str, apply_func=None, data=None) -> Any:
         json_obj = json.loads(response.content)
         return apply_func(json_obj) if apply_func is not None else json_obj
     except Exception as e:
-        # TODO: add error handler
-        print(f"Connection error: {e}")
+        message_func(f"Server error: {e}")
         return None

@@ -24,7 +24,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     fetch_inputs_func = fetch_inputs
     if mock:
         @debug_view.capture(clear_output=True)
-        def fetch_inputs_mock(input_request: InputRequest, apply_func):
+        def fetch_inputs_mock(input_request: InputRequest, apply_func, message_func):
             debug_view.value = ''
             time.sleep(2)
             input_identifiers = {input_type: [f'iid-{i}' for i in range(10)] for input_type in
@@ -111,6 +111,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             inputTypes=input_types,
         ))
 
+    def message_func(message: str):
+        output.value = html_element('h5', value=message)
+
     # noinspection PyUnusedLocal
     @debug_view.capture(clear_output=True)
     def handle_new_button_clicked(*args, **kwargs):
@@ -146,7 +149,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             output.value = result_html
 
         output.value = html_element('h5', value='Fetching results...')
-        fetch_inputs_func(inputs_request, apply_func=apply_func)
+        fetch_inputs_func(inputs_request, apply_func=apply_func, message_func=message_func)
 
     # noinspection PyUnusedLocal
     @debug_view.capture(clear_output=True)
@@ -169,7 +172,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             output.value = result_html
 
         output.value = html_element('h5', value='Submitting processing request...')
-        submit_processing_request(inputs_request, apply_func=apply_func, mock=mock)
+        submit_processing_request(inputs_request, apply_func=apply_func, message_func=message_func, mock=mock)
 
     # TODO: make GUI form look nice
     new_button = widgets.Button(description="New Request", icon="search")
