@@ -11,7 +11,6 @@ from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
 from ..debug import get_debug_view
 from ..job.api import submit_processing_request
-from ..job.model import Job
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
 
@@ -24,14 +23,14 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     fetch_inputs_func = fetch_inputs
     if mock:
         @debug_view.capture(clear_output=True)
-        def fetch_inputs_mock(input_request: InputRequest, apply_func, message_func):
+        def fetch_inputs_mock(input_request: InputRequest, message_func) -> ProcessingRequest:
             debug_view.value = ''
             time.sleep(2)
             input_identifiers = {input_type: [f'iid-{i}' for i in range(10)] for input_type in
                                  input_request.input_types}
             processing_request_data = input_request.as_dict()
             processing_request_data.update(dict(inputIdentifiers=input_identifiers))
-            apply_func(ProcessingRequest(processing_request_data))
+            return ProcessingRequest(processing_request_data)
 
         fetch_inputs_func = fetch_inputs_mock
 
@@ -125,9 +124,11 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             return
 
         inputs_request = new_input_request()
+        output.value = html_element('h5', value='Fetching results...')
 
-        def apply_func(processing_request: ProcessingRequest):
+        processing_request = fetch_inputs_func(inputs_request, message_func)
 
+        if processing_request is not None:
             input_identifiers = processing_request.inputs
             data_rows = []
             for input_type, input_ids in input_identifiers.as_dict().items():
@@ -148,9 +149,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
             output.value = result_html
 
-        output.value = html_element('h5', value='Fetching results...')
-        fetch_inputs_func(inputs_request, apply_func=apply_func, message_func=message_func)
-
     # noinspection PyUnusedLocal
     @debug_view.capture(clear_output=True)
     def handle_submit_button_clicked(*args, **kwargs):
@@ -163,16 +161,16 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
         inputs_request = new_input_request()
 
-        def apply_func(job: Job):
+        output.value = html_element('h5', value='Submitting processing request...')
+
+        job = submit_processing_request(inputs_request, message_func=message_func, mock=mock)
+        if job is not None:
             shell = IPython.get_ipython()
             shell.push({req_var_name: job}, interactive=True)
             result_html = html_element('p',
                                        value=f'Note: a new job is currently being executed and is '
                                        f'stored in variable <code>{req_var_name}</code>.')
             output.value = result_html
-
-        output.value = html_element('h5', value='Submitting processing request...')
-        submit_processing_request(inputs_request, apply_func=apply_func, message_func=message_func, mock=mock)
 
     # TODO: make GUI form look nice
     new_button = widgets.Button(description="New Request", icon="search")

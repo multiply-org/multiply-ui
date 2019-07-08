@@ -2,6 +2,8 @@ import random
 import string
 import time
 
+from typing import Optional
+
 from .model import Job, JOBS
 from ..req.model import InputRequestMixin
 from ...util.callapi import call_api
@@ -16,23 +18,25 @@ def _write_to_command_line(message: str):
     print(message)
 
 
-def submit_processing_request(request: InputRequestMixin, apply_func, message_func=_write_to_command_line, mock=False):
+def submit_processing_request(request: InputRequestMixin, message_func=_write_to_command_line, mock=False) \
+        -> Optional[Job]:
     if mock:
-        _submit_processing_request_mock(request, apply_func)
+        return _submit_processing_request_mock(request)
     else:
-        _submit_processing_request(request, apply_func, message_func=message_func)
+        _submit_processing_request(request, message_func=message_func)
 
 
-def _submit_processing_request(request: InputRequestMixin, apply_func, message_func):
+def _submit_processing_request(request: InputRequestMixin, message_func) -> Optional[Job]:
     def _apply_func(response) -> Job:
-        return apply_func(Job(response))
+        return Job(response)
     # TODO: make sure "multiply/api/jobs/execute" can also consume processing requests without input identifiers
-    call_api(SUBMIT_PROCESSING_REQUEST_URL, data=request.as_dict(), apply_func=_apply_func, message_func=message_func)
+    return call_api(SUBMIT_PROCESSING_REQUEST_URL, data=request.as_dict(), apply_func=_apply_func,
+                    message_func=message_func)
 
 
-def _submit_processing_request_mock(request: InputRequestMixin, apply_func):
+def _submit_processing_request_mock(request: InputRequestMixin) -> Job:
     random_id = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
-    apply_func(Job(dict(id=random_id,
+    return Job(dict(id=random_id,
                         name=request.name,
                         progress=0,
                         status='new',
@@ -48,23 +52,21 @@ def _submit_processing_request_mock(request: InputRequestMixin, apply_func):
                                 "status": "new"
                             }
                         ],
-                        )))
+                        ))
 
 
-def cancel(job_id: str, apply_func, mock=False, message_func=_write_to_command_line):
+def cancel(job_id: str, mock=False, message_func=_write_to_command_line):
     if mock:
-        _cancel_mock(job_id, apply_func, message_func)
+        _cancel_mock(job_id, message_func)
     else:
-        _cancel(job_id, apply_func, message_func)
+        _cancel(job_id, message_func)
 
 
-def _cancel(job_id: str, apply_func, message_func):
-    def _apply_func(response):
-        return apply_func(Job(response))
-    call_api(CANCEL_URL.format(job_id), apply_func=_apply_func, message_func=message_func)
+def _cancel(job_id: str, message_func):
+    call_api(CANCEL_URL.format(job_id), message_func=message_func)
 
 
-def _cancel_mock(job_id: str, apply_func, message_func):
+def _cancel_mock(job_id: str, message_func):
     job = JOBS[job_id]
     if job is not None:
         job_dict = job.as_dict()
@@ -82,7 +84,7 @@ def _cancel_mock(job_id: str, apply_func, message_func):
         job.update(job_dict)
 
 
-def get_job(job_id: str, apply_func, message_func ):
+def get_job(job_id: str, message_func ) -> Optional[Job]:
     def _apply_func(response) -> Job:
         return Job(response)
-    call_api(GET_JOB_URL.format(job_id), apply_func=_apply_func)
+    return call_api(GET_JOB_URL.format(job_id), apply_func=_apply_func, message_func=message_func)

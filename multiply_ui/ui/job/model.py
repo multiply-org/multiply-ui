@@ -111,11 +111,7 @@ class Job:
 
     def cancel(self, mock=False):
         from ..job.api import cancel
-
-        def apply_func(job: Job):
-            print(f'Job {job.name} has been cancelled.')
-
-        cancel(self.id, apply_func, mock)
+        cancel(self.id, mock)
 
     def update(self, new_state: dict):
         self._validate(new_state)

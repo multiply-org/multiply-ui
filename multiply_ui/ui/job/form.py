@@ -1,7 +1,9 @@
 import ipywidgets as widgets
-from IPython.display import display
 import threading
 import time
+
+from IPython.display import display
+from typing import Optional
 
 from .api import cancel, get_job
 from .model import Job, JOBS
@@ -67,7 +69,9 @@ def obs_job_form(job: Job, mock=False):
                 progress_bars[index].value = task.progress
                 status_labels[index].value = task.status
             time.sleep(0.5)
-            get_job_func(job, _update_job)
+            job_state = get_job_func(job)
+            if job_state is not None:
+                _update_job(job, job_state)
 
     monitor_components = (job_progress_bar, job_status_label, task_progress_bars, task_status_labels)
     _monitor(monitor, job_monitor, monitor_components)
@@ -78,9 +82,7 @@ def _get_handle_cancel_button_clicked(job_id: str, mock=False):
 
     @debug_view.capture(clear_output=True)
     def handle_cancel_button_clicked(*args, **kwargs):
-        def apply_func(job: Job):
-            pass
-        cancel(job_id, apply_func=apply_func, mock=mock)
+        cancel(job_id, mock=mock)
 
     return handle_cancel_button_clicked
 
@@ -123,7 +125,9 @@ def obs_jobs_form(mock=False):
                 status_label.value = component_job.status
                 if component_job.status != 'new' and component_job.status != 'running':
                     cancel_button.disabled = True
-                job_func(component_job, _update_job)
+                job_state = job_func(component_job)
+                if job_state is not None:
+                    _update_job(component_job, job_state)
             time.sleep(0.5)
 
     _monitor(jobs_monitor_func, jobs_monitor_component, (job_components, None))
@@ -136,12 +140,12 @@ def _get_job_func(job: Job, mock=False):
     debug_view = get_debug_view()
 
     @debug_view.capture(clear_output=True)
-    def get_job_mock(job_state: Job, apply_func):
+    def get_job_mock(job_state: Job) -> Optional[Job]:
         debug_view.value = ''
         import time
         time.sleep(1)
         if job.status != "new" and job.status != "running":
-            return
+            return None
         job_status = "running"
         job_progress = 0
         previous_task_succeeded = True
@@ -175,7 +179,7 @@ def _get_job_func(job: Job, mock=False):
             "status": job_status,
             "tasks": task_list
         }
-        apply_func(job, Job(job_data_dict))
+        return Job(job_data_dict)
 
     return get_job_mock
 

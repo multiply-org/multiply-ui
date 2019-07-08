@@ -1,6 +1,5 @@
 from typing import Dict, Any, Tuple, Optional, List
 
-from multiply_ui.ui.job.model import Job
 from ..params.model import TIME_RANGE_TYPE
 from ...util.html import html_element, html_table
 from ...util.schema import PropertyDef, TypeDef
@@ -105,12 +104,11 @@ class ProcessingRequest(InputRequestMixin):
         from ..job.api import submit_processing_request
         import IPython
 
-        def apply_func(job: Job):
+        job = submit_processing_request(self, mock=mock)
+        if job is not None:
             print(f'Job is being executed and a job proxy object has been assigned to variable {job_var_name}.')
             ipython = IPython.get_ipython()
             ipython.push({job_var_name: job})
-
-        submit_processing_request(self, apply_func, mock=mock)
 
     def as_dict(self):
         return dict(self._data)
