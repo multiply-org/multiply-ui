@@ -21,7 +21,11 @@ def call_api(url: str, apply_func=None, data=None, message_func=_write_to_comman
         response = requests.get(url)
     else:
         response = requests.post(url, json=data)
-    json_obj = json.loads(response.content)
-    if response.status_code < 300:
-        return apply_func(json_obj) if apply_func is not None else json_obj
-    message_func(json_obj['error']['message'])
+    try:
+        json_obj = json.loads(response.content)
+        if response.status_code < 300:
+            return apply_func(json_obj) if apply_func is not None else json_obj
+        else:
+            message_func(json_obj['error']['message'])
+    except json.JSONDecodeError:
+        message_func('An error has occured')
