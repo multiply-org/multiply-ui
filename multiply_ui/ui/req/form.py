@@ -115,8 +115,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
         return InputRequest(dict(
             name=request_name.value,
-            timeRange=[start_date.value, end_date.value],
-            bbox=f'{x1},{y1},{x2},{y2}',
+            timeRange=[datetime.datetime.strftime(start_date.value, "%Y-%m-%d"),
+                       datetime.datetime.strftime(end_date.value, "%Y-%m-%d")],
+            bbox=f"{x1},{y1},{x2},{y2}",
             inputTypes=input_types,
         ))
 
