@@ -49,8 +49,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     variables_box = _get_checkbox_list(processing_parameters.variables.ids)
     forward_models_box = _get_checkbox_list(processing_parameters.forward_models.ids)
 
-    # output_variables =
-
     global _NUM_REQUESTS
     _NUM_REQUESTS += 1
     request_name = widgets.Text(name)
@@ -58,13 +56,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=1))
     end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=10))
-
-    def format_angle(a):
-        if a < 0:
-            return f" {a} "
-        if a > 0:
-            return f" +{a} "
-        return " 0 "
 
     map_background_layer = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
     geometry_layer = GeoJSON()
@@ -98,7 +89,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         disabled=False,
     )
 
-    # output = widgets.HTML(layout=dict(border='2px solid lightgray', padding='0.5em'))
     output = widgets.HTML()
 
     def new_input_request():
