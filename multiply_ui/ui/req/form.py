@@ -56,8 +56,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     request_name = widgets.Text(name)
     python_var_name = widgets.Text(identifier)
 
-    start_date = widgets.DatePicker(value=datetime.datetime(year=2010, month=1, day=1))
-    end_date = widgets.DatePicker(value=datetime.datetime(year=2019, month=1, day=1))
+    start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=1))
+    end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=10))
 
     def format_angle(a):
         if a < 0:
