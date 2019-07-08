@@ -25,7 +25,7 @@ def call_api(url: str, apply_func=None, data=None, message_func=_write_to_comman
         json_obj = json.loads(response.content)
         if response.status_code < 300:
             return apply_func(json_obj) if apply_func is not None else json_obj
-        else:
+        elif 'error' in json_obj and 'message' in json_obj['error']:
             message_func(json_obj['error']['message'])
     except json.JSONDecodeError:
-        message_func('An error has occured')
+        message_func(f'{response.status_code}: {response.reason}')
