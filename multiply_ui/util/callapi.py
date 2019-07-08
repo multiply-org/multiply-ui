@@ -17,13 +17,11 @@ def call_api(url: str, apply_func=None, data=None, message_func=_write_to_comman
     :param message_func: A message function that will display a message from the back end
     :return: response JSON object, usually a dictionary.
     """
-    try:
-        if data is None:
-            response = requests.get(url)
-        else:
-            response = requests.post(url, json=data)
-        json_obj = json.loads(response.content)
+    if data is None:
+        response = requests.get(url)
+    else:
+        response = requests.post(url, json=data)
+    json_obj = json.loads(response.content)
+    if response.status_code < 300:
         return apply_func(json_obj) if apply_func is not None else json_obj
-    except Exception as e:
-        message_func(f"Server error: {e}")
-        return None
+    message_func(json_obj['error']['message'])
