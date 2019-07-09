@@ -77,13 +77,14 @@ def _cancel_mock(job_id: str, message_func):
             if task['status'] == "new" or task['status'] == "running":
                 task['status'] = "cancelling"
         job.update(job_dict)
-        message_func(f'Job {job.name} has been cancelled.')
+        message_func(f'Job {job.name} is being cancelled.')
         time.sleep(5)
         job_dict['status'] = 'cancelled'
         for task in job_dict['tasks']:
             if task['status'] == "cancelling":
                 task['status'] = "cancelled"
         job.update(job_dict)
+        message_func(f'Job {job.name} has been cancelled.')
 
 
 def get_job(job_id: str, message_func ) -> Optional[Job]:
