@@ -1,10 +1,12 @@
 import json
 import requests
-from typing import Any
+from typing import Any, List
 
 
-def _write_to_command_line(message: str):
+def _write_to_command_line(message: str, stack_trace: List[str]=[]):
     print(message)
+    for line in stack_trace:
+        print(line)
 
 
 def call_api(url: str, apply_func=None, data=None, message_func=_write_to_command_line) -> Any:
@@ -26,6 +28,6 @@ def call_api(url: str, apply_func=None, data=None, message_func=_write_to_comman
         if response.status_code < 300:
             return apply_func(json_obj) if apply_func is not None else json_obj
         elif 'error' in json_obj and 'message' in json_obj['error']:
-            message_func(json_obj['error']['message'])
+            message_func(json_obj['error']['message'], json_obj['error']['traceback'])
     except json.JSONDecodeError:
         message_func(f'{response.status_code}: {response.reason}')

@@ -2,7 +2,7 @@ import random
 import string
 import time
 
-from typing import Optional
+from typing import List, Optional
 
 from .model import Job, JOBS
 from ..req.model import InputRequestMixin
@@ -14,8 +14,10 @@ GET_JOB_URL = URL_BASE + "multiply/api/jobs/{}"
 SUBMIT_PROCESSING_REQUEST_URL = URL_BASE + "multiply/api/jobs/execute"
 
 
-def _write_to_command_line(message: str):
+def _write_to_command_line(message: str, stack_trace: List[str]=[]):
     print(message)
+    for line in stack_trace:
+        print(line)
 
 
 def submit_processing_request(request: InputRequestMixin, message_func=_write_to_command_line, mock=False) \
