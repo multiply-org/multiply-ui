@@ -53,12 +53,10 @@ class InfoComponent:
         self.more_info_button.disabled = len(self.traceback) == 0
 
     def output_html(self, html: html_element):
-        self.output = html
+        self.output.value = html
 
     def output_message(self, message: str):
         self.output.value = html_element('h5', value=message)
 
     def output_error(self, error_message: str):
-        self.output.value = html_element('h5',
-                                         att=dict(style='color:red'),
-                                         value=error_message)
+        self.output.value = html_element('h5', att=dict(style='color:red'), value=error_message)
