@@ -45,7 +45,9 @@ class InfoComponent:
         ))
         return form
 
-    def message_func(self, message: str, stack_trace: List[str] = []):
+    def message_func(self, message: str, stack_trace=None):
+        if stack_trace is None:
+            stack_trace = []
         self.output.value = html_element('h5', value=message)
         self.traceback.clear()
         for line in stack_trace:
