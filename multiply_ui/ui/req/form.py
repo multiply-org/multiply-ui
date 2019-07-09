@@ -13,6 +13,7 @@ from ..debug import get_debug_view
 from ..job.api import submit_processing_request
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
+from ..info import InfoComponent
 
 _NUM_REQUESTS = 0
 
@@ -88,7 +89,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         disabled=False,
     )
 
-    output = widgets.HTML()
+    info = InfoComponent()
 
     def new_input_request():
         # TODO: infer input types from selected variables and forward models
@@ -96,9 +97,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
         roi_data = leaflet_map.layers[1].data
         if not roi_data:
-            output.value = html_element('h5',
-                                        att=dict(style='color:red'),
-                                        value=f'Error: No region of Interest specified')
+            info.output_error(f'Error: No region of Interest specified')
         roi = shape(roi_data)
         x1, y1, x2, y2 = roi.bounds
 
@@ -110,23 +109,18 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             inputTypes=input_types,
         ))
 
-    def message_func(message: str):
-        output.value = html_element('h5', value=message)
-
     # noinspection PyUnusedLocal
     @debug_view.capture(clear_output=True)
     def handle_new_button_clicked(*args, **kwargs):
         req_var_name = python_var_name.value or 'req'
         if req_var_name and not req_var_name.isidentifier():
-            output.value = html_element('h5',
-                                        att=dict(style='color:red'),
-                                        value=f'Error: invalid Python identifier: {req_var_name}')
+            info.output_error(f'Error: invalid Python identifier: {req_var_name}')
             return
 
         inputs_request = new_input_request()
-        output.value = html_element('h5', value='Fetching results...')
+        info.output_message('Fetching results...')
 
-        processing_request = fetch_inputs_func(inputs_request, message_func)
+        processing_request = fetch_inputs_func(inputs_request, info.message_func)
 
         if processing_request is not None:
             input_identifiers = processing_request.inputs
@@ -146,31 +140,28 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                                              f'stored in variable <code>{req_var_name}</code>.')
                 result_html = html_element('div',
                                            value=result_html + var_name_html)
-
-            output.value = result_html
+            info.output_html(result_html)
 
     # noinspection PyUnusedLocal
     @debug_view.capture(clear_output=True)
     def handle_submit_button_clicked(*args, **kwargs):
         req_var_name = python_var_name.value or 'job'
         if req_var_name and not req_var_name.isidentifier():
-            output.value = html_element('h5',
-                                        att=dict(style='color:red'),
-                                        value=f'Error: invalid Python identifier: {req_var_name}')
+            info.output_error(f'Error: invalid Python identifier: {req_var_name}')
             return
 
         inputs_request = new_input_request()
 
-        output.value = html_element('h5', value='Submitting processing request...')
+        info.output_message('Submitting processing request...')
 
-        job = submit_processing_request(inputs_request, message_func=message_func, mock=mock)
+        job = submit_processing_request(inputs_request, message_func=info.message_func, mock=mock)
         if job is not None:
             shell = IPython.get_ipython()
             shell.push({req_var_name: job}, interactive=True)
             result_html = html_element('p',
                                        value=f'Note: a new job is currently being executed and is '
                                        f'stored in variable <code>{req_var_name}</code>.')
-            output.value = result_html
+            info.output_html(result_html)
 
     # TODO: make GUI form look nice
     new_button = widgets.Button(description="New Request", icon="search")
@@ -190,7 +181,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([widgets.Label(value='Request/job name'), request_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Python identifier'), python_var_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value=''), widgets.Box([new_button, submit_button])], layout=form_item_layout),
-        widgets.Box([output], layout=form_item_layout),
+        widgets.Box([info.as_widget()], layout=form_item_layout)
     ]
 
     form = widgets.Box(form_items, layout=widgets.Layout(
