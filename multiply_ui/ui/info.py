@@ -27,11 +27,12 @@ class InfoComponent:
         self.more_info_button.on_click(handle_more_info_button_clicked)
         self.more_info_button.disabled = True
 
-    def as_widget(self):
+    def as_widget(self, width: int=100):
         form_item_layout = widgets.Layout(
             display='flex',
             flex_flow='row',
             justify_content='space-between',
+            width=f'{width}%'
         )
         info_items = [
             widgets.Box([self.output, self.more_info_button], layout=form_item_layout),
