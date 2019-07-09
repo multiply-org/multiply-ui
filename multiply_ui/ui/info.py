@@ -54,9 +54,17 @@ class InfoComponent:
 
     def output_html(self, html: html_element):
         self.output.value = html
+        self._collapse_info_box()
 
     def output_message(self, message: str):
         self.output.value = html_element('h5', value=message)
+        self._collapse_info_box()
 
     def output_error(self, error_message: str):
         self.output.value = html_element('h5', att=dict(style='color:red'), value=error_message)
+        self._collapse_info_box()
+
+    def _collapse_info_box(self):
+        self.info_box.clear_output()
+        self.more_info_button.icon = "chevron-circle-down"
+        self.more_info_button.disabled = True
