@@ -59,6 +59,22 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     start_date = widgets.DatePicker(value=datetime.datetime(year=2010, month=1, day=1))
     end_date = widgets.DatePicker(value=datetime.datetime(year=2019, month=1, day=1))
 
+    time_steps = widgets.IntSlider(
+        value=10,
+        min = 1,
+        step = 1,
+        description = 'Set the temporal resolution.',
+        disabled = False,
+        orientation = 'horizontal'
+    )
+
+    time_steps_unit = widgets.Dropdown(
+        options=['days', 'weeks'],
+        value='days',
+        description='Set the temporal resolution.',
+        disabled=False,
+    )
+
     def format_angle(a):
         if a < 0:
             return f" {a} "
@@ -86,16 +102,19 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     draw_control.on_draw(_remove_previous_polygon)
     leaflet_map.add_control(draw_control)
 
-    spatial_resolution = widgets.Dropdown(
-        options=['10', '20', '60', '300'],
-        value='60',
-        disabled=False,
-    )
+    # spatial_resolution = widgets.Dropdown(
+    #     options=['10', '20', '60', '300'],
+    #     value='60',
+    #     disabled=False,
+    # )
 
-    time_steps = widgets.Dropdown(
-        options=['1d', '8d', '10d', 'cal. week', 'cal. month'],
-        value='8d',
-        disabled=False,
+    spatial_resolution = widgets.IntSlider(
+        value=100,
+        min = 1,
+        step = 1,
+        description = 'Set the spatial resolution in meters.',
+        disabled = False,
+        orientation = 'horizontal'
     )
 
     # output = widgets.HTML(layout=dict(border='2px solid lightgray', padding='0.5em'))
@@ -192,7 +211,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([forward_models_box], layout=var_checks_layout),
         widgets.Box([widgets.Label(value='Start date'), start_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='End date'), end_date], layout=form_item_layout),
-        widgets.Box([widgets.Label(value='Time steps'), time_steps], layout=form_item_layout),
+        widgets.Box([widgets.Label(value='Time steps'), widgets.Box([time_steps, time_steps_unit])],
+                    layout=form_item_layout),
         widgets.Box([widgets.Label(value="Region of Interest"), leaflet_map], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Resolution (m)'), spatial_resolution], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Request/job name'), request_name], layout=form_item_layout),
