@@ -13,6 +13,9 @@ INPUT_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('name', TypeDef(str)),
     PropertyDef('bbox', TypeDef(str)),
     PropertyDef('timeRange', TIME_RANGE_TYPE),
+    PropertyDef('timeStep', TypeDef(int)),
+    PropertyDef('timeStepUnit', TypeDef(str)),
+    PropertyDef('res', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
 ])
 
@@ -20,6 +23,9 @@ PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('name', TypeDef(str)),
     PropertyDef('bbox', TypeDef(str)),
     PropertyDef('timeRange', TIME_RANGE_TYPE),
+    PropertyDef('timeStep', TypeDef(int)),
+    PropertyDef('timeStepUnit', TypeDef(str)),
+    PropertyDef('res', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
     PropertyDef('inputIdentifiers', INPUT_IDENTIFIERS_TYPE),
 ])
@@ -55,10 +61,25 @@ class InputRequestMixin:
         return x1, y1, x2, y2
 
     @property
+    def res(self) -> int:
+        # noinspection PyUnresolvedReferences
+        return self._data['res']
+
+    @property
     def time_range(self) -> Tuple[Optional[str], Optional[str]]:
         # noinspection PyUnresolvedReferences
         start, stop = self._data['timeRange']
         return start, stop
+
+    @property
+    def time_step(self) -> int:
+        # noinspection PyUnresolvedReferences
+        return self._data['timeStep']
+
+    @property
+    def time_step_unit(self) -> str:
+        # noinspection PyUnresolvedReferences
+        return self._data['timeStepUnit']
 
     @property
     def input_types(self) -> List[str]:
@@ -74,7 +95,10 @@ class InputRequestMixin:
         return f'<p>' \
             f'Name: {self.name}<br/>' \
             f'Time range: {self.time_range}<br/>' \
+            f'Time step: {self.time_step}<br/>' \
+            f'Time step unit: {self.time_step_unit}<br/>' \
             f'Region box: {self.bbox}<br/>' \
+            f'Spatial resolution: {self.res}<br/>' \
             f'Input types: {", ".join(self.input_types)}' \
             f'</p>'
 
