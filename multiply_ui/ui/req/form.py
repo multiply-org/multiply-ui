@@ -12,6 +12,7 @@ from .model import InputRequest, ProcessingRequest
 from ..debug import get_debug_view
 from ..job.api import submit_processing_request
 from ..job.model import Job
+from ..jswidgets import Spinner
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
 
@@ -59,20 +60,15 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     start_date = widgets.DatePicker(value=datetime.datetime(year=2010, month=1, day=1))
     end_date = widgets.DatePicker(value=datetime.datetime(year=2019, month=1, day=1))
 
-    time_steps = widgets.IntSlider(
+    time_steps = Spinner(
         value=10,
-        min = 1,
-        step = 1,
-        description = 'Set the temporal resolution.',
-        disabled = False,
-        orientation = 'horizontal'
+        min = 1
     )
 
     time_steps_unit = widgets.Dropdown(
         options=['days', 'weeks'],
         value='days',
-        description='Set the temporal resolution.',
-        disabled=False,
+        disabled=False
     )
 
     def format_angle(a):
@@ -102,19 +98,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     draw_control.on_draw(_remove_previous_polygon)
     leaflet_map.add_control(draw_control)
 
-    # spatial_resolution = widgets.Dropdown(
-    #     options=['10', '20', '60', '300'],
-    #     value='60',
-    #     disabled=False,
-    # )
-
-    spatial_resolution = widgets.IntSlider(
+    spatial_resolution = Spinner(
         value=100,
         min = 1,
-        step = 1,
-        description = 'Set the spatial resolution in meters.',
-        disabled = False,
-        orientation = 'horizontal'
+        step = 1
     )
 
     # output = widgets.HTML(layout=dict(border='2px solid lightgray', padding='0.5em'))
