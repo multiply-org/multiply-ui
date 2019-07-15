@@ -7,8 +7,10 @@ var SpinnerView = widgets.DOMWidgetView.extend({
     render: function() {
         this.spinner_element = document.createElement("INPUT");
         this.spinner_element.setAttribute("type", "number");
-        this.spinner_element.value = 10
-        this.spinner_element.setAttribute("min", 1);
+        this.spinner_element.min = this.model.get('min');
+        this.spinner_element.max = this.model.get('max');
+        this.spinner_element.step = this.model.get('step');
+        this.spinner_element.value = this.model.get('value');
         this.el.appendChild(this.spinner_element);
         // Python -> JavaScript update
         this.model.on('change:value', this.value_changed, this);
