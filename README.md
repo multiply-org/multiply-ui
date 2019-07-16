@@ -62,8 +62,15 @@ Activate environment and install sources:
 
 Install jupyter-widgets and jupyter-leaflet extension for Jupyter-Lab
 
-    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
-    $ jupyter labextension install jupyter-leaflet
+    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager@0.38.1
+    $ jupyter labextension install jupyter-leaflet@0.10.4
+
+Install the MULTIPLY extension for Jupyter-Lab
+
+    $ cd js
+    $ npm install
+    $ cd ..
+    4 jupyter labextension install js
 
 Install multiply-ui from source code:
 
