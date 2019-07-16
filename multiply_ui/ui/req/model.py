@@ -95,10 +95,9 @@ class InputRequestMixin:
         return f'<p>' \
             f'Name: {self.name}<br/>' \
             f'Time range: {self.time_range}<br/>' \
-            f'Time step: {self.time_step}<br/>' \
-            f'Time step unit: {self.time_step_unit}<br/>' \
+            f'Time step: {self.time_step} {self.time_step_unit}<br/>' \
             f'Region box: {self.bbox}<br/>' \
-            f'Spatial resolution: {self.res}<br/>' \
+            f'Spatial resolution in m: {self.res}<br/>' \
             f'Input types: {", ".join(self.input_types)}' \
             f'</p>'
 
