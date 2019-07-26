@@ -1,3 +1,4 @@
+import glob
 import inspect
 import os
 import sys
@@ -14,6 +15,7 @@ import share.bin.pmserver as pmserver
 
 MULTIPLY_DIR_NAME = '.multiply'
 MULTIPLY_CONFIG_FILE_NAME = 'multiply_config.yaml'
+MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY = 'platform-env'
 WORKING_DIR_CONFIG_KEY = 'working_dir'
 WORKFLOWS_DIRS_CONFIG_KEY = 'workflows_dirs'
 SCRIPTS_DIRS_CONFIG_KEY = 'scripts_dirs'
@@ -51,12 +53,15 @@ class ServiceContext:
         if SCRIPTS_DIRS_CONFIG_KEY in config.keys():
             for scripts_dir in config[SCRIPTS_DIRS_CONFIG_KEY]:
                 self.add_scripts_path(scripts_dir)
+        self._python_dist = sys.executable
+        if MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY in config.keys():
+            self._python_dist = config[MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY]
         path_to_lib_dir = os.path.abspath(os.path.join(inspect.getfile(pmserver), os.pardir, os.pardir, 'lib'))
         path_to_bin_dir = os.path.abspath(os.path.join(inspect.getfile(pmserver), os.pardir, os.pardir, 'bin'))
         sys.path.insert(0, path_to_lib_dir)
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']
-        os.environ['PATH'] = f'{path_to_bin_dir};{path}'
+        os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
 
 
     # TODO: require an interface of data access to select data stores to be used
@@ -82,7 +87,7 @@ class ServiceContext:
         # todo remove previous working dirs
         self._working_dir = working_dir
         sys.path.insert(0, working_dir)
-        os.environ['PATH'] += f';{working_dir}'
+        os.environ['PATH'] += f':{working_dir}'
 
     @property
     def working_dir(self) -> str:
@@ -90,7 +95,16 @@ class ServiceContext:
 
     def add_workflows_path(self, workflows_path: str):
         sys.path.insert(0, workflows_path)
-        os.environ['PATH'] += f';{workflows_path}'
+        os.environ['PATH'] += f':{workflows_path}'
 
     def add_scripts_path(self, scripts_path: str):
-        os.environ['PATH'] += f';{scripts_path}'
+        scripts = glob.glob(f'{scripts_path}/*.py')
+        for script in scripts:
+            read_file = open(script, 'r+')
+            content = read_file.read()
+            content = content.replace('{PYTHON}', self._python_dist)
+            read_file.close()
+            write_file = open(script, 'w')
+            write_file.write(content)
+            write_file.close()
+        os.environ['PATH'] += f':{scripts_path}'
