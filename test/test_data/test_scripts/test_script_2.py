@@ -1,3 +1,5 @@
+#!{PYTHON}
+
 import glob
 import os
 import sys
@@ -18,7 +20,10 @@ for input_file in input_files:
     input_file = input_file.replace('\\', '/')
     input_file_blank = input_file.split('/')[-1].replace('.txt', '')
     with open(input_file, 'r') as in_f:
-        with open(f'{output_dir}/{input_file_blank}_2.txt', 'w+') as out_f:
-            in_line = in_f.readlines()
-            out_f.write('{in_line}_2')
+        file_name = f'{output_dir}/{input_file_blank}_2.txt'
+        print(f'Writing out {file_name}')
+        with open(file_name, 'w+') as out_f:
+            in_line = in_f.readline()
+            print(in_line)
+            out_f.write(f'{in_line}_2')
             out_f.close()
