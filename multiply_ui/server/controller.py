@@ -43,11 +43,25 @@ def submit_request(ctx, request) -> Dict:
 
     job = ctx.pm_server.submit_request(pm_request)
     job_dict = {}
+    job_dict['id'] = id
     job_dict['name'] = job.request['requestName']
     job_dict['status'] = _translate_status(job.status)
     tasks = _pm_workflow_of(job.pm)
     job_dict['tasks'] = []
-    # todo set tasks
+    job_progress = 0
+    for task in tasks:
+        status = _translate_status(task['status'])
+        progress = 0
+        if status is 'succeeded':
+            progress = 100
+        job_progress += progress
+        task_dict = {
+            'name': task['step'],
+            'status': status,
+            'progress': progress
+        }
+        job_dict['tasks'].append(task_dict)
+    job_dict['progress'] = int(job_progress / len(tasks))
     return job_dict
 
 
@@ -60,6 +74,8 @@ def _translate_status(pm_status: str) -> str:
         return 'succeeded'
     if pm_status == 'CANCELLED':
         return 'cancelled'
+    if pm_status == 'initial':
+        return 'new'
 
 
 def _pm_request_of(request, workdir: str) -> Dict:
@@ -85,13 +101,17 @@ def _pm_request_of(request, workdir: str) -> Dict:
 
 def _pm_workflow_of(pm) -> List:
     accu = []
-    for l in pm._commands:
+    commands = pm._commands.copy()
+    for l in commands:
         accu.append({"step": l, "status": "succeeded"})
-    for l in pm._failed:
+    failed = pm._failed.copy()
+    for l in failed:
         accu.append({"step": l, "status": "failed"})
-    for l in pm._running:
+    running = pm._running.copy()
+    for l in running:
         accu.append({"step": l, "status": "running"})
-    for r in pm._backlog:
+    backlog = pm._backlog
+    for r in backlog:
         l = '{0} {1} {2} {3}\n'.format(PMonitor.Args.get_call(r.args),
                                        ' '.join(PMonitor.Args.get_parameters(r.args)),
                                        ' '.join(PMonitor.Args.get_inputs(r.args)),
