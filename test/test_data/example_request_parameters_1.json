@@ -1,0 +1,17 @@
+{
+    "name": "Model-1 Baikalsee LAI 2018",
+    "timeRange": [
+        "2018-01-01T01:01:00Z",
+        "2018-01-05T23:59:59Z"
+    ],
+    "timeStep": 4,
+    "timeStepUnit": "days",
+    "bbox": "103.6,51.1,110.2,56.2",
+    "spatialResolution": 120,
+    "inputTypes": [
+        "S2_L1C"
+    ],
+    "parameters": [
+        "lai"
+    ]
+}

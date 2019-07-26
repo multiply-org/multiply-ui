@@ -1,7 +1,7 @@
 {
     "requestName" : "NAME",
-    "productionType" : "multiply-adapted-iterative-6",
-    "simulation" : "True",
+    "productionType" : "multiply-adapted-iterative-8",
+    "simulation" : "False",
     "data_root" : "WORKDIR",
 
     "General" : {
@@ -9,16 +9,11 @@
         "start_time" : "START_DATE",
         "end_time" : "STOP_DATE",
         "time_interval" : "TIME_STEP",
-        "spatial_resolution" : "SPATIAL_RESOLUTION",
-        "output_directory_root" : "HOPETHATOUTPUTDIRECTORYROOTISNOTUSED"
+        "spatial_resolution" : "SPATIAL_RESOLUTION"
     },
 
     "Inference" : {
         "parameters" : [ "VARIABLE", "VARIABLE", "..." ],
-        "optical_operator_library" : "some_operator.nc",
-        "sar_operator_library" : "some_other_operator.nc",
-        "a" : "identity",
-        "inflation" : "1e3",
         "time_interval" : "TIME_STEP"
     },
 
@@ -27,7 +22,6 @@
         "General" : {
             "directory_data" : "/data/auxiliary/priors/Static/Vegetation/"
         },
-        
         "lai" : {
             "database" : {
                 "static_dir" : "same as General directory_data"

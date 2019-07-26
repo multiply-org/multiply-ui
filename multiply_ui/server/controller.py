@@ -1,9 +1,12 @@
+import datetime
 import json
 import pkg_resources
 import os
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
 # and add the calvalus-instances as content root to project structure
+from multiply_core.util import get_time_from_string
 from share.lib.pmonitor import PMonitor
+from typing import Dict, List
 
 
 def get_parameters(ctx):
@@ -23,26 +26,43 @@ def get_inputs(ctx, parameters):
         parameters["inputIdentifiers"][input_type] = [entry._identifier for entry in data_set_meta_infos]
     return parameters
 
-def submit_request(ctx, request):
+
+def submit_request(ctx, request) -> Dict:
     mangled_name = request['name'].replace(' ', '_')
     id = mangled_name  # TODO generate simple unique IDs
-    workdir_root = '/data'  # TODO get path from some configuration
+    workdir_root = ctx.working_dir
     workdir = workdir_root + '/' + id
-    pm_request_file = workdir + '/' + mangled_name
+    pm_request_file = f'{workdir}/{mangled_name}.json'
 
     pm_request = _pm_request_of(request, workdir)
-    os.makedirs(workdir)
+    if not os.path.exists(workdir):
+        os.makedirs(workdir)
     with open(pm_request_file, "w") as f:
         json.dump(pm_request, f)
     pm_request["requestFile"] = pm_request_file
 
-    job = ctx.pm_server.submit_request(request)
+    job = ctx.pm_server.submit_request(pm_request)
     job_dict = {}
-    job_dict['request'] = job.request
-    job_dict['workflow'] = _pm_workflow_of(job.pm)
-    job_dict['status'] = job.status
+    job_dict['name'] = job.request['requestName']
+    job_dict['status'] = _translate_status(job.status)
+    tasks = _pm_workflow_of(job.pm)
+    job_dict['tasks'] = []
+    # todo set tasks
+    return job_dict
 
-def _pm_request_of(request, workdir):
+
+def _translate_status(pm_status: str) -> str:
+    if pm_status == 'ERROR' or pm_status == 'FAILED':
+        return 'failed'
+    if pm_status == 'RUNNING':
+        return 'running'
+    if pm_status == 'DONE' or pm_status == 'SUCCEEDED':
+        return 'succeeded'
+    if pm_status == 'CANCELLED':
+        return 'cancelled'
+
+
+def _pm_request_of(request, workdir: str) -> Dict:
     template_text = pkg_resources.resource_string(__name__, "resources/pm_request_template.json")
     pm_request = json.loads(template_text)
     pm_request['requestName'] = request['name']
@@ -51,8 +71,10 @@ def _pm_request_of(request, workdir):
     region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
                                                                    minLon, maxLat, minLon, minLat)
     pm_request['General']['roi'] = region_wkt
-    pm_request['General']['start_time'] = request['timeRange'][0][:8]
-    pm_request['General']['end_time'] = request['timeRange'][1][:8]
+    pm_request['General']['start_time'] = \
+        datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y-%m-%d')
+    pm_request['General']['end_time'] = \
+        datetime.datetime.strftime(get_time_from_string(request['timeRange'][1]), '%Y-%m-%d')
     pm_request['General']['time_interval'] = request['timeStep']
     pm_request['General']['spatial_resolution'] = request['spatialResolution']
     pm_request['Inference']['parameters'] = [ parameter[0] for parameter in request['parameters']]
@@ -60,9 +82,10 @@ def _pm_request_of(request, workdir):
     pm_request['Prior']['output_directory'] = workdir + '/priors'
     return pm_request
 
-def _pm_workflow_of(pm):
+
+def _pm_workflow_of(pm) -> List:
     accu = []
-    for l in pm.commands:
+    for l in pm._commands:
         accu.append({"step": l, "status": "succeeded"})
     for l in pm._failed:
         accu.append({"step": l, "status": "failed"})
