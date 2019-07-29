@@ -61,7 +61,7 @@ def submit_request(ctx, request) -> Dict:
             'progress': progress
         }
         job_dict['tasks'].append(task_dict)
-    job_dict['progress'] = int(job_progress / len(tasks))
+    job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100
     return job_dict
 
 
