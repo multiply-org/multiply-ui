@@ -88,12 +88,20 @@
       "applications": []
     },
     {
-      "id": "GeoCBI",
-      "name": "Geometrically Structured Composite Burned Index",
+      "id": "efgtzht",
+      "name": "efgtzht",
       "unit": "",
-      "description": "It is a measure of burned severity fire in terms of the level of damage of vegetation and substrate after a wildfire is fully extinguished. GeoCBI is a modified version of CBI that takes into account the fraction of cover of the different vegetation strata used to compute the CBI.",
-      "valueRange": "0 (unburned) - 3 (completely burned)",
-      "applications": ["Burned Area Discrimination", "Fire Severity Estimation"]
+      "description": "",
+      "valueRange": "",
+      "applications": ["testing"]
+    },
+    {
+      "id": "fgsgtt",
+      "name": "fgsgtt",
+      "unit": "",
+      "description": "",
+      "valueRange": "",
+      "applications": ["testing"]
     }
   ],
   "forwardModels": [
@@ -105,6 +113,15 @@
       "modelUrl": "http://teledetection.ipgp.jussieu.fr/prosail/",
       "inputType": "S2_L1C",
       "variables": ["n", "cab", "car", "cb", "cw", "cdm", "lai", "ala", "bsoil", "psoil"]
+    },
+    {
+      "id": "s2_antisail",
+      "name": "ANTISAIL for Sentinel-2",
+      "description": "A dummy forward model for testing.",
+      "modelAuthors": "",
+      "modelUrl": "",
+      "inputType": "S2_L1C",
+      "variables": ["n", "efgtzht", "fgsgtt"]
     }
   ]
 }
