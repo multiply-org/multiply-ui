@@ -83,6 +83,7 @@ def _pm_request_of(request, workdir: str) -> Dict:
     pm_request = json.loads(template_text)
     pm_request['requestName'] = request['name']
     pm_request['data_root'] = workdir
+    pm_request['log_dir'] = f'{workdir}/log'
     (minLon, minLat, maxLon, maxLat) = request["bbox"].split(",")
     region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
                                                                    minLon, maxLat, minLon, minLat)

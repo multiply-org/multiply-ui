@@ -3,6 +3,7 @@
     "productionType" : "multiply-adapted-iterative-8",
     "simulation" : "False",
     "data_root" : "WORKDIR",
+    "log_dir": "LOGDIR",
 
     "General" : {
         "roi" : "POLYGON",
