@@ -52,7 +52,6 @@ class ControllerTest(unittest.TestCase):
                 shutil.rmtree(working_dir)
                 os.remove('Model-1 Baikalsee LAI 2018.report')
                 os.remove('Model-1 Baikalsee LAI 2018.status')
-                shutil.rmtree('log')
                 shutil.rmtree('./test_data/test_scripts_2')
 
 
