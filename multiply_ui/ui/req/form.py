@@ -46,8 +46,79 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         justify_content='center',
     )
 
-    variables_box = _get_checkbox_list(processing_parameters.variables.ids)
-    forward_models_box = _get_checkbox_list(processing_parameters.forward_models.ids)
+    variable_boxes = _get_checkbox_list(processing_parameters.variables.ids)
+    forward_model_boxes = _get_checkbox_list(processing_parameters.forward_models.ids)
+
+    def _get_selected_values(boxes: dict) -> List[str]:
+        values = []
+        for box in boxes.values():
+            if box.value:
+                values.append(box.description)
+        return values
+
+    def _get_selected_variables() -> List[str]:
+        return _get_selected_values(variable_boxes)
+
+    def _get_selected_forward_models() -> List[str]:
+        return _get_selected_values(forward_model_boxes)
+
+    def _handle_variable_selection(change: dict):
+        output.value = html_element('h5',
+                                        att=dict(style='color:red'),
+                                        # value=f'{change.values()}')
+                                        value=f'{change.keys()}')
+        selected_variables = _get_selected_variables()
+        # for forward_model_id in processing_parameters.forward_models.ids:
+        #     if forward_model_boxes[forward_model_id]
+
+    @debug_view.capture(clear_output=True)
+    def _handle_forward_model_selection(change: dict):
+        # output.value = html_element('h5',
+        #                                 att=dict(style='color:red'),
+        #                                 value=f'{change.values()}')
+                                        # value=f'{change.keys()}')
+        if change['name'] is 'layout':
+            return
+        owner = change['owner']
+        selected_fm_id = owner.description
+        selected_type = processing_parameters.forward_models.get(selected_fm_id).input_type
+        layout = widgets.Layout(display='bold')
+        owner.layout = layout
+        # widgets.DescriptionStyle()
+        # owner.layout = widgets.Layout(width='50%')
+        # owner.style.button_color = 'lightblue'
+        # output.value = html_element('h5',
+        #                             att=dict(style='color:red'),
+        #                             value=f'{owner.style.keys}')
+        if change['new']['value'] == True:
+            # output.value = html_element('h5',
+            #                             att=dict(style='color:red'),
+            #                             value='True detected')
+            forward_model_ids = processing_parameters.forward_models.ids
+            for id in forward_model_ids:
+                # output.value = html_element('h5',
+                #                             att=dict(style='color:red'),
+                #                             value=f'{id}')
+                if id == selected_fm_id:
+                    continue
+                if selected_type == processing_parameters.forward_models.get(id).input_type:
+                    # output.value = html_element('h5',
+                    #                             att=dict(style='color:red'),
+                    #                             value='Input type match detected')
+                    for child in forward_models_box.children:
+                        # output.value = html_element('h5',
+                        #                             att=dict(style='color:red'),
+                        #                             value=f'{child.style.keys}')
+                        if child.description == id:
+                            # output.value = html_element('h5',
+                            #                             att=dict(style='color:red'),
+                            #                             value='Correct checkbox encountered')
+                            child.value=False
+                            child.disabled=True
+                            break
+
+    variables_box = _wrap_checkboxes_in_widget(variable_boxes.values(), _handle_variable_selection)
+    forward_models_box = _wrap_checkboxes_in_widget(forward_model_boxes.values(), _handle_forward_model_selection)
 
     # output_variables =
 
@@ -212,21 +283,29 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     return form
 
 
-def _get_checkbox_list(ids: List[str]) -> widgets.HBox:
+def _get_checkbox_list(ids: List[str]) -> dict:
+    checkboxes = {}
+    for var_id in ids:
+        checkbox = widgets.Checkbox(value=False, description=var_id, disabled=True
+                                    # ,
+                                    # layout=widgets.Layout(border='solid 1px lightgray')
+                                    )
+
+        checkboxes[var_id] = checkbox
+    return checkboxes
+
+
+def _wrap_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_selection) -> widgets.Widget:
     num_cols = 4
     # noinspection PyUnusedLocal
     v_box_item_lists = [[] for i in range(num_cols)]
     index = 0
-    for var_id in ids:
+    for checkbox in checkboxes:
         col = index % num_cols
+        checkbox.observe(handle_selection)
         # noinspection PyTypeChecker
-        v_box_item_lists[col].append(widgets.Checkbox(
-            value=False,
-            description=var_id,
-            disabled=False
-        ))
+        v_box_item_lists[col].append(checkbox)
         index += 1
-
     v_boxes = []
     for v_box_item_list in v_box_item_lists:
         v_boxes.append(widgets.VBox(v_box_item_list))
