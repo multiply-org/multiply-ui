@@ -1,4 +1,5 @@
 import datetime
+import subprocess
 from pmonitor import PMonitor
 
 
@@ -55,6 +56,48 @@ class MultiplyAdaptedIterative8(PMonitor):
                                                ' '.join(outputs))
         print(f'observing {command}')
         self._commands.add(command)
+
+    def _run_step(self, task_id, host, command, output_paths, log_prefix, async_):
+        """
+        Executes command on host, collects output paths if any, returns exit code
+        """
+        wd = self._prepare_working_dir(task_id)
+        process = PMonitor._start_processor(command, host, wd)
+        self._trace_processor_output(output_paths, process, task_id, command, wd, log_prefix, async_)
+        process.stdout.close()
+        code = process.wait()
+        if code == 0 and not async_ and not self._cache is None and 'cache' in wd:
+            subprocess.call(['rm', '-rf', wd])
+        return code
+
+    def _trace_processor_output(self, output_paths, process, task_id, command, wd, log_prefix, async_):
+        """
+        traces processor output, recognises 'output=' lines, writes all lines to trace file in working dir.
+        for async calls reads external ID from stdout.
+        """
+        if self._cache is None or self._logdir != '.':
+            trace = open('{0}/{1}-{2:04d}.out'.format(self._logdir, log_prefix, task_id), 'w')
+        else:
+            trace = open('{0}/{1}-{2:04d}.out'.format(wd, log_prefix, task_id), 'w')
+        line = None
+        for l in process.stdout:
+            line = l.decode()
+            if line.startswith('output='):
+                output_paths.append(line[7:].strip())
+            elif line.startswith('progress='):
+                self._tasks_progress[command] = line[9:].strip()
+            trace.write(line)
+            trace.flush()
+        trace.close()
+        if async_ and line:
+            # assumption that last line contains external ID, with stderr mixed with stdout
+            output_paths[:] = []
+            output_paths.append(line.strip())
+
+    def get_progress(self, command):
+        if command in self._tasks_progress:
+            return int(self._tasks_progress[command])
+        return 0
 
     def run(self):
         self.wait_for_completion()
