@@ -15,7 +15,6 @@ input_files = glob.glob(input_dir + '/*.txt')
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-time.sleep(8)
 for input_file in input_files:
     input_file = input_file.replace('\\', '/')
     input_file_blank = input_file.split('/')[-1].replace('.txt', '')
