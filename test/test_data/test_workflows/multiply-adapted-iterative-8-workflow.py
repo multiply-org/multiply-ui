@@ -18,6 +18,7 @@ class MultiplyAdaptedIterative8(PMonitor):
         self._stop = datetime.datetime.strptime(str(parameters['General']['end_time']), '%Y-%m-%d')
         self._one_day_step = datetime.timedelta(days=1)
         self._step = datetime.timedelta(days=int(str(parameters['Inference']['time_interval'])))
+        self._tasks_progress = {}
 
     def create_workflow(self):
         out_1 = self._data_root + '/' + 'out_1'
@@ -42,6 +43,18 @@ class MultiplyAdaptedIterative8(PMonitor):
                          parameters=[self._request_file])
             self.execute('test_script_3.py', [out_2_for_date], [out_3_for_date],
                          parameters=[self._request_file])
+
+    def _observe_step(self, call, inputs, outputs, parameters, code):
+        if code > 0:
+            return
+        if self._script:
+            command = '{0} {1} {2} {3} {4}'.format(self._path_of_call(self._script), call, ' '.join(parameters),
+                                                   ' '.join(inputs), ' '.join(outputs))
+        else:
+            command = '{0} {1} {2} {3}'.format(self._path_of_call(call), ' '.join(parameters), ' '.join(inputs),
+                                               ' '.join(outputs))
+        print(f'observing {command}')
+        self._commands.add(command)
 
     def run(self):
         self.wait_for_completion()
