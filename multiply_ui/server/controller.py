@@ -44,13 +44,13 @@ def submit_request(ctx, request) -> Dict:
     job = ctx.pm_server.submit_request(pm_request)
     job_dict = {}
     job_dict['id'] = id
-    job_dict['name'] = job.request['requestName']
+    job_dict['name'] = request['name']
     job_dict['status'] = _translate_status(job.status)
     tasks = _pm_workflow_of(job.pm)
     job_dict['tasks'] = []
     job_progress = 0
     for task in tasks:
-        status = _translate_status(task['status'])
+        status = task['status']
         progress = 0
         if status is 'succeeded':
             progress = 100
@@ -74,15 +74,16 @@ def _translate_status(pm_status: str) -> str:
         return 'succeeded'
     if pm_status == 'CANCELLED':
         return 'cancelled'
-    if pm_status == 'initial':
+    if pm_status == 'INITIAL':
         return 'new'
 
 
 def _pm_request_of(request, workdir: str) -> Dict:
     template_text = pkg_resources.resource_string(__name__, "resources/pm_request_template.json")
     pm_request = json.loads(template_text)
-    pm_request['requestName'] = request['name']
+    pm_request['requestName'] = f"{workdir}/{request['name']}"
     pm_request['data_root'] = workdir
+    pm_request['simulation'] = pm_request['simulation'] == 'True'
     pm_request['log_dir'] = f'{workdir}/log'
     (minLon, minLat, maxLon, maxLat) = request["bbox"].split(",")
     region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
