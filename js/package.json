@@ -1,0 +1,41 @@
+{
+  "name": "multiply-widgets",
+  "version": "0.1.0",
+  "description": "A library of Jupyter Widgets for the MULTIPLY User Interface",
+  "author": "Tonio Fincke (Brockmann Consult GmbH)",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/multiply-org/widget-dummy-project.git"
+  },
+  "keywords": [
+    "jupyter",
+    "widgets",
+    "ipython",
+    "ipywidgets",
+    "jupyterlab-extension"
+  ],
+  "files": [
+    "lib/**/*.js",
+    "dist/*.js"
+  ],
+  "scripts": {
+    "clean": "rimraf dist/",
+    "prepublish": "webpack",
+    "build": "webpack",
+    "watch": "webpack --watch --mode=development",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.3.6"
+  },
+  "dependencies": {
+    "@jupyter-widgets/base": "^1.0.0",
+    "lodash": "^4.17.4",
+    "package.json": "^2.0.1",
+    "webpack": "^4.35.3"
+  },
+  "jupyterlab": {
+    "extension": "lib/labplugin"
+  }
+}
