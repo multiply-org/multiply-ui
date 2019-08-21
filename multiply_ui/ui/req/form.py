@@ -116,7 +116,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         if change['name'] is not '_property_lock':
             return
         selected_variable_id = change['owner'].description
-        _check_variable(selected_variable_id)
+        _validate_variable(selected_variable_id)
         if change['new']['value']:
             selected_variables.append(selected_variable_id)
         else:
@@ -137,7 +137,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                             return
                     _regular(fm_id)
 
-    def _check_variable(variable: str):
+    def _validate_variable(variable: str):
         num_conflicting_forward_models = 0
         for fm_id in forward_models_per_variable[variable]:
             fm_it = _fm_input_type(fm_id)
@@ -196,32 +196,23 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         else:
             selected_forward_models.remove(selected_fm_id)
             selected_forward_models_per_type[selected_fm_it].remove(selected_fm_id)
-        if len(selected_forward_models_per_type[selected_fm_it]) == 0:
-            for available_forward_model in available_forward_models_per_type[selected_fm_it]:
-                recommend = False
-                for fm_variable in _fm_variables(available_forward_model):
-                    if fm_variable in selected_variables:
-                        recommend = True
-                    _check_variable(fm_variable)
-                if recommend:
+        for available_forward_model in available_forward_models_per_type[selected_fm_it]:
+            at_least_one_variable_selected = False
+            for fm_variable in _fm_variables(available_forward_model):
+                _validate_variable(fm_variable)
+                if fm_variable in selected_variables:
+                    at_least_one_variable_selected = True
+            if len(selected_forward_models_per_type[selected_fm_it]) == 0:
+                if at_least_one_variable_selected:
                     _recommend(available_forward_model)
                 else:
                     _regular(available_forward_model)
-        elif len(selected_forward_models_per_type[selected_fm_it]) == 1:
-            _recommend(selected_forward_models_per_type[selected_fm_it][0])
-            for available_forward_model in available_forward_models_per_type[selected_fm_it]:
-                if available_forward_model != selected_forward_models_per_type[selected_fm_it][0]:
-                    _discourage(available_forward_model)
-                for fm_variable in _fm_variables(available_forward_model):
-                    _check_variable(fm_variable)
-        else:
-            for available_forward_model in available_forward_models_per_type[selected_fm_it]:
-                if available_forward_model in selected_forward_models_per_type[selected_fm_it]:
-                    _invalid(available_forward_model)
-                else:
-                    _discourage(available_forward_model)
-                for fm_variable in _fm_variables(available_forward_model):
-                    _check_variable(fm_variable)
+            elif available_forward_model not in selected_forward_models_per_type[selected_fm_it]:
+                _discourage(available_forward_model)
+            elif len(selected_forward_models_per_type[selected_fm_it]) == 1:
+                _recommend(available_forward_model)
+            else:
+                _invalid(available_forward_model)
 
     # noinspection PyTypeChecker
     variables_box = _wrap_checkboxes_in_widget(variable_boxes_dict.values(), _handle_variable_selection)
