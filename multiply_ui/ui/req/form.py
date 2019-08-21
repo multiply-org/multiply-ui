@@ -138,51 +138,34 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                     _regular(fm_id)
 
     def _validate_variable(variable: str):
-        num_conflicting_forward_models = 0
+        selected_fms = []
+        selected_fm_types = []
+        num_forward_models_in_conflict = 0
         for fm_id in forward_models_per_variable[variable]:
+            num_allowed_selected_forward_models_per_type = 0
             fm_it = _fm_input_type(fm_id)
-            if (fm_id in selected_forward_models_per_type[fm_it] and len(selected_forward_models_per_type[fm_it]) > 1) or \
-                    (fm_id not in selected_forward_models_per_type[fm_it] and len(selected_forward_models_per_type[fm_it]) > 0):
-                num_conflicting_forward_models += 1
-        if num_conflicting_forward_models == len(forward_models_per_variable[variable]):
+            if fm_id in selected_forward_models:
+                selected_fms.append(fm_id)
+                if fm_it not in selected_fm_types:
+                    selected_fm_types.append(fm_it)
+                num_allowed_selected_forward_models_per_type = 1
+            if len(selected_forward_models_per_type[fm_it]) > num_allowed_selected_forward_models_per_type:
+                num_forward_models_in_conflict += 1
+        if num_forward_models_in_conflict == len(forward_models_per_variable[variable]):
             if variable in selected_variables:
                 _invalid(variable)
             else:
                 _discourage(variable)
-            return
-        if variable in selected_variables:
-            selected_fm_types = []
-            for fm_id in forward_models_per_variable[variable]:
-                if fm in selected_forward_models:
-                    input_type = _fm_input_type(fm_id)
-                    if input_type in selected_fm_types:
-                        _discourage(variable)
-                        return
-                    selected_fm_types.append(input_type)
+        elif variable in selected_variables:
+            _recommend(variable)
+        elif len(selected_fms) == 0:
+            _regular(variable)
+        elif len(selected_fms) == 1:
+            _recommend(variable)
+        elif len(selected_fms) == len(selected_fm_types):
             _recommend(variable)
         else:
-            selected_fms = []
-            selected_fm_types = []
-            num_unavailable_forward_models = 0
-            for fm_id in forward_models_per_variable[variable]:
-                fm_it = _fm_input_type(fm_id)
-                if fm_id in selected_forward_models:
-                    selected_fms.append(fm_id)
-                    if fm_it not in selected_fm_types:
-                        selected_fm_types.append(fm_it)
-                else:
-                    if len(selected_forward_models_per_type[fm_it]) >= 1:
-                        num_unavailable_forward_models += 1
-            if num_unavailable_forward_models == len(forward_models_per_variable[variable]):
-                _discourage(variable)
-            elif len(selected_fms) == 0:
-                _regular(variable)
-            elif len(selected_fms) == 1:
-                _recommend(variable)
-            elif len(selected_fms) == len(selected_fm_types):
-                _recommend(variable)
-            else:
-                _discourage(variable)
+            _discourage(variable)
 
     @debug_view.capture(clear_output=True)
     def _handle_forward_model_selection(change: dict):
