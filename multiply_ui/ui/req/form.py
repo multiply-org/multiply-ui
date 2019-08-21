@@ -9,6 +9,7 @@ import time
 
 from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
+from ..checkbox_widget import LabeledCheckbox
 from ..debug import get_debug_view
 from ..job.api import submit_processing_request
 from ..job.model import Job
@@ -46,79 +47,186 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         justify_content='center',
     )
 
-    variable_boxes = _get_checkbox_list(processing_parameters.variables.ids)
-    forward_model_boxes = _get_checkbox_list(processing_parameters.forward_models.ids)
+    variable_boxes_dict = _get_checkboxes_dict(processing_parameters.variables.ids)
+    forward_model_boxes_dict = _get_checkboxes_dict(processing_parameters.forward_models.ids)
+    available_forward_models_per_type = {}
+    forward_models_per_variable = {}
+    for fm_id in processing_parameters.forward_models.ids:
+        fm = processing_parameters.forward_models.get(fm_id)
+        if not fm.input_type in available_forward_models_per_type:
+            available_forward_models_per_type[fm.input_type] = []
+        available_forward_models_per_type[fm.input_type].append(fm_id)
+        for variable in fm.variables:
+            if not variable in forward_models_per_variable:
+                forward_models_per_variable[variable] = []
+            forward_models_per_variable[variable].append(fm_id)
+    selected_forward_models = []
+    selected_variables = []
+    selected_forward_models_per_type = {}
+    for it in processing_parameters.input_types.ids:
+        selected_forward_models_per_type[it] = []
 
-    def _get_selected_values(boxes: dict) -> List[str]:
-        values = []
-        for box in boxes.values():
-            if box.value:
-                values.append(box.description)
-        return values
+    def _fm_variables(fm_id: str):
+        return processing_parameters.forward_models.get(fm_id).variables
 
-    def _get_selected_variables() -> List[str]:
-        return _get_selected_values(variable_boxes)
+    def _fm_input_type(fm_id: str):
+        return processing_parameters.forward_models.get(fm_id).input_type
 
-    def _get_selected_forward_models() -> List[str]:
-        return _get_selected_values(forward_model_boxes)
+    def _recommend(id: str):
+        if id in processing_parameters.variables.ids:
+            _recommend_box(variable_boxes_dict[id])
+        elif id in processing_parameters.forward_models.ids:
+            _recommend_box(forward_model_boxes_dict[id])
+
+    def _recommend_box(box: LabeledCheckbox):
+        box.color = "green"
+        box.font_weight = "bold"
+
+    def _discourage(id: str):
+        if id in processing_parameters.variables.ids:
+            _discourage_box(variable_boxes_dict[id])
+        elif id in processing_parameters.forward_models.ids:
+            _discourage_box(forward_model_boxes_dict[id])
+
+    def _discourage_box(box: LabeledCheckbox):
+        box.color = "black"
+        box.font_weight = "normal"
+
+    def _regular(id: str):
+        if id in processing_parameters.variables.ids:
+            _regular_box(variable_boxes_dict[id])
+        elif id in processing_parameters.forward_models.ids:
+            _regular_box(forward_model_boxes_dict[id])
+
+    def _regular_box(box: LabeledCheckbox):
+        box.color = "black"
+        box.font_weight = "bold"
+
+    def _invalid(id: str):
+        if id in processing_parameters.variables.ids:
+            _invalid_box(variable_boxes_dict[id])
+        elif id in processing_parameters.forward_models.ids:
+            _invalid_box(forward_model_boxes_dict[id])
+
+    def _invalid_box(box: LabeledCheckbox):
+        box.color = "red"
+        box.font_weight = "bold"
 
     def _handle_variable_selection(change: dict):
-        output.value = html_element('h5',
-                                        att=dict(style='color:red'),
-                                        # value=f'{change.values()}')
-                                        value=f'{change.keys()}')
-        selected_variables = _get_selected_variables()
-        # for forward_model_id in processing_parameters.forward_models.ids:
-        #     if forward_model_boxes[forward_model_id]
+        if change['name'] is not '_property_lock':
+            return
+        selected_variable_id = change['owner'].description
+        _check_variable(selected_variable_id)
+        if change['new']['value']:
+            selected_variables.append(selected_variable_id)
+        else:
+            selected_variables.remove(selected_variable_id)
+        for fm_id in forward_models_per_variable[selected_variable_id]:
+            if fm_id in selected_forward_models:
+                if len(selected_forward_models_per_type[_fm_input_type(fm_id)]) > 1:
+                    _invalid(fm_id)
+                else:
+                    _recommend(fm_id)
+            else:
+                if len(selected_forward_models_per_type[_fm_input_type(fm_id)]) > 0:
+                    _discourage(fm_id)
+                else:
+                    for fm_variable in _fm_variables(fm_id):
+                        if fm_variable in selected_variables:
+                            _recommend(fm_id)
+                            return
+                    _regular(fm_id)
+
+    def _check_variable(variable: str):
+        num_conflicting_forward_models = 0
+        for fm_id in forward_models_per_variable[variable]:
+            fm_it = _fm_input_type(fm_id)
+            if (fm_id in selected_forward_models_per_type[fm_it] and len(selected_forward_models_per_type[fm_it]) > 1) or \
+                    (fm_id not in selected_forward_models_per_type[fm_it] and len(selected_forward_models_per_type[fm_it]) > 0):
+                num_conflicting_forward_models += 1
+        if num_conflicting_forward_models == len(forward_models_per_variable[variable]):
+            if variable in selected_variables:
+                _invalid(variable)
+            else:
+                _discourage(variable)
+            return
+        if variable in selected_variables:
+            selected_fm_types = []
+            for fm_id in forward_models_per_variable[variable]:
+                if fm in selected_forward_models:
+                    input_type = _fm_input_type(fm_id)
+                    if input_type in selected_fm_types:
+                        _discourage(variable)
+                        return
+                    selected_fm_types.append(input_type)
+            _recommend(variable)
+        else:
+            selected_fms = []
+            selected_fm_types = []
+            num_unavailable_forward_models = 0
+            for fm_id in forward_models_per_variable[variable]:
+                fm_it = _fm_input_type(fm_id)
+                if fm_id in selected_forward_models:
+                    selected_fms.append(fm_id)
+                    if fm_it not in selected_fm_types:
+                        selected_fm_types.append(fm_it)
+                else:
+                    if len(selected_forward_models_per_type[fm_it]) >= 1:
+                        num_unavailable_forward_models += 1
+            if num_unavailable_forward_models == len(forward_models_per_variable[variable]):
+                _discourage(variable)
+            elif len(selected_fms) == 0:
+                _regular(variable)
+            elif len(selected_fms) == 1:
+                _recommend(variable)
+            elif len(selected_fms) == len(selected_fm_types):
+                _recommend(variable)
+            else:
+                _discourage(variable)
 
     @debug_view.capture(clear_output=True)
     def _handle_forward_model_selection(change: dict):
-        # output.value = html_element('h5',
-        #                                 att=dict(style='color:red'),
-        #                                 value=f'{change.values()}')
-                                        # value=f'{change.keys()}')
-        if change['name'] is 'layout':
+        if change['name'] is not '_property_lock':
             return
-        owner = change['owner']
-        selected_fm_id = owner.description
-        selected_type = processing_parameters.forward_models.get(selected_fm_id).input_type
-        layout = widgets.Layout(display='bold')
-        owner.layout = layout
-        # widgets.DescriptionStyle()
-        # owner.layout = widgets.Layout(width='50%')
-        # owner.style.button_color = 'lightblue'
-        # output.value = html_element('h5',
-        #                             att=dict(style='color:red'),
-        #                             value=f'{owner.style.keys}')
-        if change['new']['value'] == True:
-            # output.value = html_element('h5',
-            #                             att=dict(style='color:red'),
-            #                             value='True detected')
-            forward_model_ids = processing_parameters.forward_models.ids
-            for id in forward_model_ids:
-                # output.value = html_element('h5',
-                #                             att=dict(style='color:red'),
-                #                             value=f'{id}')
-                if id == selected_fm_id:
-                    continue
-                if selected_type == processing_parameters.forward_models.get(id).input_type:
-                    # output.value = html_element('h5',
-                    #                             att=dict(style='color:red'),
-                    #                             value='Input type match detected')
-                    for child in forward_models_box.children:
-                        # output.value = html_element('h5',
-                        #                             att=dict(style='color:red'),
-                        #                             value=f'{child.style.keys}')
-                        if child.description == id:
-                            # output.value = html_element('h5',
-                            #                             att=dict(style='color:red'),
-                            #                             value='Correct checkbox encountered')
-                            child.value=False
-                            child.disabled=True
-                            break
+        selected_fm_id = change['owner'].description
+        selected_fm_it = _fm_input_type(selected_fm_id)
+        if change['new']['value']:
+            selected_forward_models.append(selected_fm_id)
+            selected_forward_models_per_type[selected_fm_it].append(selected_fm_id)
+        else:
+            selected_forward_models.remove(selected_fm_id)
+            selected_forward_models_per_type[selected_fm_it].remove(selected_fm_id)
+        if len(selected_forward_models_per_type[selected_fm_it]) == 0:
+            for available_forward_model in available_forward_models_per_type[selected_fm_it]:
+                recommend = False
+                for fm_variable in _fm_variables(available_forward_model):
+                    if fm_variable in selected_variables:
+                        recommend = True
+                    _check_variable(fm_variable)
+                if recommend:
+                    _recommend(available_forward_model)
+                else:
+                    _regular(available_forward_model)
+        elif len(selected_forward_models_per_type[selected_fm_it]) == 1:
+            _recommend(selected_forward_models_per_type[selected_fm_it][0])
+            for available_forward_model in available_forward_models_per_type[selected_fm_it]:
+                if available_forward_model != selected_forward_models_per_type[selected_fm_it][0]:
+                    _discourage(available_forward_model)
+                for fm_variable in _fm_variables(available_forward_model):
+                    _check_variable(fm_variable)
+        else:
+            for available_forward_model in available_forward_models_per_type[selected_fm_it]:
+                if available_forward_model in selected_forward_models_per_type[selected_fm_it]:
+                    _invalid(available_forward_model)
+                else:
+                    _discourage(available_forward_model)
+                for fm_variable in _fm_variables(available_forward_model):
+                    _check_variable(fm_variable)
 
-    variables_box = _wrap_checkboxes_in_widget(variable_boxes.values(), _handle_variable_selection)
-    forward_models_box = _wrap_checkboxes_in_widget(forward_model_boxes.values(), _handle_forward_model_selection)
+    # noinspection PyTypeChecker
+    variables_box = _wrap_checkboxes_in_widget(variable_boxes_dict.values(), _handle_variable_selection)
+    # noinspection PyTypeChecker
+    forward_models_box = _wrap_checkboxes_in_widget(forward_model_boxes_dict.values(), _handle_forward_model_selection)
 
     # output_variables =
 
@@ -173,7 +281,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     output = widgets.HTML()
 
     def new_input_request():
-        # TODO: infer input types from selected variables and forward models
+        # TODO: infer input types from variable_selected variables and forward models
         input_types = ['S2_L1C']
 
         roi_data = leaflet_map.layers[1].data
@@ -283,14 +391,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     return form
 
 
-def _get_checkbox_list(ids: List[str]) -> dict:
+def _get_checkboxes_dict(ids: List[str]) -> dict:
     checkboxes = {}
     for var_id in ids:
-        checkbox = widgets.Checkbox(value=False, description=var_id, disabled=True
-                                    # ,
-                                    # layout=widgets.Layout(border='solid 1px lightgray')
-                                    )
-
+        checkbox = LabeledCheckbox(value=False, description=var_id, font_weight="bold")
         checkboxes[var_id] = checkbox
     return checkboxes
 
