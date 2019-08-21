@@ -49,6 +49,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     variable_boxes_dict = _get_checkboxes_dict(processing_parameters.variables.ids)
     forward_model_boxes_dict = _get_checkboxes_dict(processing_parameters.forward_models.ids)
+    request_validation = widgets.HTML(value=html_element('h5',
+                                        att=dict(style='color:red'),
+                                        value='No variable or forward model selected'))
     available_forward_models_per_type = {}
     forward_models_per_variable = {}
     for fm_id in processing_parameters.forward_models.ids:
@@ -112,6 +115,46 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         box.color = "red"
         box.font_weight = "bold"
 
+    def _update_request_validation():
+        if len(selected_variables) == 0 and len(selected_forward_models) == 0:
+            request_validation.value=html_element('h5',
+                                            att=dict(style='color:red'),
+                                            value='No variable or forward model selected')
+        elif len(selected_variables) == 0:
+            request_validation.value=html_element('h5',
+                                            att=dict(style='color:red'),
+                                            value='No variable selected')
+        elif len(selected_forward_models) == 0:
+            request_validation.value=html_element('h5',
+                                            att=dict(style='color:red'),
+                                            value='No forward model selected')
+        else:
+            for selected_variable in selected_variables:
+                forward_model_available = False
+                for variable_fm in forward_models_per_variable[selected_variable]:
+                    if variable_fm in selected_forward_models:
+                        forward_model_available = True
+                        break
+                if not forward_model_available:
+                    request_validation.value = html_element('h5',
+                                                            att=dict(style='color:red'),
+                                                            value=f"No forward model selected for variable "
+                                                                  f"'{selected_variable}'")
+                    return
+            for input_type in processing_parameters.input_types.ids:
+                if len(selected_forward_models_per_type[input_type]) > 1:
+                    fm1 = selected_forward_models_per_type[input_type][0]
+                    fm2 = selected_forward_models_per_type[input_type][1]
+                    request_validation.value = html_element('h5',
+                                                            att=dict(style='color:red'),
+                                                            value=f"Invalid selection: "
+                                                                  f"Forward model '{fm1}' and forward model '{fm2}' "
+                                                                  f"are both of input type '{input_type}'")
+                    return
+            request_validation.value=html_element('h5',
+                                            att=dict(style='color:green'),
+                                            value='Selection is valid')
+
     def _handle_variable_selection(change: dict):
         if change['name'] is not '_property_lock':
             return
@@ -121,6 +164,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             selected_variables.append(selected_variable_id)
         else:
             selected_variables.remove(selected_variable_id)
+        _update_request_validation()
         for fm_id in forward_models_per_variable[selected_variable_id]:
             if fm_id in selected_forward_models:
                 if len(selected_forward_models_per_type[_fm_input_type(fm_id)]) > 1:
@@ -179,6 +223,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         else:
             selected_forward_models.remove(selected_fm_id)
             selected_forward_models_per_type[selected_fm_it].remove(selected_fm_id)
+        _update_request_validation()
         for available_forward_model in available_forward_models_per_type[selected_fm_it]:
             at_least_one_variable_selected = False
             for fm_variable in _fm_variables(available_forward_model):
@@ -343,6 +388,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([variables_box], layout=var_checks_layout),
         widgets.Box([widgets.Label(value='Forward models')], layout=form_item_layout),
         widgets.Box([forward_models_box], layout=var_checks_layout),
+        widgets.Box([request_validation], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Start date'), start_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='End date'), end_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Time steps'), time_steps], layout=form_item_layout),
