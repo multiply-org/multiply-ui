@@ -166,11 +166,15 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 if len(selected_forward_models_per_type[_fm_input_type(fm_id)]) > 0:
                     _discourage(fm_id)
                 else:
+                    at_least_one_variable_selected = False
                     for fm_variable in _fm_variables(fm_id):
                         if fm_variable in selected_variables:
-                            _recommend(fm_id)
-                            return
-                    _regular(fm_id)
+                            at_least_one_variable_selected = True
+                            break
+                    if at_least_one_variable_selected:
+                        _recommend(fm_id)
+                    else:
+                        _regular(fm_id)
 
     def _validate_variable(variable: str):
         selected_fms = []
