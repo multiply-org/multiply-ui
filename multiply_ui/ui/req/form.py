@@ -115,19 +115,13 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         box.color = "red"
         box.font_weight = "bold"
 
-    def _update_request_validation():
+    def _request_status() -> str:
         if len(selected_variables) == 0 and len(selected_forward_models) == 0:
-            request_validation.value=html_element('h5',
-                                            att=dict(style='color:red'),
-                                            value='No variable or forward model selected')
+            return 'No variable or forward model selected'
         elif len(selected_variables) == 0:
-            request_validation.value=html_element('h5',
-                                            att=dict(style='color:red'),
-                                            value='No variable selected')
+            return 'No variable selected'
         elif len(selected_forward_models) == 0:
-            request_validation.value=html_element('h5',
-                                            att=dict(style='color:red'),
-                                            value='No forward model selected')
+            return 'No forward model selected'
         else:
             for selected_variable in selected_variables:
                 forward_model_available = False
@@ -136,24 +130,21 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                         forward_model_available = True
                         break
                 if not forward_model_available:
-                    request_validation.value = html_element('h5',
-                                                            att=dict(style='color:red'),
-                                                            value=f"No forward model selected for variable "
-                                                                  f"'{selected_variable}'")
-                    return
+                    return f"No forward model selected for variable '{selected_variable}'"
             for input_type in processing_parameters.input_types.ids:
                 if len(selected_forward_models_per_type[input_type]) > 1:
                     fm1 = selected_forward_models_per_type[input_type][0]
                     fm2 = selected_forward_models_per_type[input_type][1]
-                    request_validation.value = html_element('h5',
-                                                            att=dict(style='color:red'),
-                                                            value=f"Invalid selection: "
-                                                                  f"Forward model '{fm1}' and forward model '{fm2}' "
-                                                                  f"are both of input input_type '{input_type}'")
-                    return
-            request_validation.value=html_element('h5',
-                                            att=dict(style='color:green'),
-                                            value='Selection is valid')
+                    return f"Invalid selection: Forward model '{fm1}' and forward model '{fm2}' " \
+                           f"are both of input '{input_type}'"
+            return 'Selection is valid'
+
+    def _update_request_validation():
+        color = 'red'
+        request_status = _request_status()
+        if request_status == 'Selection is valid':
+            color = 'green'
+        request_validation.value=html_element('h5', att=dict(style=f'color:{color}'), value=request_status)
 
     def _handle_variable_selection(change: dict):
         if change['name'] is not '_property_lock':
@@ -300,15 +291,19 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     output = widgets.HTML()
 
     def new_input_request():
+        request_status = _request_status()
+        if request_status != 'Selection is valid':
+            output.value = html_element('h5', att=dict(style='color:red'), value=request_status)
+            return
         input_types = []
         for input_type in selected_forward_models_per_type:
             if len(selected_forward_models_per_type[input_type]) > 0:
                 input_types.append(input_type)
         roi_data = leaflet_map.layers[1].data
         if not roi_data:
-            output.value = html_element('h5',
-                                        att=dict(style='color:red'),
+            output.value = html_element('h5', att=dict(style='color:red'),
                                         value=f'Error: No region of Interest specified')
+            return
         roi = shape(roi_data)
         x1, y1, x2, y2 = roi.bounds
 
@@ -353,8 +348,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
             output.value = result_html
 
-        output.value = html_element('h5', value='Fetching results...')
-        fetch_inputs_func(inputs_request, apply_func=apply_func)
+        if inputs_request is not None:
+            output.value = html_element('h5', value='Fetching results...')
+            fetch_inputs_func(inputs_request, apply_func=apply_func)
 
     # noinspection PyUnusedLocal
     @debug_view.capture(clear_output=True)
@@ -376,8 +372,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                                        f'stored in variable <code>{req_var_name}</code>.')
             output.value = result_html
 
-        output.value = html_element('h5', value='Submitting processing request...')
-        submit_processing_request(inputs_request, apply_func=apply_func, mock=mock)
+        if inputs_request is not None:
+            output.value = html_element('h5', value='Submitting processing request...')
+            submit_processing_request(inputs_request, apply_func=apply_func, mock=mock)
 
     # TODO: make GUI form look nice
     new_button = widgets.Button(description="New Request", icon="search")
