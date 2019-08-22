@@ -149,7 +149,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                                                             att=dict(style='color:red'),
                                                             value=f"Invalid selection: "
                                                                   f"Forward model '{fm1}' and forward model '{fm2}' "
-                                                                  f"are both of input type '{input_type}'")
+                                                                  f"are both of input input_type '{input_type}'")
                     return
             request_validation.value=html_element('h5',
                                             att=dict(style='color:green'),
@@ -300,9 +300,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     output = widgets.HTML()
 
     def new_input_request():
-        # TODO: infer input types from variable_selected variables and forward models
-        input_types = ['S2_L1C']
-
+        input_types = []
+        for input_type in selected_forward_models_per_type:
+            if len(selected_forward_models_per_type[input_type]) > 0:
+                input_types.append(input_type)
         roi_data = leaflet_map.layers[1].data
         if not roi_data:
             output.value = html_element('h5',
