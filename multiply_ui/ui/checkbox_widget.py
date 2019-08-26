@@ -22,6 +22,7 @@ class LabeledCheckbox(widgets.DOMWidget):
     indent = Bool(False, help="Indent the control to align with other controls with a description.").tag(sync=True)
     description = Unicode('ghfeghnzf', help="Description of the control.").tag(sync=True)
     description_tooltip = Unicode(None, allow_none=True, help="Tooltip for the description (defaults to description).").tag(sync=True)
+    disabled = Bool(False, help="Bool value").tag(sync=True)
     color = Unicode("black", help="Color in which the label is printed.").tag(sync=True)
     font_weight = Unicode("normal", help="The font weight in which the label is printed.").tag(sync=True)
 

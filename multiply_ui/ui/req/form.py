@@ -82,6 +82,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             _recommend_box(forward_model_boxes_dict[id])
 
     def _recommend_box(box: LabeledCheckbox):
+        box.disabled = False
         box.color = "green"
         box.font_weight = "bold"
 
@@ -92,7 +93,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             _discourage_box(forward_model_boxes_dict[id])
 
     def _discourage_box(box: LabeledCheckbox):
-        box.color = "black"
+        box.disabled = True
         box.font_weight = "normal"
 
     def _regular(id: str):
@@ -102,6 +103,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             _regular_box(forward_model_boxes_dict[id])
 
     def _regular_box(box: LabeledCheckbox):
+        box.disabled = False
         box.color = "black"
         box.font_weight = "bold"
 
@@ -112,6 +114,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             _invalid_box(forward_model_boxes_dict[id])
 
     def _invalid_box(box: LabeledCheckbox):
+        box.disabled = True
         box.color = "red"
         box.font_weight = "bold"
 
@@ -130,7 +133,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                         forward_model_available = True
                         break
                 if not forward_model_available:
-                    return f"No forward model selected for variable '{selected_variable}'"
+                    return f"Variable '{selected_variable}' cannot be derived with any of the selected forward models."
             for input_type in processing_parameters.input_types.ids:
                 if len(selected_forward_models_per_type[input_type]) > 1:
                     fm1 = selected_forward_models_per_type[input_type][0]

@@ -39,14 +39,17 @@ var LabeledCheckboxView = widgets.DOMWidgetView.extend({
 
         // Python -> JavaScript update
         this.model.on('change:value', this.value_changed, this);
-        this.model.on('change:color', this.color_changed, this);
+        this.model.on('change:color', this.update_color, this);
         this.model.on('change:font_weight', this.font_weight_changed, this);
+        this.model.on('change:disabled', this.disabled_changed, this);
         // JavaScript -> Python update
         this.checkbox.onchange = this.input_changed.bind(this);
 
         this.listenTo(this.model, 'change:indent', this.updateIndent);
 
+
         this.updateDescription();
+        this.disabled_changed();
         this.updateIndent();
     },
 
@@ -54,12 +57,22 @@ var LabeledCheckboxView = widgets.DOMWidgetView.extend({
         this.checkbox.checked = this.model.get('value');
     },
 
-    color_changed: function() {
+    update_color: function() {
         this.checkboxLabel.style.color = this.model.get('color');
     },
 
     font_weight_changed: function() {
         this.checkboxLabel.style.fontWeight = this.model.get('font_weight');
+    },
+
+    disabled_changed: function() {
+        disabled = this.model.get('disabled');
+        if (disabled) {
+            this.checkboxLabel.style.color = "grey";
+        } else {
+            this.update_color();
+        }
+        this.checkbox.disabled = disabled;
     },
 
     input_changed: function() {
