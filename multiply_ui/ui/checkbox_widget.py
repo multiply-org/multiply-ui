@@ -19,7 +19,7 @@ class LabeledCheckbox(widgets.DOMWidget):
     _view_name = Unicode('LabeledCheckboxView').tag(sync=True)
     _view_module = Unicode('multiply-widgets').tag(sync=True)
     _view_module_version = Unicode('0.1.0').tag(sync=True)
-    indent = Bool(True, help="Indent the control to align with other controls with a description.").tag(sync=True)
+    indent = Bool(False, help="Indent the control to align with other controls with a description.").tag(sync=True)
     description = Unicode('ghfeghnzf', help="Description of the control.").tag(sync=True)
     description_tooltip = Unicode(None, allow_none=True, help="Tooltip for the description (defaults to description).").tag(sync=True)
     color = Unicode("black", help="Color in which the label is printed.").tag(sync=True)

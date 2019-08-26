@@ -434,5 +434,16 @@ def _wrap_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_select
         index += 1
     v_boxes = []
     for v_box_item_list in v_box_item_lists:
-        v_boxes.append(widgets.VBox(v_box_item_list))
-    return widgets.HBox(v_boxes)
+        v_box_layout = widgets.Layout(
+            overflow='hidden',
+            width='25%',
+            display='flex'
+        )
+        v_box = widgets.VBox(v_box_item_list, layout=v_box_layout)
+        v_boxes.append(v_box)
+    h_box_layout = widgets.Layout(
+        overflow='hidden',
+        display='flex'
+    )
+    h_box = widgets.HBox(v_boxes, layout=h_box_layout)
+    return h_box
