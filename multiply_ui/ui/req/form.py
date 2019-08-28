@@ -5,6 +5,7 @@ from shapely.geometry import shape
 import datetime
 import IPython
 import ipywidgets as widgets
+import pkg_resources
 import time
 
 from .api import fetch_inputs
@@ -289,11 +290,16 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
 
     # noinspection PyTypeChecker
-    variables_box = _wrap_checkboxes_in_widget(variable_boxes_dict.values(), _handle_variable_selection)
+    variables_box = _wrap_variable_checkboxes_in_widget(variable_boxes_dict.values(), _handle_variable_selection)
     clear_variable_selection_button = widgets.Button(description="Clear Variable Selection")
     clear_variable_selection_button.on_click(_clear_variable_selection)
     # noinspection PyTypeChecker
-    forward_models_box = _wrap_checkboxes_in_widget(forward_model_boxes_dict.values(), _handle_forward_model_selection)
+    forward_model_variables = {}
+    for fm_id in processing_parameters.forward_models.ids:
+        forward_model_variables[fm_id] = processing_parameters.forward_models.get(fm_id).variables
+    forward_models_box = _wrap_forward_model_checkboxes_in_widget(forward_model_boxes_dict.values(),
+                                                                  _handle_forward_model_selection,
+                                                                  forward_model_variables)
     clear_model_selection_button = widgets.Button(description="Clear Forward Model Selection")
     clear_model_selection_button.on_click(_clear_model_selection)
 
@@ -473,12 +479,13 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 def _get_checkboxes_dict(ids: List[str]) -> dict:
     checkboxes = {}
     for var_id in ids:
-        checkbox = LabeledCheckbox(value=False, description=var_id, font_weight="bold")
+        checkbox = LabeledCheckbox(value=False, description=var_id, font_weight="bold",
+                                   layout=widgets.Layout(flex='0 1 83%'))
         checkboxes[var_id] = checkbox
     return checkboxes
 
 
-def _wrap_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_selection) -> widgets.Widget:
+def _wrap_variable_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_selection) -> widgets.Widget:
     num_cols = 4
     # noinspection PyUnusedLocal
     v_box_item_lists = [[] for i in range(num_cols)]
@@ -488,6 +495,41 @@ def _wrap_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_select
         checkbox.observe(handle_selection)
         # noinspection PyTypeChecker
         v_box_item_lists[col].append(checkbox)
+        index += 1
+    v_boxes = []
+    for v_box_item_list in v_box_item_lists:
+        v_box_layout = widgets.Layout(
+            overflow='hidden',
+            width='25%',
+            display='flex'
+        )
+        v_box = widgets.VBox(v_box_item_list, layout=v_box_layout)
+        v_boxes.append(v_box)
+    h_box_layout = widgets.Layout(
+        overflow='hidden',
+        display='flex'
+    )
+    h_box = widgets.HBox(v_boxes, layout=h_box_layout)
+    return h_box
+
+
+def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_selection,
+                                             forward_model_variables: dict) -> widgets.Widget:
+    num_cols = 4
+    # noinspection PyUnusedLocal
+    v_box_item_lists = [[] for i in range(num_cols)]
+    index = 0
+    for checkbox in checkboxes:
+        col = index % num_cols
+        checkbox.observe(handle_selection)
+        fm_variables = forward_model_variables[checkbox.description]
+        fm_variables = ', '.join(fm_variables)
+        tooltip_message = f'Variables that can be computed with this forward model: {fm_variables}'
+        button = widgets.Button(description='', tooltip=tooltip_message, width=5, icon='question-circle', disabled=True,
+                                layout=widgets.Layout(flex='0 1 17%'))
+        box = widgets.HBox([checkbox, button])
+        # noinspection PyTypeChecker
+        v_box_item_lists[col].append(box)
         index += 1
     v_boxes = []
     for v_box_item_list in v_box_item_lists:
