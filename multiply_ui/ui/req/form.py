@@ -51,7 +51,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     forward_model_boxes_dict = _get_checkboxes_dict(processing_parameters.forward_models.ids)
     request_validation = widgets.HTML(value=html_element('h5',
                                         att=dict(style='color:red'),
-                                        value='No variable or forward model selected'))
+                                        value='No variable_id or forward model selected'))
     available_forward_models_per_type = {}
     forward_models_per_variable = {}
     for fm_id in processing_parameters.forward_models.ids:
@@ -120,9 +120,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     def _request_status() -> str:
         if len(selected_variables) == 0 and len(selected_forward_models) == 0:
-            return 'No variable or forward model selected'
+            return 'No variable_id or forward model selected'
         elif len(selected_variables) == 0:
-            return 'No variable selected'
+            return 'No variable_id selected'
         elif len(selected_forward_models) == 0:
             return 'No forward model selected'
         else:
@@ -159,7 +159,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         else:
             selected_variables.remove(selected_variable_id)
         _update_request_validation()
-        for fm_id in forward_models_per_variable[selected_variable_id]:
+        _update_forward_models_after_variable_change(selected_variable_id)
+
+    def _update_forward_models_after_variable_change(variable_id:str):
+        for fm_id in forward_models_per_variable[variable_id]:
             if fm_id in selected_forward_models:
                 if len(selected_forward_models_per_type[_fm_input_type(fm_id)]) > 1:
                     _invalid(fm_id)
@@ -222,28 +225,59 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             selected_forward_models.remove(selected_fm_id)
             selected_forward_models_per_type[selected_fm_it].remove(selected_fm_id)
         _update_request_validation()
-        for available_forward_model in available_forward_models_per_type[selected_fm_it]:
+        _validate_after_forward_model_selection_change(selected_fm_it)
+
+    def _validate_after_forward_model_selection_change(fm_it: str):
+        for available_forward_model in available_forward_models_per_type[fm_it]:
             at_least_one_variable_selected = False
             for fm_variable in _fm_variables(available_forward_model):
                 _validate_variable(fm_variable)
                 if fm_variable in selected_variables:
                     at_least_one_variable_selected = True
-            if len(selected_forward_models_per_type[selected_fm_it]) == 0:
+            if len(selected_forward_models_per_type[fm_it]) == 0:
                 if at_least_one_variable_selected:
                     _recommend(available_forward_model)
                 else:
                     _regular(available_forward_model)
-            elif available_forward_model not in selected_forward_models_per_type[selected_fm_it]:
+            elif available_forward_model not in selected_forward_models_per_type[fm_it]:
                 _discourage(available_forward_model)
-            elif len(selected_forward_models_per_type[selected_fm_it]) == 1:
+            elif len(selected_forward_models_per_type[fm_it]) == 1:
                 _recommend(available_forward_model)
             else:
                 _invalid(available_forward_model)
 
+    def _clear_variable_selection(*args, **kwargs):
+        for variable_id in variable_boxes_dict:
+            if variable_id in selected_variables:
+                selected_variables.remove(variable_id)
+                variable_boxes_dict[variable_id].value = False
+                _validate_variable(variable_id)
+                _update_forward_models_after_variable_change(variable_id)
+        _update_request_validation()
+
+    def _clear_model_selection(*args, **kwargs):
+        affected_input_types = []
+        for forward_model_id in forward_model_boxes_dict:
+            if forward_model_id in selected_forward_models:
+                selected_forward_models.remove(forward_model_id)
+                forward_model_type = processing_parameters.forward_models.get(forward_model_id).input_type
+                selected_forward_models_per_type[forward_model_type].remove(forward_model_id)
+                if forward_model_type not in affected_input_types:
+                    affected_input_types.append(forward_model_type)
+                forward_model_boxes_dict[forward_model_id].value = False
+        for input_type in affected_input_types:
+            _validate_after_forward_model_selection_change(input_type)
+        _update_request_validation()
+
+
     # noinspection PyTypeChecker
     variables_box = _wrap_checkboxes_in_widget(variable_boxes_dict.values(), _handle_variable_selection)
+    clear_variable_selection_button = widgets.Button(description="Clear Variable Selection")
+    clear_variable_selection_button.on_click(_clear_variable_selection)
     # noinspection PyTypeChecker
     forward_models_box = _wrap_checkboxes_in_widget(forward_model_boxes_dict.values(), _handle_forward_model_selection)
+    clear_model_selection_button = widgets.Button(description="Clear Forward Model Selection")
+    clear_model_selection_button.on_click(_clear_model_selection)
 
     # output_variables =
 
@@ -342,14 +376,14 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
             result_html = html_table(data_rows, header_row=['Input Type', 'Number of inputs found'])
 
-            # insert shall variable whose value is processing_request
+            # insert shall variable_id whose value is processing_request
             # users can later call the GUI with that object to edit it
             if req_var_name:
                 shell = IPython.get_ipython()
                 shell.push({req_var_name: processing_request}, interactive=True)
                 var_name_html = html_element('p',
                                              value=f'Note: a new processing request has been '
-                                             f'stored in variable <code>{req_var_name}</code>.')
+                                             f'stored in variable_id <code>{req_var_name}</code>.')
                 result_html = html_element('div',
                                            value=result_html + var_name_html)
 
@@ -376,7 +410,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             shell.push({req_var_name: job}, interactive=True)
             result_html = html_element('p',
                                        value=f'Note: a new job is currently being executed and is '
-                                       f'stored in variable <code>{req_var_name}</code>.')
+                                       f'stored in variable_id <code>{req_var_name}</code>.')
             output.value = result_html
 
         if inputs_request is not None:
@@ -391,8 +425,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     form_items = [
         widgets.Box([widgets.Label(value='Output variables')], layout=form_item_layout),
         widgets.Box([variables_box], layout=var_checks_layout),
+        widgets.Box([clear_variable_selection_button], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Forward models')], layout=form_item_layout),
         widgets.Box([forward_models_box], layout=var_checks_layout),
+        widgets.Box([clear_model_selection_button], layout=form_item_layout),
         widgets.Box([request_validation], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Start date'), start_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='End date'), end_date], layout=form_item_layout),
