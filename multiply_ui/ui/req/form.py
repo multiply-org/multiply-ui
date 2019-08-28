@@ -49,7 +49,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     variable_boxes_dict = _get_checkboxes_dict(processing_parameters.variables.ids)
     forward_model_boxes_dict = _get_checkboxes_dict(processing_parameters.forward_models.ids)
-    request_validation = widgets.HTML(value=html_element('h5',
+    request_validation = widgets.HTML(value=html_element('h3',
                                         att=dict(style='color:red'),
                                         value='No variable_id or forward model selected'))
     available_forward_models_per_type = {}
@@ -142,12 +142,30 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                            f"are both of input '{input_type}'"
             return 'Selection is valid'
 
-    def _update_request_validation():
+    def _validate_selection():
         color = 'red'
         request_status = _request_status()
         if request_status == 'Selection is valid':
             color = 'green'
-        request_validation.value=html_element('h5', att=dict(style=f'color:{color}'), value=request_status)
+            request_status = _format_request_status(request_status)
+        request_validation.value=html_element('h3', att=dict(style=f'color:{color}'), value=request_status)
+
+    def _format_request_status(request_status: str) -> str:
+        if request_status != 'Selection is valid':
+            return request_status
+        forward_model_lines = []
+        for forward_model_id in selected_forward_models:
+            fm_selected_variables = []
+            fm_variables = processing_parameters.forward_models.get(forward_model_id).variables
+            for fm_variable in fm_variables:
+                if fm_variable in selected_variables:
+                    fm_selected_variables.append(f"'{fm_variable}'")
+            fm_selected_variables = ', '.join(fm_selected_variables)
+            forward_model_lines.append(f"With model '{forward_model_id}': Compute {fm_selected_variables}")
+        forward_model_lines = '<br>'.join(forward_model_lines)
+        message = f"{request_status}:<br>{forward_model_lines}"
+        return message
+
 
     def _handle_variable_selection(change: dict):
         if change['name'] is not '_property_lock':
@@ -158,7 +176,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             selected_variables.append(selected_variable_id)
         else:
             selected_variables.remove(selected_variable_id)
-        _update_request_validation()
+        _validate_selection()
         _update_forward_models_after_variable_change(selected_variable_id)
 
     def _update_forward_models_after_variable_change(variable_id:str):
@@ -224,7 +242,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         else:
             selected_forward_models.remove(selected_fm_id)
             selected_forward_models_per_type[selected_fm_it].remove(selected_fm_id)
-        _update_request_validation()
+        _validate_selection()
         _validate_after_forward_model_selection_change(selected_fm_it)
 
     def _validate_after_forward_model_selection_change(fm_it: str):
@@ -253,7 +271,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 variable_boxes_dict[variable_id].value = False
                 _validate_variable(variable_id)
                 _update_forward_models_after_variable_change(variable_id)
-        _update_request_validation()
+        _validate_selection()
 
     def _clear_model_selection(*args, **kwargs):
         affected_input_types = []
@@ -267,7 +285,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 forward_model_boxes_dict[forward_model_id].value = False
         for input_type in affected_input_types:
             _validate_after_forward_model_selection_change(input_type)
-        _update_request_validation()
+        _validate_selection()
 
 
     # noinspection PyTypeChecker
