@@ -521,7 +521,7 @@ def _get_checkboxes_dict(ids: List[str]) -> dict:
     checkboxes = {}
     for var_id in ids:
         checkbox = LabeledCheckbox(value=False, description=var_id, font_weight="bold",
-                                   layout=widgets.Layout(flex='0 1 83%'))
+                                   layout=widgets.Layout(flex='0 1 78%'))
         checkboxes[var_id] = checkbox
     return checkboxes
 
@@ -567,7 +567,8 @@ def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox],
         fm_variables = ', '.join(fm_variables)
         tooltip_message = f'Variables that can be computed with this forward model: {fm_variables}'
         icon_button = widgets.Button(description='', tooltip=tooltip_message, width=5, icon='question-circle',
-                                     disabled=True, layout=widgets.Layout(flex='0 1 17%'))
+                                     disabled=True, layout=widgets.Layout(flex='0 1 22%'))
+        icon_button.style.button_color = 'white'
         h_box = widgets.HBox([checkbox, icon_button], layout=widgets.Layout(flex='0 1 50%'))
         # noinspection PyTypeChecker
         v_box = widgets.Box([h_box, select_all_buttons[checkbox.description]],
