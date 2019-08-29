@@ -142,18 +142,30 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                     fm2 = selected_forward_models_per_type[input_type][1]
                     return f"Invalid selection: Forward model '{fm1}' and forward model '{fm2}' " \
                            f"are both of input '{input_type}'"
+            for selected_forward_model in selected_forward_models:
+                at_least_one_variable_selected = False
+                for variable in processing_parameters.forward_models.get(selected_forward_model).variables:
+                    if variable in selected_variables:
+                        at_least_one_variable_selected = True
+                        break
+                if not at_least_one_variable_selected:
+                    return f"Selection is valid, " \
+                           f"but no variable is selected for forward model '{selected_forward_model}'."
             return 'Selection is valid'
 
     def _validate_selection():
         color = 'red'
         request_status = _request_status()
-        if request_status == 'Selection is valid':
-            color = 'green'
+        if request_status.startswith('Selection is valid'):
+            if request_status == 'Selection is valid':
+                color = 'green'
+            else:
+                color = 'orange'
             request_status = _format_request_status(request_status)
         request_validation.value=html_element('h3', att=dict(style=f'color:{color}'), value=request_status)
 
     def _format_request_status(request_status: str) -> str:
-        if request_status != 'Selection is valid':
+        if not request_status.startswith('Selection is valid'):
             return request_status
         forward_model_lines = []
         for forward_model_id in selected_forward_models:
@@ -162,8 +174,12 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             for fm_variable in fm_variables:
                 if fm_variable in selected_variables:
                     fm_selected_variables.append(f"'{fm_variable}'")
-            fm_selected_variables = ', '.join(fm_selected_variables)
-            forward_model_lines.append(f"With model '{forward_model_id}': Compute {fm_selected_variables}")
+            if len(fm_selected_variables) > 0:
+                fm_selected_variables = ', '.join(fm_selected_variables)
+                forward_model_lines.append(f"With model '{forward_model_id}': Compute {fm_selected_variables}")
+            else:
+                forward_model_lines.append(f"Model '{forward_model_id}' "
+                                           f"is selected, but does not compute any variables")
         forward_model_lines = '<br>'.join(forward_model_lines)
         message = f"{request_status}:<br>{forward_model_lines}"
         return message
