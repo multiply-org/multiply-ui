@@ -51,10 +51,11 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     variable_boxes_dict = _get_checkboxes_dict(processing_parameters.variables.ids)
     forward_model_boxes_dict = _get_checkboxes_dict(processing_parameters.forward_models.ids)
     request_validation = widgets.HTML(value=html_element('h3',
-                                        att=dict(style='color:red'),
-                                        value='No variable_id or forward model selected'))
+                                                         att=dict(style='color:red'),
+                                                         value='No variable or forward model selected'))
     available_forward_models_per_type = {}
     forward_models_per_variable = {}
+    forward_model_select_buttons = {}
     for fm_id in processing_parameters.forward_models.ids:
         fm = processing_parameters.forward_models.get(fm_id)
         if not fm.input_type in available_forward_models_per_type:
@@ -121,9 +122,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     def _request_status() -> str:
         if len(selected_variables) == 0 and len(selected_forward_models) == 0:
-            return 'No variable_id or forward model selected'
+            return 'No variable or forward model selected'
         elif len(selected_variables) == 0:
-            return 'No variable_id selected'
+            return 'No variable selected'
         elif len(selected_forward_models) == 0:
             return 'No forward model selected'
         else:
@@ -240,9 +241,11 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         if change['new']['value']:
             selected_forward_models.append(selected_fm_id)
             selected_forward_models_per_type[selected_fm_it].append(selected_fm_id)
+            forward_model_select_buttons[selected_fm_id].disabled = False
         else:
             selected_forward_models.remove(selected_fm_id)
             selected_forward_models_per_type[selected_fm_it].remove(selected_fm_id)
+            forward_model_select_buttons[selected_fm_id].disabled = True
         _validate_selection()
         _validate_after_forward_model_selection_change(selected_fm_it)
 
@@ -274,6 +277,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 _update_forward_models_after_variable_change(variable_id)
         _validate_selection()
 
+    output = widgets.HTML()
+
     def _clear_model_selection(*args, **kwargs):
         affected_input_types = []
         for forward_model_id in forward_model_boxes_dict:
@@ -288,16 +293,28 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             _validate_after_forward_model_selection_change(input_type)
         _validate_selection()
 
+    def _select_all_variables_for_forward_model(forward_model_id: str):
+        forward_model = processing_parameters.forward_models.get(forward_model_id)
+        for variable_id in forward_model.variables:
+            if variable_id not in selected_variables:
+                selected_variables.append(variable_id)
+                variable_boxes_dict[variable_id].value = True
+                _validate_variable(variable_id)
+                _update_forward_models_after_variable_change(variable_id)
+        _validate_selection()
 
     # noinspection PyTypeChecker
     variables_box = _wrap_variable_checkboxes_in_widget(variable_boxes_dict.values(), _handle_variable_selection)
     clear_variable_selection_button = widgets.Button(description="Clear Variable Selection")
     clear_variable_selection_button.on_click(_clear_variable_selection)
-    # noinspection PyTypeChecker
     forward_model_variables = {}
     for fm_id in processing_parameters.forward_models.ids:
         forward_model_variables[fm_id] = processing_parameters.forward_models.get(fm_id).variables
+        forward_model_select_buttons[fm_id] = _get_select_button(_select_all_variables_for_forward_model, fm_id)
+
+    # noinspection PyTypeChecker
     forward_models_box = _wrap_forward_model_checkboxes_in_widget(forward_model_boxes_dict.values(),
+                                                                  forward_model_select_buttons,
                                                                   _handle_forward_model_selection,
                                                                   forward_model_variables)
     clear_model_selection_button = widgets.Button(description="Clear Forward Model Selection")
@@ -352,9 +369,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         disabled=False,
     )
 
-    # output = widgets.HTML(layout=dict(border='2px solid lightgray', padding='0.5em'))
-    output = widgets.HTML()
-
     def new_input_request():
         request_status = _request_status()
         if request_status != 'Selection is valid':
@@ -407,7 +421,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 shell.push({req_var_name: processing_request}, interactive=True)
                 var_name_html = html_element('p',
                                              value=f'Note: a new processing request has been '
-                                             f'stored in variable_id <code>{req_var_name}</code>.')
+                                                   f'stored in variable_id <code>{req_var_name}</code>.')
                 result_html = html_element('div',
                                            value=result_html + var_name_html)
 
@@ -434,7 +448,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             shell.push({req_var_name: job}, interactive=True)
             result_html = html_element('p',
                                        value=f'Note: a new job is currently being executed and is '
-                                       f'stored in variable_id <code>{req_var_name}</code>.')
+                                             f'stored in variable_id <code>{req_var_name}</code>.')
             output.value = result_html
 
         if inputs_request is not None:
@@ -476,6 +490,17 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     return form
 
 
+def _get_select_button(_select, f_model_id):
+    select_button = widgets.Button(description=f"Select all variables", height=10, disabled=True,
+                                   layout=widgets.Layout(flex='0 1 50%', align_self='flex-end'))
+
+    def _apply_func(b):
+        _select(f_model_id)
+
+    select_button.on_click(_apply_func)
+    return select_button
+
+
 def _get_checkboxes_dict(ids: List[str]) -> dict:
     checkboxes = {}
     for var_id in ids:
@@ -513,8 +538,8 @@ def _wrap_variable_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], hand
     return h_box
 
 
-def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_selection,
-                                             forward_model_variables: dict) -> widgets.Widget:
+def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], select_all_buttons: dict,
+                                             handle_selection, forward_model_variables: dict) -> widgets.Widget:
     num_cols = 4
     # noinspection PyUnusedLocal
     v_box_item_lists = [[] for i in range(num_cols)]
@@ -525,11 +550,13 @@ def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox],
         fm_variables = forward_model_variables[checkbox.description]
         fm_variables = ', '.join(fm_variables)
         tooltip_message = f'Variables that can be computed with this forward model: {fm_variables}'
-        button = widgets.Button(description='', tooltip=tooltip_message, width=5, icon='question-circle', disabled=True,
-                                layout=widgets.Layout(flex='0 1 17%'))
-        box = widgets.HBox([checkbox, button])
+        icon_button = widgets.Button(description='', tooltip=tooltip_message, width=5, icon='question-circle',
+                                     disabled=True, layout=widgets.Layout(flex='0 1 17%'))
+        h_box = widgets.HBox([checkbox, icon_button], layout=widgets.Layout(flex='0 1 50%'))
         # noinspection PyTypeChecker
-        v_box_item_lists[col].append(box)
+        v_box = widgets.Box([h_box, select_all_buttons[checkbox.description]],
+                            layout=widgets.Layout(display='flex', flex_flow='column'))
+        v_box_item_lists[col].append(v_box)
         index += 1
     v_boxes = []
     for v_box_item_list in v_box_item_lists:
