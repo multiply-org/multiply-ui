@@ -34,7 +34,7 @@ var LabeledCheckboxView = widgets.DOMWidgetView.extend({
         this.checkboxLabel.appendChild(this.descriptionSpan);
 
         this.value_changed();
-        this.color_changed();
+        this.update_color();
         this.font_weight_changed();
 
         // Python -> JavaScript update
