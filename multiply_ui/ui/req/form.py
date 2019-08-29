@@ -321,7 +321,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     # noinspection PyTypeChecker
     variables_box = _wrap_variable_checkboxes_in_widget(variable_boxes_dict.values(), _handle_variable_selection)
-    clear_variable_selection_button = widgets.Button(description="Clear Variable Selection")
+    clear_variable_selection_button = widgets.Button(description="Clear Variable Selection",
+                                                     layout=widgets.Layout(left='60%', width='35%'))
     clear_variable_selection_button.on_click(_clear_variable_selection)
     forward_model_variables = {}
     for fm_id in processing_parameters.forward_models.ids:
@@ -333,7 +334,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                                                                   forward_model_select_buttons,
                                                                   _handle_forward_model_selection,
                                                                   forward_model_variables)
-    clear_model_selection_button = widgets.Button(description="Clear Forward Model Selection")
+    clear_model_selection_button = widgets.Button(description="Clear Forward Model Selection",
+                                                  layout=widgets.Layout(left='60%', width='35%'))
     clear_model_selection_button.on_click(_clear_model_selection)
 
     # output_variables =
