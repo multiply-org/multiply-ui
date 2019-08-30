@@ -53,10 +53,12 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     request_validation = widgets.HTML(value=html_element('h3',
                                                          att=dict(style='color:red'),
                                                          value='No variable or forward model selected'))
+    non_disabled_forward_models = []
     available_forward_models_per_type = {}
     forward_models_per_variable = {}
     forward_model_select_buttons = {}
     for fm_id in processing_parameters.forward_models.ids:
+        non_disabled_forward_models.append(fm_id)
         fm = processing_parameters.forward_models.get(fm_id)
         if not fm.input_type in available_forward_models_per_type:
             available_forward_models_per_type[fm.input_type] = []
@@ -67,9 +69,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             forward_models_per_variable[variable].append(fm_id)
     selected_forward_models = []
     selected_variables = []
-    selected_forward_models_per_type = {}
+    selected_forward_model_per_type = {}
     for it in processing_parameters.input_types.ids:
-        selected_forward_models_per_type[it] = []
+        selected_forward_model_per_type[it] = None
 
     def _fm_variables(fm_id: str):
         return processing_parameters.forward_models.get(fm_id).variables
@@ -81,6 +83,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         if id in processing_parameters.variables.ids:
             _recommend_box(variable_boxes_dict[id])
         elif id in processing_parameters.forward_models.ids:
+            if id not in non_disabled_forward_models:
+                non_disabled_forward_models.append(id)
             _recommend_box(forward_model_boxes_dict[id])
 
     def _recommend_box(box: LabeledCheckbox):
@@ -88,36 +92,29 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         box.color = "green"
         box.font_weight = "bold"
 
-    def _discourage(id: str):
+    def _disable(id: str):
         if id in processing_parameters.variables.ids:
-            _discourage_box(variable_boxes_dict[id])
+            _disable_box(variable_boxes_dict[id])
         elif id in processing_parameters.forward_models.ids:
-            _discourage_box(forward_model_boxes_dict[id])
+            if id in non_disabled_forward_models:
+                non_disabled_forward_models.remove(id)
+            _disable_box(forward_model_boxes_dict[id])
 
-    def _discourage_box(box: LabeledCheckbox):
+    def _disable_box(box: LabeledCheckbox):
         box.disabled = True
         box.font_weight = "normal"
 
-    def _regular(id: str):
+    def _display_normally(id: str):
         if id in processing_parameters.variables.ids:
-            _regular_box(variable_boxes_dict[id])
+            _display_normally_box(variable_boxes_dict[id])
         elif id in processing_parameters.forward_models.ids:
-            _regular_box(forward_model_boxes_dict[id])
+            if id not in non_disabled_forward_models:
+                non_disabled_forward_models.append(id)
+            _display_normally_box(forward_model_boxes_dict[id])
 
-    def _regular_box(box: LabeledCheckbox):
+    def _display_normally_box(box: LabeledCheckbox):
         box.disabled = False
         box.color = "black"
-        box.font_weight = "bold"
-
-    def _invalid(id: str):
-        if id in processing_parameters.variables.ids:
-            _invalid_box(variable_boxes_dict[id])
-        elif id in processing_parameters.forward_models.ids:
-            _invalid_box(forward_model_boxes_dict[id])
-
-    def _invalid_box(box: LabeledCheckbox):
-        box.disabled = True
-        box.color = "red"
         box.font_weight = "bold"
 
     def _request_status() -> str:
@@ -136,12 +133,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                         break
                 if not forward_model_available:
                     return f"Variable '{selected_variable}' cannot be derived with any of the selected forward models."
-            for input_type in processing_parameters.input_types.ids:
-                if len(selected_forward_models_per_type[input_type]) > 1:
-                    fm1 = selected_forward_models_per_type[input_type][0]
-                    fm2 = selected_forward_models_per_type[input_type][1]
-                    return f"Invalid selection: Forward model '{fm1}' and forward model '{fm2}' " \
-                           f"are both of input '{input_type}'"
             for selected_forward_model in selected_forward_models:
                 at_least_one_variable_selected = False
                 for variable in processing_parameters.forward_models.get(selected_forward_model).variables:
@@ -184,69 +175,89 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         message = f"{request_status}:<br>{forward_model_lines}"
         return message
 
-
     def _handle_variable_selection(change: dict):
         if change['name'] is not '_property_lock':
             return
-        selected_variable_id = change['owner'].description
-        _validate_variable(selected_variable_id)
+        variable_id = change['owner'].description
         if change['new']['value']:
-            selected_variables.append(selected_variable_id)
+            selected_variables.append(variable_id)
         else:
-            selected_variables.remove(selected_variable_id)
+            selected_variables.remove(variable_id)
+        _update_forward_models_after_variable_change(variable_id, True)
         _validate_selection()
-        _update_forward_models_after_variable_change(selected_variable_id)
 
-    def _update_forward_models_after_variable_change(variable_id:str):
-        for fm_id in forward_models_per_variable[variable_id]:
-            if fm_id in selected_forward_models:
-                if len(selected_forward_models_per_type[_fm_input_type(fm_id)]) > 1:
-                    _invalid(fm_id)
-                else:
-                    _recommend(fm_id)
+    def _update_forward_models_after_variable_change(variable_id: str, examine_secondary_models: bool=False):
+        already_examined_types = []
+        for potential_forward_model in forward_models_per_variable[variable_id]:
+            fm_type = _fm_input_type(potential_forward_model)
+            if (selected_forward_model_per_type[fm_type]) is not None or fm_type in already_examined_types:
+                continue
+            _validate_forward_models_of_type(fm_type)
+            _validate_variables_of_forward_models_of_type(fm_type)
+            if examine_secondary_models:
+                _validate_forward_models_of_variables_of_forward_models_of_type(fm_type)
+            already_examined_types.append(fm_type)
+
+    def _validate_forward_models_of_type(fm_type: str):
+        for fm_of_same_type in available_forward_models_per_type[fm_type]:
+            if selected_forward_model_per_type[fm_type] == fm_of_same_type:
+                _recommend(fm_of_same_type)
+                continue
+            if selected_forward_model_per_type[fm_type] is not None:
+                _disable(fm_of_same_type)
+                continue
+            fm_of_same_type_variables = _fm_variables(fm_of_same_type)
+            at_least_one_variable_selected = False
+            for fm_of_same_type_variable in fm_of_same_type_variables:
+                if fm_of_same_type_variable in selected_variables:
+                    afms_for_st_variable = _available_forward_models_for_variable(fm_of_same_type_variable)
+                    if len(afms_for_st_variable) == 1 and _fm_input_type(afms_for_st_variable[0]) == fm_type:
+                        _recommend(fm_of_same_type)
+                        for other_fm_of_same_type in available_forward_models_per_type[fm_type]:
+                            if other_fm_of_same_type != fm_of_same_type:
+                                _disable(other_fm_of_same_type)
+                        return
+                    at_least_one_variable_selected = True
+            if at_least_one_variable_selected:
+                _recommend(fm_of_same_type)
             else:
-                if len(selected_forward_models_per_type[_fm_input_type(fm_id)]) > 0:
-                    _discourage(fm_id)
-                else:
-                    at_least_one_variable_selected = False
-                    for fm_variable in _fm_variables(fm_id):
-                        if fm_variable in selected_variables:
-                            at_least_one_variable_selected = True
-                            break
-                    if at_least_one_variable_selected:
-                        _recommend(fm_id)
-                    else:
-                        _regular(fm_id)
+                _display_normally(fm_of_same_type)
+
+    def _validate_variables_of_forward_models_of_type(fm_type: str):
+        for fm_of_same_type in available_forward_models_per_type[fm_type]:
+            fm_of_same_type_variables = _fm_variables(fm_of_same_type)
+            for fm_of_same_type_variable in fm_of_same_type_variables:
+                _validate_variable(fm_of_same_type_variable)
+
+    def _validate_forward_models_of_variables_of_forward_models_of_type(fm_type: str):
+        for fm_of_same_type in available_forward_models_per_type[fm_type]:
+            fm_of_same_type_variables = _fm_variables(fm_of_same_type)
+            for fm_of_same_type_variable in fm_of_same_type_variables:
+                afms_for_same_type_variable = _available_forward_models_for_variable(fm_of_same_type_variable)
+                if _fm_input_type(afms_for_same_type_variable[0]) != fm_type:
+                    _validate_forward_models_of_type(_fm_input_type(afms_for_same_type_variable[0]))
+                    _validate_variables_of_forward_models_of_type(_fm_input_type(afms_for_same_type_variable[0]))
+
+    def _available_forward_models_for_variable(variable_id: str) -> List[str]:
+        available_forward_models_for_variable = []
+        for model_id in forward_models_per_variable[variable_id]:
+            if model_id in non_disabled_forward_models:
+                available_forward_models_for_variable.append(model_id)
+        return available_forward_models_for_variable
 
     def _validate_variable(variable: str):
-        selected_fms = []
-        selected_fm_types = []
-        num_forward_models_in_conflict = 0
-        for fm_id in forward_models_per_variable[variable]:
-            num_allowed_selected_forward_models_per_type = 0
-            fm_it = _fm_input_type(fm_id)
-            if fm_id in selected_forward_models:
-                selected_fms.append(fm_id)
-                if fm_it not in selected_fm_types:
-                    selected_fm_types.append(fm_it)
-                num_allowed_selected_forward_models_per_type = 1
-            if len(selected_forward_models_per_type[fm_it]) > num_allowed_selected_forward_models_per_type:
-                num_forward_models_in_conflict += 1
-        if num_forward_models_in_conflict == len(forward_models_per_variable[variable]):
-            if variable in selected_variables:
-                _invalid(variable)
-            else:
-                _discourage(variable)
-        elif variable in selected_variables:
+        if variable in selected_variables:
             _recommend(variable)
-        elif len(selected_fms) == 0:
-            _regular(variable)
-        elif len(selected_fms) == 1:
-            _recommend(variable)
-        elif len(selected_fms) == len(selected_fm_types):
-            _recommend(variable)
-        else:
-            _discourage(variable)
+            return
+        available_forward_models_for_variable = _available_forward_models_for_variable(variable)
+        if len(available_forward_models_for_variable) == 0:
+            _disable(variable)
+            return
+        for available_forward_model_for_variable in available_forward_models_for_variable:
+            if available_forward_model_for_variable in selected_forward_models:
+                _recommend(variable)
+                return
+        _display_normally(variable)
 
     @debug_view.capture(clear_output=True)
     def _handle_forward_model_selection(change: dict):
@@ -256,35 +267,17 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         selected_fm_it = _fm_input_type(selected_fm_id)
         if change['new']['value']:
             selected_forward_models.append(selected_fm_id)
-            selected_forward_models_per_type[selected_fm_it].append(selected_fm_id)
+            selected_forward_model_per_type[selected_fm_it] = selected_fm_id
             forward_model_select_buttons[selected_fm_id].disabled = False
         else:
             selected_forward_models.remove(selected_fm_id)
-            selected_forward_models_per_type[selected_fm_it].remove(selected_fm_id)
+            selected_forward_model_per_type[selected_fm_it] = None
             forward_model_select_buttons[selected_fm_id].disabled = True
+        _validate_forward_models_of_type(selected_fm_it)
+        _validate_variables_of_forward_models_of_type(selected_fm_it)
         _validate_selection()
-        _validate_after_forward_model_selection_change(selected_fm_it)
 
-    def _validate_after_forward_model_selection_change(fm_it: str):
-        for available_forward_model in available_forward_models_per_type[fm_it]:
-            at_least_one_variable_selected = False
-            for fm_variable in _fm_variables(available_forward_model):
-                _validate_variable(fm_variable)
-                if fm_variable in selected_variables:
-                    at_least_one_variable_selected = True
-            if len(selected_forward_models_per_type[fm_it]) == 0:
-                if at_least_one_variable_selected:
-                    _recommend(available_forward_model)
-                else:
-                    _regular(available_forward_model)
-            elif available_forward_model not in selected_forward_models_per_type[fm_it]:
-                _discourage(available_forward_model)
-            elif len(selected_forward_models_per_type[fm_it]) == 1:
-                _recommend(available_forward_model)
-            else:
-                _invalid(available_forward_model)
-
-    def _clear_variable_selection(*args, **kwargs):
+    def _clear_variable_selection(b):
         for variable_id in variable_boxes_dict:
             if variable_id in selected_variables:
                 selected_variables.remove(variable_id)
@@ -295,27 +288,27 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     output = widgets.HTML()
 
-    def _clear_model_selection(*args, **kwargs):
+    def _clear_forward_model_selection(b):
         affected_input_types = []
         for forward_model_id in forward_model_boxes_dict:
             if forward_model_id in selected_forward_models:
                 selected_forward_models.remove(forward_model_id)
-                forward_model_type = processing_parameters.forward_models.get(forward_model_id).input_type
-                selected_forward_models_per_type[forward_model_type].remove(forward_model_id)
+                forward_model_type = _fm_input_type(forward_model_id)
+                selected_forward_model_per_type[forward_model_type] = None
                 if forward_model_type not in affected_input_types:
                     affected_input_types.append(forward_model_type)
                 forward_model_boxes_dict[forward_model_id].value = False
         for input_type in affected_input_types:
-            _validate_after_forward_model_selection_change(input_type)
+            _validate_forward_models_of_type(input_type)
+            _validate_variables_of_forward_models_of_type(input_type)
         _validate_selection()
 
     def _select_all_variables_for_forward_model(forward_model_id: str):
-        forward_model = processing_parameters.forward_models.get(forward_model_id)
-        for variable_id in forward_model.variables:
+        fm_variables = _fm_variables(forward_model_id)
+        for variable_id in fm_variables:
             if variable_id not in selected_variables:
                 selected_variables.append(variable_id)
                 variable_boxes_dict[variable_id].value = True
-                _validate_variable(variable_id)
                 _update_forward_models_after_variable_change(variable_id)
         _validate_selection()
 
@@ -336,7 +329,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                                                                   forward_model_variables)
     clear_model_selection_button = widgets.Button(description="Clear Forward Model Selection",
                                                   layout=widgets.Layout(left='60%', width='35%'))
-    clear_model_selection_button.on_click(_clear_model_selection)
+    clear_model_selection_button.on_click(_clear_forward_model_selection)
 
     # output_variables =
 
@@ -393,8 +386,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             output.value = html_element('h5', att=dict(style='color:red'), value=request_status)
             return
         input_types = []
-        for input_type in selected_forward_models_per_type:
-            if len(selected_forward_models_per_type[input_type]) > 0:
+        for input_type in selected_forward_model_per_type:
+            if selected_forward_model_per_type[input_type] is not None:
                 input_types.append(input_type)
         roi_data = leaflet_map.layers[1].data
         if not roi_data:
