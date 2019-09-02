@@ -48,8 +48,14 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         justify_content='center',
     )
 
-    variable_boxes_dict = _get_checkboxes_dict(processing_parameters.variables.ids)
-    forward_model_boxes_dict = _get_checkboxes_dict(processing_parameters.forward_models.ids)
+    variable_names = []
+    for variable_id in processing_parameters.variables.ids:
+        variable_names.append(processing_parameters.variables.get(variable_id).name)
+    forward_model_names = []
+    for model_id in processing_parameters.forward_models.ids:
+        forward_model_names.append(processing_parameters.forward_models.get(model_id).name)
+    variable_boxes_dict = _get_checkboxes_dict(processing_parameters.variables.ids, variable_names)
+    forward_model_boxes_dict = _get_checkboxes_dict(processing_parameters.forward_models.ids, forward_model_names)
     request_validation = widgets.HTML(value=html_element('h3',
                                                          att=dict(style='color:red'),
                                                          value='No variable or forward model selected'))
@@ -512,10 +518,10 @@ def _get_select_button(_select, f_model_id):
     return select_button
 
 
-def _get_checkboxes_dict(ids: List[str]) -> dict:
+def _get_checkboxes_dict(ids: List[str], names: List[str]) -> dict:
     checkboxes = {}
-    for var_id in ids:
-        checkbox = LabeledCheckbox(selected=False, label_text=var_id, font_weight="bold",
+    for i, var_id in enumerate(ids):
+        checkbox = LabeledCheckbox(selected=False, label_text=var_id, tooltip=names[i], font_weight="bold",
                                    layout=widgets.Layout(flex='0 1 78%'))
         checkboxes[var_id] = checkbox
     return checkboxes
