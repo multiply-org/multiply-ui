@@ -60,10 +60,16 @@ Activate environment and install sources:
 
     $ conda activate multiply-ui
 
+You will also need to install the [MULTIPLY Core](https://github.com/multiply-org/multiply-core) and 
+[Data Access components](https://github.com/multiply-org/data-access) components. After you have checked out the 
+source code from github, you can install the packages with
+
+    $ python setup.py develop 
+
 Install jupyter-widgets and jupyter-leaflet extension for Jupyter-Lab
 
-    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
-    $ jupyter labextension install jupyter-leaflet
+    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager@0.38.1
+    $ jupyter labextension install jupyter-leaflet@0.10.4
 
 Install the MULTIPLY extension for Jupyter-Lab
 
@@ -82,16 +88,16 @@ Run multiply-ui web service:
 
 Run Jupyter Lab
 
-    $ jupyter-lab notebooks/multiply-ui-1.ipynb
+    $ jupyter-lab notebooks/mui-demo.ipynb
 
 Note for developers: For automatically building the JavaScript code every time there is a change,
 run the following command from the /js/ directory:
 
     $ npm run watch
 
-And in a separate terminal:
+And to run Jupyter Lab, use this command:
 
-    $ jupyter lab --watch
+    $ jupyter lab --watch notebooks/mui-demo.ipynb
 
 Every time a JavaScript build has terminated you need to refresh the Notebook page
 in order to load the JavaScript code again.
