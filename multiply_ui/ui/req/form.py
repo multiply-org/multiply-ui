@@ -472,10 +472,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     submit_button = widgets.Button(description="Submit Request", icon="upload")
     submit_button.on_click(handle_submit_button_clicked)
     form_items = [
-        widgets.Box([widgets.Label(value='Output variables')], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Output Variables'))], layout=form_item_layout),
         widgets.Box([variables_box], layout=var_checks_layout),
         widgets.Box([clear_variable_selection_button], layout=form_item_layout),
-        widgets.Box([widgets.Label(value='Forward models')], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Forward Models'))], layout=form_item_layout),
         widgets.Box([forward_models_box], layout=var_checks_layout),
         widgets.Box([clear_model_selection_button], layout=form_item_layout),
         widgets.Box([request_validation], layout=form_item_layout),
