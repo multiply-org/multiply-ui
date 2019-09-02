@@ -8,23 +8,32 @@ class LabeledCheckbox(widgets.DOMWidget):
     """Displays a boolean `value` in the form of a checkbox.
     Parameters
     ----------
-    value : {True,False}
-        value of the checkbox: True-checked, False-unchecked
-    description : str
-        description displayed next to the checkbox
+    color : str
+        Color in which the label is printed.
+    enabled : {True,False}
+        Whether the checkbox is enabled to be checked.
+    font-weight : str
+        The font weight in which the label is printed.
     indent : {True,False}
-        indent the control to align with other controls with a description. The style.description_width attribute controls this width for consistence with other controls.
+        indent the control to align with other controls with a description. The style.description_width attribute
+        controls this width for consistence with other controls.
+    label_text : str
+        Text of the checkbox label.
+    selected : {True,False}
+        value of the checkbox: True-checked, False-unchecked
+    tooltip : str
+        The tooltip for the checkbox and the label.
     """
-    value = Bool(True, help="Bool value").tag(sync=True)
     _view_name = Unicode('LabeledCheckboxView').tag(sync=True)
     _view_module = Unicode('multiply-widgets').tag(sync=True)
     _view_module_version = Unicode('0.1.0').tag(sync=True)
-    indent = Bool(False, help="Indent the control to align with other controls with a description.").tag(sync=True)
-    description = Unicode('', help="Description of the control.").tag(sync=True)
-    description_tooltip = Unicode(None, allow_none=True, help="Tooltip for the description (defaults to description).").tag(sync=True)
-    disabled = Bool(False, help="Bool value").tag(sync=True)
     color = Unicode("black", help="Color in which the label is printed.").tag(sync=True)
+    enabled = Bool(True, help="Whether the checkbox is enabled to be checked.").tag(sync=True)
     font_weight = Unicode("normal", help="The font weight in which the label is printed.").tag(sync=True)
+    indent = Bool(False, help="Indent the control to align with other controls with a description.").tag(sync=True)
+    label_text = Unicode('', help="Text of the checkbox label.").tag(sync=True)
+    selected = Bool(False, help="Whether the checkbox is selected.").tag(sync=True)
+    tooltip = Unicode(None, allow_none=True, help="The tooltip for the checkbox and the label.").tag(sync=True)
 
     def __init__(self, value=None, **kwargs):
         if value is not None:

@@ -88,7 +88,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             _recommend_box(forward_model_boxes_dict[id])
 
     def _recommend_box(box: LabeledCheckbox):
-        box.disabled = False
+        box.enabled = True
         box.color = "green"
         box.font_weight = "bold"
 
@@ -101,7 +101,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             _disable_box(forward_model_boxes_dict[id])
 
     def _disable_box(box: LabeledCheckbox):
-        box.disabled = True
+        box.enabled = False
         box.font_weight = "normal"
 
     def _display_normally(id: str):
@@ -113,7 +113,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             _display_normally_box(forward_model_boxes_dict[id])
 
     def _display_normally_box(box: LabeledCheckbox):
-        box.disabled = False
+        box.enabled = True
         box.color = "black"
         box.font_weight = "bold"
 
@@ -178,8 +178,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     def _handle_variable_selection(change: dict):
         if change['name'] is not '_property_lock':
             return
-        variable_id = change['owner'].description
-        if change['new']['value']:
+        variable_id = change['owner'].label_text
+        if change['new']['selected']:
             selected_variables.append(variable_id)
         else:
             selected_variables.remove(variable_id)
@@ -263,9 +263,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     def _handle_forward_model_selection(change: dict):
         if change['name'] is not '_property_lock':
             return
-        selected_fm_id = change['owner'].description
+        selected_fm_id = change['owner'].label_text
         selected_fm_it = _fm_input_type(selected_fm_id)
-        if change['new']['value']:
+        if change['new']['selected']:
             selected_forward_models.append(selected_fm_id)
             selected_forward_model_per_type[selected_fm_it] = selected_fm_id
             forward_model_select_buttons[selected_fm_id].disabled = False
@@ -281,7 +281,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         for variable_id in variable_boxes_dict:
             if variable_id in selected_variables:
                 selected_variables.remove(variable_id)
-                variable_boxes_dict[variable_id].value = False
+                variable_boxes_dict[variable_id].selected = False
                 _validate_variable(variable_id)
                 _update_forward_models_after_variable_change(variable_id)
         _validate_selection()
@@ -297,7 +297,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 selected_forward_model_per_type[forward_model_type] = None
                 if forward_model_type not in affected_input_types:
                     affected_input_types.append(forward_model_type)
-                forward_model_boxes_dict[forward_model_id].value = False
+                forward_model_boxes_dict[forward_model_id].selected = False
         for input_type in affected_input_types:
             _validate_forward_models_of_type(input_type)
             _validate_variables_of_forward_models_of_type(input_type)
@@ -308,7 +308,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         for variable_id in fm_variables:
             if variable_id not in selected_variables:
                 selected_variables.append(variable_id)
-                variable_boxes_dict[variable_id].value = True
+                variable_boxes_dict[variable_id].selected = True
                 _update_forward_models_after_variable_change(variable_id)
         _validate_selection()
 
@@ -515,7 +515,7 @@ def _get_select_button(_select, f_model_id):
 def _get_checkboxes_dict(ids: List[str]) -> dict:
     checkboxes = {}
     for var_id in ids:
-        checkbox = LabeledCheckbox(value=False, description=var_id, font_weight="bold",
+        checkbox = LabeledCheckbox(selected=False, label_text=var_id, font_weight="bold",
                                    layout=widgets.Layout(flex='0 1 78%'))
         checkboxes[var_id] = checkbox
     return checkboxes
@@ -558,7 +558,7 @@ def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox],
     for checkbox in checkboxes:
         col = index % num_cols
         checkbox.observe(handle_selection)
-        fm_variables = forward_model_variables[checkbox.description]
+        fm_variables = forward_model_variables[checkbox.label_text]
         fm_variables = ', '.join(fm_variables)
         tooltip_message = f'Variables that can be computed with this forward model: {fm_variables}'
         icon_button = widgets.Button(description='', tooltip=tooltip_message, width=5, icon='question-circle',
@@ -566,7 +566,7 @@ def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox],
         icon_button.style.button_color = 'white'
         h_box = widgets.HBox([checkbox, icon_button], layout=widgets.Layout(flex='0 1 50%'))
         # noinspection PyTypeChecker
-        v_box = widgets.Box([h_box, select_all_buttons[checkbox.description]],
+        v_box = widgets.Box([h_box, select_all_buttons[checkbox.label_text]],
                             layout=widgets.Layout(display='flex', flex_flow='column'))
         v_box_item_lists[col].append(v_box)
         index += 1
