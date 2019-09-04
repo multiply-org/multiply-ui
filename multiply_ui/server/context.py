@@ -9,6 +9,8 @@ from typing import Optional, List
 from .model import Job
 
 import multiply_data_access.data_access_component
+CALVALUS_DIR = os.path.join(inspect.getfile(Job), os.pardir, os.pardir, os.pardir, os.pardir, 'calvalus-instances')
+sys.path.insert(0, CALVALUS_DIR)
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
 # and add the calvalus-instances as content root to project structure
 import share.bin.pmserver as pmserver
@@ -56,8 +58,8 @@ class ServiceContext:
         self._python_dist = sys.executable
         if MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY in config.keys():
             self._python_dist = config[MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY]
-        path_to_lib_dir = os.path.abspath(os.path.join(inspect.getfile(pmserver), os.pardir, os.pardir, 'lib'))
-        path_to_bin_dir = os.path.abspath(os.path.join(inspect.getfile(pmserver), os.pardir, os.pardir, 'bin'))
+        path_to_lib_dir = os.path.abspath(os.path.join(CALVALUS_DIR, 'share/lib'))
+        path_to_bin_dir = os.path.abspath(os.path.join(CALVALUS_DIR, 'share/bin'))
         sys.path.insert(0, path_to_lib_dir)
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']

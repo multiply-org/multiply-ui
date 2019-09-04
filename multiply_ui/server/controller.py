@@ -2,9 +2,10 @@ import datetime
 import json
 import pkg_resources
 import os
+from .context import ServiceContext #import to ensure calvalus-instances is added to system path
+from multiply_core.util import get_time_from_string
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
 # and add the calvalus-instances as content root to project structure
-from multiply_core.util import get_time_from_string
 from share.lib.pmonitor import PMonitor
 from typing import Dict, List
 
