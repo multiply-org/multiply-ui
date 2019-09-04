@@ -4,6 +4,7 @@ import multiply_ui.server.controller as controller
 import multiply_ui.server.context as context
 import os
 import shutil
+import time
 import unittest
 
 
@@ -44,14 +45,9 @@ class ControllerTest(unittest.TestCase):
                 self.assertTrue('name' in job.keys())
                 self.assertEqual('Model-1_Baikalsee_LAI_2018', job['id'])
                 self.assertEqual('Model-1 Baikalsee LAI 2018', job['name'])
-                self.assertEqual('running', job['status'])
-                # todo adapt this! These values are actually not correct!
-                self.assertEqual(0, job['progress'])
-                self.assertEqual(4, len(job['tasks']))
             finally:
+                time.sleep(5)
                 shutil.rmtree(working_dir)
-                os.remove('Model-1 Baikalsee LAI 2018.report')
-                os.remove('Model-1 Baikalsee LAI 2018.status')
                 shutil.rmtree('./test_data/test_scripts_2')
 
 

@@ -45,13 +45,13 @@ def submit_request(ctx, request) -> Dict:
     job = ctx.pm_server.submit_request(pm_request)
     job_dict = {}
     job_dict['id'] = id
-    job_dict['name'] = job.request['requestName']
+    job_dict['name'] = request['name']
     job_dict['status'] = _translate_status(job.status)
     tasks = _pm_workflow_of(job.pm)
     job_dict['tasks'] = []
     job_progress = 0
     for task in tasks:
-        status = _translate_status(task['status'])
+        status = task['status']
         progress = 0
         if status is 'succeeded':
             progress = 100
@@ -75,15 +75,16 @@ def _translate_status(pm_status: str) -> str:
         return 'succeeded'
     if pm_status == 'CANCELLED':
         return 'cancelled'
-    if pm_status == 'initial':
+    if pm_status == 'INITIAL':
         return 'new'
 
 
 def _pm_request_of(request, workdir: str) -> Dict:
     template_text = pkg_resources.resource_string(__name__, "resources/pm_request_template.json")
     pm_request = json.loads(template_text)
-    pm_request['requestName'] = request['name']
+    pm_request['requestName'] = f"{workdir}/{request['name']}"
     pm_request['data_root'] = workdir
+    pm_request['simulation'] = pm_request['simulation'] == 'True'
     pm_request['log_dir'] = f'{workdir}/log'
     (minLon, minLat, maxLon, maxLat) = request["bbox"].split(",")
     region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
@@ -105,18 +106,18 @@ def _pm_workflow_of(pm) -> List:
     accu = []
     commands = pm._commands.copy()
     for l in commands:
-        accu.append({"step": l, "status": "succeeded"})
+        accu.append({"step": l, "status": "succeeded", "progress": 100})
     failed = pm._failed.copy()
     for l in failed:
-        accu.append({"step": l, "status": "failed"})
+        accu.append({"step": l, "status": "failed", "progress": pm.get_progress(l)})
     running = pm._running.copy()
     for l in running:
-        accu.append({"step": l, "status": "running"})
+        accu.append({"step": l, "status": "running", "progress": pm.get_progress(l)})
     backlog = pm._backlog
     for r in backlog:
         l = '{0} {1} {2} {3}\n'.format(PMonitor.Args.get_call(r.args),
                                        ' '.join(PMonitor.Args.get_parameters(r.args)),
                                        ' '.join(PMonitor.Args.get_inputs(r.args)),
                                        ' '.join(PMonitor.Args.get_outputs(r.args)))
-        accu.append({"step": l, "status": "initial"})
+        accu.append({"step": l, "status": "initial", "progress": 0})
     return accu
