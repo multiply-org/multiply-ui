@@ -1,10 +1,13 @@
-import json
-import pkg_resources
-
-
 def get_parameters(ctx):
-    json_text = pkg_resources.resource_string(__name__, "resources/processing-parameters.json")
-    return json.loads(json_text)
+    input_type_dicts = ctx.get_available_input_types()
+    variable_dicts = ctx.get_available_variables()
+    forward_model_dicts = ctx.get_available_forward_models()
+    parameters = {
+        "inputTypes": input_type_dicts,
+        "variables": variable_dicts,
+        "forwardModels": forward_model_dicts
+    }
+    return parameters
 
 
 def get_inputs(ctx, parameters):

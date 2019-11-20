@@ -1,12 +1,15 @@
 from typing import Optional, List
 
 import multiply_data_access.data_access_component
+from multiply_core.models import get_forward_models, ForwardModel
+from multiply_core.observations import INPUT_TYPES
+from multiply_core.variables import get_registered_variables, Variable
 
 from .model import Job
 
 
-
 class ServiceContext:
+
     def __init__(self):
         self._jobs = {}
         self.data_access_component = multiply_data_access.data_access_component.DataAccessComponent()
@@ -30,3 +33,42 @@ class ServiceContext:
 
     def get_jobs(self) -> List[Job]:
         return [job.to_dict() for job in self._jobs.values()]
+
+    @staticmethod
+    def get_available_forward_models() -> List[dict]:
+        dict_list = []
+        forward_models = get_forward_models()
+        for model in forward_models:
+            dict_list.append({
+                "id": model.id,
+                "name": model.name,
+                "description": model.description,
+                "modelAuthors": model.authors,
+                "modelUrl": model.url,
+                "inputType": model.input_type,
+                "variables": model.variables
+            })
+        return dict_list
+
+    @staticmethod
+    def get_available_input_types() -> List[dict]:
+        input_types = []
+        for input_type in INPUT_TYPES:
+            input_types.append({"id": input_type, "name": INPUT_TYPES[input_type]["name"],
+                                "timeRange": INPUT_TYPES[input_type]["name"]})
+        return input_types
+
+    @staticmethod
+    def get_available_variables() -> List[dict]:
+        dict_list = []
+        variables = get_registered_variables()
+        for variable in variables:
+            dict_list.append({
+                "id": variable.short_name,
+                "name": variable.display_name,
+                "unit": variable.unit,
+                "description": variable.description,
+                "valueRange": variable.range,
+                "applications": variable.applications
+            })
+        return dict_list
