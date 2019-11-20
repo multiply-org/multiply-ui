@@ -1,2 +1,2 @@
-from .checkbox_widget import LabeledCheckbox
+from .jswidgets import LabeledCheckbox, Spinner
 from .mui import mui

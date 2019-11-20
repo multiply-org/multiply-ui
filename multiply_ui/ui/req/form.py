@@ -5,16 +5,13 @@ from shapely.geometry import shape
 import datetime
 import IPython
 import ipywidgets as widgets
-import pkg_resources
 import time
 
 from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
-from ..checkbox_widget import LabeledCheckbox
 from ..debug import get_debug_view
 from ..job.api import submit_processing_request
-from ..job.model import Job
-from ..jswidgets import Spinner
+from ..jswidgets import LabeledCheckbox, Spinner
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
 from ..info import InfoComponent
