@@ -19,7 +19,7 @@ class ControllerTest(unittest.TestCase):
             json_text = fp.read()
             parameters = json.loads(json_text)
             request = controller.get_inputs(context.ServiceContext(), parameters)
-            self.assertEqual(50, len(request["productIdentifiers"]["S2_L1C"]))
+            self.assertEqual(78, len(request["inputIdentifiers"]["S2_L1C"]))
 
 
 if __name__ == '__main__':

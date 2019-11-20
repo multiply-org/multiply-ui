@@ -102,6 +102,18 @@ And to run Jupyter Lab, use this command:
 Every time a JavaScript build has terminated you need to refresh the Notebook page
 in order to load the JavaScript code again.
 
+Note for developers: For automatically building the JavaScript code every time there is a change,
+run the following command from the /js/ directory:
+
+    $ npm run watch
+
+And in a separate terminal:
+
+    $ jupyter lab --watch
+
+Every time a JavaScript build has terminated you need to refresh the Notebook page
+in order to load the JavaScript code again.
+
 # Related Reads
 
 * Jupyter Lab: https://jupyterlab.readthedocs.io
