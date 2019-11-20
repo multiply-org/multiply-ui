@@ -11,6 +11,8 @@ from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
 from ..debug import get_debug_view
 from ..job.api import submit_processing_request
+from ..job.model import Job
+from ..jswidgets import Spinner
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
 from ..info import InfoComponent
@@ -57,6 +59,24 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=1))
     end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=10))
 
+    time_steps = Spinner(
+        value=10,
+        min = 1
+    )
+
+    time_steps_unit = widgets.Dropdown(
+        options=['days', 'weeks'],
+        value='days',
+        disabled=False
+    )
+
+    def format_angle(a):
+        if a < 0:
+            return f" {a} "
+        if a > 0:
+            return f" +{a} "
+        return " 0 "
+
     map_background_layer = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
     geometry_layer = GeoJSON()
     leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=(39., -2.1), zoom=11)
@@ -77,16 +97,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     draw_control.on_draw(_remove_previous_polygon)
     leaflet_map.add_control(draw_control)
 
-    spatial_resolution = widgets.Dropdown(
-        options=['10', '20', '60', '300'],
-        value='60',
-        disabled=False,
-    )
-
-    time_steps = widgets.Dropdown(
-        options=['1d', '8d', '10d', 'cal. week', 'cal. month'],
-        value='8d',
-        disabled=False,
+    spatial_resolution = Spinner(
+        value=100,
+        min = 1,
+        step = 1
     )
 
     info = InfoComponent()
@@ -105,7 +119,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             name=request_name.value,
             timeRange=[datetime.datetime.strftime(start_date.value, "%Y-%m-%d"),
                        datetime.datetime.strftime(end_date.value, "%Y-%m-%d")],
+            timeStep=time_steps.value,
+            timeStepUnit=time_steps_unit.value,
             bbox=f"{x1},{y1},{x2},{y2}",
+            res=spatial_resolution.value,
             inputTypes=input_types,
         ))
 
@@ -175,7 +192,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([forward_models_box], layout=var_checks_layout),
         widgets.Box([widgets.Label(value='Start date'), start_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='End date'), end_date], layout=form_item_layout),
-        widgets.Box([widgets.Label(value='Time steps'), time_steps], layout=form_item_layout),
+        widgets.Box([widgets.Label(value='Time steps'), widgets.Box([time_steps, time_steps_unit])],
+                    layout=form_item_layout),
         widgets.Box([widgets.Label(value="Region of Interest"), leaflet_map], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Resolution (m)'), spatial_resolution], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Request/job name'), request_name], layout=form_item_layout),
