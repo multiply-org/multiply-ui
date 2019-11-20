@@ -28,3 +28,7 @@ var SpinnerView = widgets.DOMWidgetView.extend({
     },
 
 });
+
+module.exports = {
+    SpinnerView : SpinnerView
+}
