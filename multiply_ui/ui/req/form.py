@@ -11,9 +11,9 @@ from .api import fetch_inputs
 from .model import InputRequest, ProcessingRequest
 from ..debug import get_debug_view
 from ..job.api import submit_processing_request
-from ..job.model import Job
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
+from ..info import InfoComponent
 
 _NUM_REQUESTS = 0
 
@@ -24,14 +24,14 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     fetch_inputs_func = fetch_inputs
     if mock:
         @debug_view.capture(clear_output=True)
-        def fetch_inputs_mock(input_request: InputRequest, apply_func):
+        def fetch_inputs_mock(input_request: InputRequest, message_func) -> ProcessingRequest:
             debug_view.value = ''
             time.sleep(2)
             input_identifiers = {input_type: [f'iid-{i}' for i in range(10)] for input_type in
                                  input_request.input_types}
             processing_request_data = input_request.as_dict()
             processing_request_data.update(dict(inputIdentifiers=input_identifiers))
-            apply_func(ProcessingRequest(processing_request_data))
+            return ProcessingRequest(processing_request_data)
 
         fetch_inputs_func = fetch_inputs_mock
 
@@ -49,22 +49,13 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     variables_box = _get_checkbox_list(processing_parameters.variables.ids)
     forward_models_box = _get_checkbox_list(processing_parameters.forward_models.ids)
 
-    # output_variables =
-
     global _NUM_REQUESTS
     _NUM_REQUESTS += 1
     request_name = widgets.Text(name)
     python_var_name = widgets.Text(identifier)
 
-    start_date = widgets.DatePicker(value=datetime.datetime(year=2010, month=1, day=1))
-    end_date = widgets.DatePicker(value=datetime.datetime(year=2019, month=1, day=1))
-
-    def format_angle(a):
-        if a < 0:
-            return f" {a} "
-        if a > 0:
-            return f" +{a} "
-        return " 0 "
+    start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=1))
+    end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=10))
 
     map_background_layer = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
     geometry_layer = GeoJSON()
@@ -98,8 +89,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         disabled=False,
     )
 
-    # output = widgets.HTML(layout=dict(border='2px solid lightgray', padding='0.5em'))
-    output = widgets.HTML()
+    info = InfoComponent()
 
     def new_input_request():
         # TODO: infer input types from selected variables and forward models
@@ -107,16 +97,15 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
         roi_data = leaflet_map.layers[1].data
         if not roi_data:
-            output.value = html_element('h5',
-                                        att=dict(style='color:red'),
-                                        value=f'Error: No region of Interest specified')
+            info.output_error(f'Error: No region of Interest specified')
         roi = shape(roi_data)
         x1, y1, x2, y2 = roi.bounds
 
         return InputRequest(dict(
             name=request_name.value,
-            timeRange=[start_date.value, end_date.value],
-            bbox=f'{x1},{y1},{x2},{y2}',
+            timeRange=[datetime.datetime.strftime(start_date.value, "%Y-%m-%d"),
+                       datetime.datetime.strftime(end_date.value, "%Y-%m-%d")],
+            bbox=f"{x1},{y1},{x2},{y2}",
             inputTypes=input_types,
         ))
 
@@ -125,15 +114,15 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     def handle_new_button_clicked(*args, **kwargs):
         req_var_name = python_var_name.value or 'req'
         if req_var_name and not req_var_name.isidentifier():
-            output.value = html_element('h5',
-                                        att=dict(style='color:red'),
-                                        value=f'Error: invalid Python identifier: {req_var_name}')
+            info.output_error(f'Error: invalid Python identifier: {req_var_name}')
             return
 
         inputs_request = new_input_request()
+        info.output_message('Fetching results...')
 
-        def apply_func(processing_request: ProcessingRequest):
+        processing_request = fetch_inputs_func(inputs_request, info.message_func)
 
+        if processing_request is not None:
             input_identifiers = processing_request.inputs
             data_rows = []
             for input_type, input_ids in input_identifiers.as_dict().items():
@@ -151,34 +140,28 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                                              f'stored in variable <code>{req_var_name}</code>.')
                 result_html = html_element('div',
                                            value=result_html + var_name_html)
-
-            output.value = result_html
-
-        output.value = html_element('h5', value='Fetching results...')
-        fetch_inputs_func(inputs_request, apply_func=apply_func)
+            info.output_html(result_html)
 
     # noinspection PyUnusedLocal
     @debug_view.capture(clear_output=True)
     def handle_submit_button_clicked(*args, **kwargs):
         req_var_name = python_var_name.value or 'job'
         if req_var_name and not req_var_name.isidentifier():
-            output.value = html_element('h5',
-                                        att=dict(style='color:red'),
-                                        value=f'Error: invalid Python identifier: {req_var_name}')
+            info.output_error(f'Error: invalid Python identifier: {req_var_name}')
             return
 
         inputs_request = new_input_request()
 
-        def apply_func(job: Job):
+        info.output_message('Submitting processing request...')
+
+        job = submit_processing_request(inputs_request, message_func=info.message_func, mock=mock)
+        if job is not None:
             shell = IPython.get_ipython()
             shell.push({req_var_name: job}, interactive=True)
             result_html = html_element('p',
                                        value=f'Note: a new job is currently being executed and is '
                                        f'stored in variable <code>{req_var_name}</code>.')
-            output.value = result_html
-
-        output.value = html_element('h5', value='Submitting processing request...')
-        submit_processing_request(inputs_request, apply_func=apply_func, mock=mock)
+            info.output_html(result_html)
 
     # TODO: make GUI form look nice
     new_button = widgets.Button(description="New Request", icon="search")
@@ -198,7 +181,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([widgets.Label(value='Request/job name'), request_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Python identifier'), python_var_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value=''), widgets.Box([new_button, submit_button])], layout=form_item_layout),
-        widgets.Box([output], layout=form_item_layout),
+        widgets.Box([info.as_widget()], layout=form_item_layout)
     ]
 
     form = widgets.Box(form_items, layout=widgets.Layout(
