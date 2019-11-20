@@ -108,6 +108,14 @@ class ForwardModel:
     def model_url(self) -> Optional[str]:
         return self._data['modelUrl']
 
+    @property
+    def input_type(self):
+        return self._data['inputType']
+
+    @property
+    def variables(self):
+        return self._data['variables']
+
     def _repr_html_(self):
         return self.html_table([self])
 

@@ -4,6 +4,11 @@
       "id": "S2_L1C",
       "name": "Sentinel-2 MSI L1C",
       "timeRange": ["06-23-2015", null]
+    },
+    {
+      "id": "S3_L1_OLCI",
+      "name": "Sentinel-3 L1 OLCI",
+      "timeRange": ["29-02-2016", null]
     }
   ],
   "variables": [
@@ -86,6 +91,30 @@
       "description": "Soil Wetness Parameter",
       "valueRange": "",
       "applications": []
+    },
+    {
+      "id": "efgtzht",
+      "name": "efgtzht",
+      "unit": "",
+      "description": "",
+      "valueRange": "",
+      "applications": ["testing"]
+    },
+    {
+      "id": "fgsgtt",
+      "name": "fgsgtt",
+      "unit": "",
+      "description": "",
+      "valueRange": "",
+      "applications": ["testing"]
+    },
+    {
+      "id": "zghuzj",
+      "name": "zghuzj",
+      "unit": "",
+      "description": "",
+      "valueRange": "",
+      "applications": ["testing"]
     }
   ],
   "forwardModels": [
@@ -97,6 +126,33 @@
       "modelUrl": "http://teledetection.ipgp.jussieu.fr/prosail/",
       "inputType": "S2_L1C",
       "variables": ["n", "cab", "car", "cb", "cw", "cdm", "lai", "ala", "bsoil", "psoil"]
+    },
+    {
+      "id": "s2_antisail",
+      "name": "ANTISAIL for Sentinel-2",
+      "description": "A dummy forward model for testing.",
+      "modelAuthors": "",
+      "modelUrl": "",
+      "inputType": "S2_L1C",
+      "variables": ["n", "efgtzht", "fgsgtt"]
+    },
+    {
+      "id": "s3_prosail",
+      "name": "PROSAIL for Sentinel-3",
+      "description": "A dummy forward model for testing.",
+      "modelAuthors": "",
+      "modelUrl": "http://teledetection.ipgp.jussieu.fr/prosail/",
+      "inputType": "S3_L1_OLCI",
+      "variables": ["n", "cab", "car", "cb", "cw", "cdm", "lai", "ala", "bsoil", "psoil"]
+    },
+    {
+      "id": "s3_something",
+      "name": "PROSAIL for Sentinel-3",
+      "description": "A dummy forward model for testing.",
+      "modelAuthors": "",
+      "modelUrl": "http://teledetection.ipgp.jussieu.fr/prosail/",
+      "inputType": "S3_L1_OLCI",
+      "variables": ["n", "efgtzht", "zghuzj"]
     }
   ]
 }

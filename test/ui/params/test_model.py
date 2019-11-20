@@ -14,7 +14,7 @@ class ProcessingParametersTest(unittest.TestCase):
         proc_params = ProcessingParameters(RAW_DATA)
 
         self.assertIsInstance(proc_params.variables, Variables)
-        self.assertEqual(['lai', 'cab', 'cb', 'car', 'cw', 'cdm', 'n', 'ala', 'bsoil', 'psoil', 'GeoCBI'],
+        self.assertEqual(['lai', 'cab', 'cb', 'car', 'cw', 'cdm', 'n', 'ala', 'bsoil', 'psoil'],
                          proc_params.variables.ids)
         self.assertIsNotNone(proc_params.variables._repr_html_())
 
