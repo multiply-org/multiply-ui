@@ -1,9 +1,9 @@
 from typing import Optional, List
 
 import multiply_data_access.data_access_component
-from multiply_core.models import get_forward_models, ForwardModel
+from multiply_core.models import get_forward_models
 from multiply_core.observations import INPUT_TYPES
-from multiply_core.variables import get_registered_variables, Variable
+from multiply_core.variables import get_registered_variables
 
 from .model import Job
 
@@ -45,7 +45,7 @@ class ServiceContext:
                 "description": model.description,
                 "modelAuthors": model.authors,
                 "modelUrl": model.url,
-                "inputType": model.input_type,
+                "inputType": model.model_data_type,
                 "variables": model.variables
             })
         return dict_list
@@ -54,8 +54,8 @@ class ServiceContext:
     def get_available_input_types() -> List[dict]:
         input_types = []
         for input_type in INPUT_TYPES:
-            input_types.append({"id": input_type, "name": INPUT_TYPES[input_type]["name"],
-                                "timeRange": INPUT_TYPES[input_type]["name"]})
+            input_types.append({"id": input_type, "name": INPUT_TYPES[input_type]["input_data_type_name"],
+                                "timeRange": INPUT_TYPES[input_type]["timeRange"]})
         return input_types
 
     @staticmethod
