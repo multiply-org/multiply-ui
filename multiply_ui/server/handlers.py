@@ -96,6 +96,22 @@ class GetInputsHandler(ServiceRequestHandler):
 
 
 # noinspection PyAbstractClass
+class PostEarthDataAuthHandler(ServiceRequestHandler):
+    def post(self):
+        self.set_header('Content-Type', 'application/json')
+        parameters = self.get_body_as_json_object()
+        controller.set_earth_data_authentication(self.ctx, parameters)
+
+
+# noinspection PyAbstractClass
+class PostMundiAuthHandler(ServiceRequestHandler):
+    def post(self):
+        self.set_header('Content-Type', 'application/json')
+        parameters = self.get_body_as_json_object()
+        controller.set_mundi_authentication(self.ctx, parameters)
+
+
+# noinspection PyAbstractClass
 class ExecuteHandler(ServiceRequestHandler):
     def get(self):
         duration = int(self.get_query_argument("duration"))

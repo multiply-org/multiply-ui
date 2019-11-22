@@ -4,6 +4,7 @@ import multiply_data_access.data_access_component
 from multiply_core.models import get_forward_models
 from multiply_core.observations import INPUT_TYPES
 from multiply_core.variables import get_registered_variables
+from vm_support import set_earth_data_authentication, set_mundi_authentication
 
 from .model import Job
 
@@ -72,3 +73,11 @@ class ServiceContext:
                 "applications": variable.applications
             })
         return dict_list
+
+    @staticmethod
+    def set_earth_data_authentication(username: str, password: str):
+        set_earth_data_authentication(username, password)
+
+    @staticmethod
+    def set_mundi_authentication(access_key_id: str, secret_access_key: str):
+        set_mundi_authentication(access_key_id, secret_access_key)

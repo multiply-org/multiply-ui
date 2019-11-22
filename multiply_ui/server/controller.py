@@ -21,3 +21,11 @@ def get_inputs(ctx, parameters):
         data_set_meta_infos = ctx.data_access_component.query(region_wkt, time_range[0], time_range[1], input_type)
         parameters["inputIdentifiers"][input_type] = [entry._identifier for entry in data_set_meta_infos]
     return parameters
+
+
+def set_earth_data_authentication(ctx, parameters):
+    ctx.set_earth_data_authentication(parameters['user_name'], parameters['password'])
+
+
+def set_mundi_authentication(ctx, parameters):
+    ctx.set_mundi_authentication(parameters['access_key_id'], parameters['secret_access_key'])
