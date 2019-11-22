@@ -393,7 +393,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     def new_input_request():
         request_status = _request_status()
         if request_status != 'Selection is valid':
-            output.value = html_element('h5', att=dict(style='color:red'), value=request_status)
+            info.output_error(request_status)
             return
         input_types = []
         for input_type in selected_forward_model_per_type:
@@ -401,7 +401,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 input_types.append(input_type)
         roi_data = leaflet_map.layers[1].data
         if not roi_data:
-            info.output_error(f'Error: No region of Interest specified')
+            info.output_error('Error: No region of Interest specified')
             return
         roi = shape(roi_data)
         x1, y1, x2, y2 = roi.bounds
@@ -426,29 +426,32 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             return
 
         inputs_request = new_input_request()
+        if inputs_request is None:
+            return
         info.output_message('Fetching results...')
 
         processing_request = fetch_inputs_func(inputs_request, info.message_func)
 
-        if processing_request is not None:
-            input_identifiers = processing_request.inputs
-            data_rows = []
-            for input_type, input_ids in input_identifiers.as_dict().items():
-                data_rows.append([input_type, len(input_ids)])
+        if processing_request is None:
+            return
+        input_identifiers = processing_request.inputs
+        data_rows = []
+        for input_type, input_ids in input_identifiers.as_dict().items():
+            data_rows.append([input_type, len(input_ids)])
 
-            result_html = html_table(data_rows, header_row=['Input Type', 'Number of inputs found'])
+        result_html = html_table(data_rows, header_row=['Input Type', 'Number of inputs found'])
 
-            # insert shall variable whose value is processing_request
-            # users can later call the GUI with that object to edit it
-            if req_var_name:
-                shell = IPython.get_ipython()
-                shell.push({req_var_name: processing_request}, interactive=True)
-                var_name_html = html_element('p',
-                                             value=f'Note: a new processing request has been '
+        # insert shall variable whose value is processing_request
+        # users can later call the GUI with that object to edit it
+        if req_var_name:
+            shell = IPython.get_ipython()
+            shell.push({req_var_name: processing_request}, interactive=True)
+            var_name_html = html_element('p',
+                                            value=f'Note: a new processing request has been '
                                              f'stored in variable <code>{req_var_name}</code>.')
-                result_html = html_element('div',
+            result_html = html_element('div',
                                            value=result_html + var_name_html)
-            info.output_html(result_html)
+        info.output_html(result_html)
 
     # noinspection PyUnusedLocal
     @debug_view.capture(clear_output=True)
