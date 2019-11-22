@@ -1,3 +1,4 @@
+from .auth.form import auth_form
 from .job.model import Job
 from .job.form import obs_job_form, obs_jobs_form
 from .params.api import fetch_processing_parameters
@@ -42,5 +43,9 @@ class MultiplyUI:
 
     def obs_jobs(self, mock=False):
         return obs_jobs_form(mock)
+
+    def set_auth(self):
+        return auth_form()
+
 
 mui = MultiplyUI()
