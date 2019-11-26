@@ -14,8 +14,9 @@ INPUT_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('timeRange', TIME_RANGE_TYPE),
     PropertyDef('timeStep', TypeDef(int)),
     PropertyDef('timeStepUnit', TypeDef(str)),
-    PropertyDef('res', TypeDef(int)),
+    PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
+    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str)))
 ])
 
 PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
@@ -24,9 +25,10 @@ PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('timeRange', TIME_RANGE_TYPE),
     PropertyDef('timeStep', TypeDef(int)),
     PropertyDef('timeStepUnit', TypeDef(str)),
-    PropertyDef('res', TypeDef(int)),
+    PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
     PropertyDef('inputIdentifiers', INPUT_IDENTIFIERS_TYPE),
+    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str)))
 ])
 
 
@@ -60,9 +62,9 @@ class InputRequestMixin:
         return x1, y1, x2, y2
 
     @property
-    def res(self) -> int:
+    def spatialResolution(self) -> int:
         # noinspection PyUnresolvedReferences
-        return self._data['res']
+        return self._data['spatialResolution']
 
     @property
     def time_range(self) -> Tuple[Optional[str], Optional[str]]:
@@ -84,6 +86,11 @@ class InputRequestMixin:
     def input_types(self) -> List[str]:
         # noinspection PyUnresolvedReferences
         return self._data['inputTypes']
+    
+    @property
+    def parameters(self) -> List[str]:
+        # noinspection PyUnresolvedReferences
+        return self._data['parameters']
 
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
@@ -96,8 +103,9 @@ class InputRequestMixin:
             f'Time range: {self.time_range}<br/>' \
             f'Time step: {self.time_step} {self.time_step_unit}<br/>' \
             f'Region box: {self.bbox}<br/>' \
-            f'Spatial resolution in m: {self.res}<br/>' \
-            f'Input types: {", ".join(self.input_types)}' \
+            f'Spatial resolution in m: {self.spatialResolution}<br/>' \
+            f'Input types: {", ".join(self.input_types)}<br/>' \
+            f'Parameters: {", ".join(self.parameters)}' \
             f'</p>'
 
 
