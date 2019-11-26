@@ -1,6 +1,7 @@
 import glob
 import inspect
 import os
+import pkg_resources
 import sys
 import yaml
 from pathlib import Path
@@ -14,7 +15,8 @@ from vm_support import set_earth_data_authentication, set_mundi_authentication
 
 from .model import Job
 
-CALVALUS_DIR = os.path.join(inspect.getfile(Job), os.pardir, os.pardir, os.pardir, os.pardir, 'calvalus-instances')
+
+CALVALUS_DIR = os.path.abspath(os.path.join(inspect.getfile(Job), os.pardir, os.pardir, os.pardir, os.pardir, 'calvalus-instances'))
 sys.path.insert(0, CALVALUS_DIR)
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
 # and add the calvalus-instances as content root to project structure
@@ -43,6 +45,7 @@ def _get_config() -> dict:
         SCRIPTS_DIRS_CONFIG_KEY: []
     }
 
+
 class ServiceContext:
 
     def __init__(self):
@@ -68,6 +71,8 @@ class ServiceContext:
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']
         os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
+        self.add_workflows_path(pkg_resources.resource_filename(__name__, "resources/workflows"))
+        self.add_scripts_path(pkg_resources.resource_filename(__name__, "resources/scripts"))
 
 
     # TODO: require an interface of data access to select data stores to be used
@@ -146,7 +151,8 @@ class ServiceContext:
     def working_dir(self) -> str:
         return self._working_dir
 
-    def add_workflows_path(self, workflows_path: str):
+    @staticmethod
+    def add_workflows_path(workflows_path: str):
         sys.path.insert(0, workflows_path)
         os.environ['PATH'] += f':{workflows_path}'
 
