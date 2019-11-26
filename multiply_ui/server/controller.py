@@ -90,6 +90,7 @@ def _pm_request_of(request, workdir: str) -> Dict:
     template_text = pkg_resources.resource_string(__name__, "resources/pm_request_template.json")
     pm_request = json.loads(template_text)
     pm_request['requestName'] = f"{workdir}/{request['name']}"
+    pm_request['productionType'] = _determine_workflow(request)
     pm_request['data_root'] = workdir
     pm_request['simulation'] = pm_request['simulation'] == 'True'
     pm_request['log_dir'] = f'{workdir}/log'
@@ -107,6 +108,12 @@ def _pm_request_of(request, workdir: str) -> Dict:
     pm_request['Inference']['time_interval'] = request['timeStep']
     pm_request['Prior']['output_directory'] = workdir + '/priors'
     return pm_request
+
+
+def _determine_workflow(request) -> str:
+    if "productionType" in request:
+        return request["productionType"]
+    return 'only-get-data'
 
 
 def _pm_workflow_of(pm) -> List:
