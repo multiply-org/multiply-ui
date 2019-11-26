@@ -14,8 +14,11 @@ class ControllerTest(unittest.TestCase):
 
     def test_get_parameters(self):
         parameters = controller.get_parameters(context.ServiceContext())
-        self.assertEqual(1, len(parameters["inputTypes"]))
-        self.assertEqual(parameters["inputTypes"][0]["name"], "Sentinel-2 MSI L1C")
+        self.assertEqual(2, len(parameters["inputTypes"]))
+        self.assertEqual(parameters["inputTypes"][0]["id"], "Sentinel-1")
+        self.assertEqual(parameters["inputTypes"][0]["name"], "Sentinel-1 Single Look Complex (SLC)")
+        self.assertEqual(parameters["inputTypes"][1]["id"], "Sentinel-2")
+        self.assertEqual(parameters["inputTypes"][1]["name"], "Sentinel-2 MSI L1C")
 
     @unittest.skipIf(os.environ.get('MULTIPLY_DISABLE_WEB_TESTS') == '1', 'MULTIPLY_DISABLE_WEB_TESTS = 1')
     def test_get_inputs(self):
