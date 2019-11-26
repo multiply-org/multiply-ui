@@ -22,12 +22,12 @@ setup(
         'console_scripts': [
             'mui-server = multiply_ui.server.cli:main',
         ]},
-    install_requires=[
-        'click',
-        'ipywidgets',
-        'jupyterlab',
-        'numpy',
-        'tornado',
-        'xarray'
-    ],
+    # install_requires=[
+    #     'click',
+    #     'ipywidgets',
+    #     'jupyterlab',
+    #     'numpy',
+    #     'tornado',
+    #     'xarray'
+    # ],
 )
