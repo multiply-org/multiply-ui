@@ -95,7 +95,7 @@ class GetInputsHandler(ServiceRequestHandler):
         self.finish()
 
 # noinspection PyAbstractClass
-class JobsHandler(ServiceRequestHandler):
+class ExecuteJobsHandler(ServiceRequestHandler):
     def post(self):
         self.set_header('Content-Type', 'application/json')
         request = self.get_body_as_json_object()
