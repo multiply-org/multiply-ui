@@ -12,7 +12,12 @@ setup(
     author='Norman Fomferra',
     packages=find_packages(exclude=["test", "test.*"]),
     include_package_data=True,
-    data_files=[('multiply_ui', ['multiply_ui/server/resources/processing-parameters.json'])],
+    data_files=[('multiply_ui', ['multiply_ui/server/resources/processing-parameters.json',
+                                 'multiply_ui/server/resources/pm_request_template.json',
+                                 'multiply_ui/server/resources/scripts/*.py',
+                                 'multiply_ui/server/resources/templates/*.json',
+                                 'multiply_ui/server/resources/workflows/*.py',
+                                 ])],
     entry_points={
         'console_scripts': [
             'mui-server = multiply_ui.server.cli:main',
