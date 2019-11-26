@@ -118,22 +118,22 @@ def _determine_workflow(request) -> str:
 
 def _pm_workflow_of(pm) -> List:
     accu = []
-    commands = pm._commands.copy()
-    for l in commands:
-        accu.append({"step": l, "status": "succeeded", "progress": 100})
-    failed = pm._failed.copy()
-    for l in failed:
-        accu.append({"step": l, "status": "failed", "progress": pm.get_progress(l)})
+    backlog = pm._backlog.copy()
     running = pm._running.copy()
-    for l in running:
-        accu.append({"step": l, "status": "running", "progress": pm.get_progress(l)})
-    backlog = pm._backlog
+    commands = pm._commands.copy()
+    failed = pm._failed.copy()
     for r in backlog:
         l = '{0} {1} {2} {3}\n'.format(PMonitor.Args.get_call(r.args),
                                        ' '.join(PMonitor.Args.get_parameters(r.args)),
                                        ' '.join(PMonitor.Args.get_inputs(r.args)),
                                        ' '.join(PMonitor.Args.get_outputs(r.args)))
         accu.append({"step": l, "status": "initial", "progress": 0})
+    for l in running:
+        accu.append({"step": l, "status": "running", "progress": pm.get_progress(l)})
+    for l in commands:
+        accu.append({"step": l, "status": "succeeded", "progress": 100})
+    for l in failed:
+        accu.append({"step": l, "status": "failed", "progress": pm.get_progress(l)})
     return accu
 
 
