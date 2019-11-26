@@ -1,6 +1,6 @@
 {
     "requestName" : "NAME",
-    "productionType" : "multiply-adapted-iterative-8",
+    "productionType" : "WORKFLOW",
     "simulation" : "False",
     "data_root" : "WORKDIR",
     "log_dir": "LOGDIR",
