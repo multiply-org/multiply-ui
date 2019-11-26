@@ -1,5 +1,6 @@
 {
     "name": "Model-1 Baikalsee LAI 2018",
+    "productionType": "multiply-adapted-iterative-8",
     "timeRange": [
         "2018-01-01T01:01:00Z",
         "2018-01-08T23:59:59Z"
