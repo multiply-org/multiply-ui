@@ -11,16 +11,18 @@ class RequestModelTest(unittest.TestCase):
                                           timeRange=['2018-07-06', '2018-07-20'],
                                           timeStep=4,
                                           timeStepUnit='days',
-                                          res=20,
-                                          inputTypes=['S2_L1C']))
+                                          spatialResolution=20,
+                                          inputTypes=['S2_L1C'],
+                                          parameters=['LAI']))
 
         self.assertEqual('bibo', input_request.name)
         self.assertEqual((10.2, 51.2, 11.3, 53.6), input_request.bbox)
         self.assertEqual(('2018-07-06', '2018-07-20'), input_request.time_range)
         self.assertEqual(4, input_request.time_step)
         self.assertEqual('days', input_request.time_step_unit)
-        self.assertEqual(20, input_request.res)
+        self.assertEqual(20, input_request.spatialResolution)
         self.assertEqual(['S2_L1C'], input_request.input_types)
+        self.assertEqual(['LAI'], input_request.parameters)
         self.assertIsNotNone(input_request._repr_html_())
 
     def test_processing_request(self):
@@ -29,8 +31,9 @@ class RequestModelTest(unittest.TestCase):
                                                timeRange=['2018-07-06', '2018-07-20'],
                                                timeStep=4,
                                                timeStepUnit='days',
-                                               res=20,
+                                               spatialResolution=20,
                                                inputTypes=['S2_L1C'],
+                                               parameters=['lai', 'cab'],
                                                inputIdentifiers={'S2_L1C': ['IID1', 'IID2', 'IID3']}))
 
         self.assertEqual('bibo', input_request.name)
@@ -38,8 +41,9 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual(('2018-07-06', '2018-07-20'), input_request.time_range)
         self.assertEqual(4, input_request.time_step)
         self.assertEqual('days', input_request.time_step_unit)
-        self.assertEqual(20, input_request.res)
+        self.assertEqual(20, input_request.spatialResolution)
         self.assertEqual(['S2_L1C'], input_request.input_types)
+        self.assertEqual(['lai', 'cab'], input_request.parameters)
         self.assertIsInstance(input_request.inputs, InputIdentifiers)
         self.assertIsNotNone(input_request._repr_html_())
 

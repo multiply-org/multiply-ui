@@ -94,6 +94,15 @@ class GetInputsHandler(ServiceRequestHandler):
         json.dump(request, self)
         self.finish()
 
+# noinspection PyAbstractClass
+class ExecuteJobsHandler(ServiceRequestHandler):
+    def post(self):
+        self.set_header('Content-Type', 'application/json')
+        request = self.get_body_as_json_object()
+        job = controller.submit_request(self.ctx, request)
+        json.dump(job, self)
+        self.finish()
+
 
 # noinspection PyAbstractClass
 class PostEarthDataAuthHandler(ServiceRequestHandler):
