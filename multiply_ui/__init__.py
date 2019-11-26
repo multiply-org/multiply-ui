@@ -1,1 +1,1 @@
-from .ui import mui
+from .version import version as __version__

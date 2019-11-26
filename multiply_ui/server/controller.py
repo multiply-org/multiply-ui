@@ -11,8 +11,15 @@ from typing import Dict, List
 
 
 def get_parameters(ctx):
-    json_text = pkg_resources.resource_string(__name__, "resources/processing-parameters.json")
-    return json.loads(json_text)
+    input_type_dicts = ctx.get_available_input_types()
+    variable_dicts = ctx.get_available_variables()
+    forward_model_dicts = ctx.get_available_forward_models()
+    parameters = {
+        "inputTypes": input_type_dicts,
+        "variables": variable_dicts,
+        "forwardModels": forward_model_dicts
+    }
+    return parameters
 
 
 def get_inputs(ctx, parameters):
@@ -121,3 +128,11 @@ def _pm_workflow_of(pm) -> List:
                                        ' '.join(PMonitor.Args.get_outputs(r.args)))
         accu.append({"step": l, "status": "initial", "progress": 0})
     return accu
+
+
+def set_earth_data_authentication(ctx, parameters):
+    ctx.set_earth_data_authentication(parameters['user_name'], parameters['password'])
+
+
+def set_mundi_authentication(ctx, parameters):
+    ctx.set_mundi_authentication(parameters['access_key_id'], parameters['secret_access_key'])

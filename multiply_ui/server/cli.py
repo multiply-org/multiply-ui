@@ -1,41 +1,29 @@
-import logging
-import signal
-import sys
+from .config import ADDRESS, PORT
+from .service import Service
 
-import tornado.ioloop
-import tornado.log
-import tornado.web
-
-from multiply_ui.server.app import new_application
-from multiply_ui.server.context import ServiceContext
-
-PORT = 9090
-
-LOGGER = logging.getLogger('multiply_ui')
+import click
 
 
-def main():
-    def shut_down():
-        LOGGER.info(f"Shutting down...")
-        tornado.ioloop.IOLoop.current().stop()
-        sys.exit(0)
+@click.command('mui-server')
+@click.option('--port', '-p',
+              type=int, default=PORT,
+              help=f'Set service port number. Defaults to {PORT}.')
+@click.option('--address', '-a',
+              type=str, default=ADDRESS,
+              help=f'Set service IP address. Defaults to "{ADDRESS}".')
 
-    # noinspection PyUnusedLocal
-    def sig_handler(sig, frame):
-        LOGGER.warning(f'Caught signal {sig}')
-        tornado.ioloop.IOLoop.current().add_callback_from_signal(shut_down)
+def mui_server(port, address):
+    """
+    Starts a service which exposes a RESTful API to the Multiply UI.
+    """
 
-    signal.signal(signal.SIGINT, sig_handler)
-    signal.signal(signal.SIGTERM, sig_handler)
-
-    tornado.log.enable_pretty_logging()
-    application = new_application()
-    application._ctx = ServiceContext()
-    application.listen(PORT)
-
-    LOGGER.info(f"Server listening on port {PORT}...")
-    tornado.ioloop.IOLoop.current().start()
+    service = Service(address, port)
+    service.start()
 
 
-if __name__ == "__main__":
+def main(args=None):
+    mui_server.main(args=args)
+
+
+if __name__ == '__main__':
     main()
