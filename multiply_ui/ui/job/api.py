@@ -25,7 +25,7 @@ def submit_processing_request(request: InputRequestMixin, message_func=_write_to
     if mock:
         return _submit_processing_request_mock(request)
     else:
-        _submit_processing_request(request, message_func=message_func)
+        return _submit_processing_request(request, message_func=message_func)
 
 
 def _submit_processing_request(request: InputRequestMixin, message_func) -> Optional[Job]:
