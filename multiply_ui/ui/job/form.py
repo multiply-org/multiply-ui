@@ -14,10 +14,10 @@ from ..info import InfoComponent
 def obs_job_form(job: Job, mock=False):
     get_job_func = _get_job_func(job, mock)
 
-    job_header_id_label = widgets.Label('Job ID')
-    job_header_name_label = widgets.Label('Job Name')
-    job_header_progress_label = widgets.Label('Progress')
-    job_header_status_label = widgets.Label('Status')
+    job_header_id_label = widgets.Label(r'\(\textbf{Job ID}\)')
+    job_header_name_label = widgets.Label(r'\(\textbf{Job Name}\)')
+    job_header_progress_label = widgets.Label(r'\(\textbf{Progress}\)')
+    job_header_status_label = widgets.Label(r'\(\textbf{Status}\)')
     job_progress_bar = widgets.IntProgress(value=job.progress, min=0, max=100)
     job_status_label = widgets.Label(job.status)
     job_id_label = widgets.Label(job.id)
@@ -31,9 +31,9 @@ def obs_job_form(job: Job, mock=False):
                                        grid_template_columns='20% 20% 40% 20%'
                                    )
                                    )
-    task_header_name_label = widgets.Label('Task Name')
-    task_header_progress_label = widgets.Label('Progress')
-    task_header_status_label = widgets.Label('Status')
+    task_header_name_label = widgets.Label(r'\(\textbf{Task Name}\)')
+    task_header_progress_label = widgets.Label(r'\(\textbf{Progress}\)')
+    task_header_status_label = widgets.Label(r'\(\textbf{Status}\)')
     task_gridbox_children = [task_header_name_label, task_header_progress_label, task_header_status_label]
     task_gridbox_template_rows = 'auto'
     task_progress_bars = []
@@ -91,10 +91,10 @@ def _get_handle_cancel_button_clicked(job_id: str, message_func, mock=False):
 
 def obs_jobs_form(mock=False):
     info = InfoComponent()
-    job_header_id_label = widgets.Label('Job ID')
-    job_header_name_label = widgets.Label('Job Name')
-    job_header_progress_label = widgets.Label('Progress')
-    job_header_status_label = widgets.Label('Status')
+    job_header_id_label = widgets.Label(r'\(\textbf{Job ID}\)')
+    job_header_name_label = widgets.Label(r'\(\textbf{Job Name}\)')
+    job_header_progress_label = widgets.Label(r'\(\textbf{Progress}\)')
+    job_header_status_label = widgets.Label(r'\(\textbf{Status}\)')
     jobs_box_children = [job_header_id_label, job_header_name_label, job_header_progress_label, job_header_status_label,
                          widgets.Label()]
     grid_template_rows = 'auto'
