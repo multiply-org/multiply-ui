@@ -79,7 +79,7 @@ def submit_request(ctx, request) -> Dict:
 
 def _translate_step(step: str) -> str:
     step_parts = step.split(" ")
-    if step.startswith("data_access_get_static.py"):
+    if step_parts[0] == "data_access_get_static.py":
         return f'Retrieving data required for all time steps'
     if step_parts[0] == "data_access_get_dynamic.py":
         return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
