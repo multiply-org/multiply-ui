@@ -167,5 +167,5 @@ class ServiceContext:
 
     def get_job(self, id: str):
         for job in self.pm_server.queue:
-            if job.request['id'] == id:
+            if job.request['requestId'] == id:
                 return job
