@@ -1,5 +1,9 @@
 import datetime
+import logging
 from pmonitor import PMonitor
+
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 class OnlyGetData(PMonitor):
@@ -62,6 +66,7 @@ class OnlyGetData(PMonitor):
         """
         Executes command on host, collects output paths if any, returns exit code
         """
+        logging.INFO(f'running step {task_id}')
         wd = self._prepare_working_dir(task_id)
         process = PMonitor._start_processor(command, host, wd)
         self._trace_processor_output(output_paths, process, task_id, command, wd, log_prefix, async_)
