@@ -1,4 +1,4 @@
-#!/home/tonio-bc/.conda/envs/multiply-platform-dev/bin/python
+#!{PYTHON}
 # example syntax: retr_prior.py workshop-test.yaml /data/m5/priors
 
 from multiply_prior_engine import PriorEngine

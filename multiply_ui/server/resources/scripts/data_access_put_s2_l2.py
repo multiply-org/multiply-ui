@@ -1,4 +1,4 @@
-#!/home/tonio-bc/.conda/envs/multiply-platform-dev/bin/python
+#!{PYTHON}
 # example syntax: data_access_put_s2_l2.py /data/mx/sdrs
 
 from multiply_data_access import DataAccessComponent

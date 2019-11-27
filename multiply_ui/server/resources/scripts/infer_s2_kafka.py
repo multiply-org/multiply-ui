@@ -1,4 +1,4 @@
-#!/home/tonio-bc/.conda/envs/multiply-platform-dev/bin/python
+#!{PYTHON}
 # infer__hres.py multiply4.yaml
 #   2017-06-11
 #   /data/m4/hresstate/2017-06-01
