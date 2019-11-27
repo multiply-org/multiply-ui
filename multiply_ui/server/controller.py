@@ -152,7 +152,8 @@ def set_mundi_authentication(ctx, parameters):
 
 def get_job(ctx, id: str) -> Dict:
     job = ctx.get_job(id)
-    job_dict = {'id': id, 'name': job.request['name'], 'status': _translate_status(job.status)}
+    request_name = job.request['requestName'].split('/')[-1]
+    job_dict = {'id': id, 'name': request_name, 'status': _translate_status(job.status)}
     tasks = _pm_workflow_of(job.pm)
     job_dict['tasks'] = []
     job_progress = 0
