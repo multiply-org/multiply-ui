@@ -10,7 +10,7 @@ def new_application():
         (r"/multiply/api/auth/earthdata", PostEarthDataAuthHandler),
         (r"/multiply/api/auth/mundi", PostMundiAuthHandler),
         (r"/multiply/api/jobs/execute", ExecuteJobsHandler),
-        (r"/multiply/api/jobs/{{job_id}}", GetJobHandler),
+        (r"/multiply/api/jobs/get/{{job_id}}", GetJobHandler),
         (r"/multiply/api/processing/inputs", GetInputsHandler),
         (r"/multiply/api/processing/parameters", GetParametersHandler),
         (r"/jobs/execute", ExecuteHandler),

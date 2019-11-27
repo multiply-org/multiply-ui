@@ -10,7 +10,7 @@ from ...util.callapi import call_api
 
 URL_BASE = "http://localhost:9090/"
 CANCEL_URL = URL_BASE + "multiply/api/jobs/cancel/{}"
-GET_JOB_URL = URL_BASE + "multiply/api/jobs/{}"
+GET_JOB_URL = URL_BASE + "multiply/api/jobs/get/{}"
 SUBMIT_PROCESSING_REQUEST_URL = URL_BASE + "multiply/api/jobs/execute"
 
 
