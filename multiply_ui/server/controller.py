@@ -68,13 +68,22 @@ def submit_request(ctx, request) -> Dict:
             progress = 100
         job_progress += progress
         task_dict = {
-            'name': task['step'],
+            'name': _translate_step(task['step']),
             'status': status,
             'progress': progress
         }
         job_dict['tasks'].append(task_dict)
     job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100
     return job_dict
+
+
+def _translate_step(step: str) -> str:
+    step_parts = step.split(" ")
+    if step.startswith("data_access_get_static.py"):
+        return f'Retrieving data required for all time steps'
+    if step_parts[0] == "data_access_get_dynamic.py":
+        return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
+    return step
 
 
 def _translate_status(pm_status: str) -> str:
