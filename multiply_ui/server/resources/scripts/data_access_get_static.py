@@ -1,4 +1,4 @@
-#!/home/tonio-bc/.conda/envs/multiply-platform-dev/bin/python
+#!{PYTHON}
 #  example syntax: data_access_get_static.py request_test_all.yaml 2017-06-11 2016-06-21 /data/mx/wv_emu_dir /data/mx/emu_dir /data/mx/dem_dir
 
 from multiply_data_access import DataAccessComponent

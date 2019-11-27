@@ -1,4 +1,4 @@
-#!/home/tonio-bc/.conda/envs/multiply-platform-dev/bin/python
+#!{PYTHON}
 # prepro_hres2.py request_test_all.yaml /data/m3/inputs /data/auxiliary/brdf_des /data/m3/sdrs
 # /Data/m3/inputs/highres/S2/30/S/WJ/2017/11/10/0
 
