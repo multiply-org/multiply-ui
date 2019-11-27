@@ -38,6 +38,7 @@ def obs_job_form(job: Job, mock=False):
     task_gridbox_template_rows = 'auto'
     task_progress_bars = []
     task_status_labels = []
+    # todo adapt to that there might be new tasks added later
     for task_name in job.tasks.names:
         progress = job.tasks.get(task_name).progress
         status = job.tasks.get(task_name).status
