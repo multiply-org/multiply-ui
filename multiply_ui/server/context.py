@@ -1,7 +1,7 @@
 import glob
 import inspect
+import logging
 import os
-import pkg_resources
 import sys
 import yaml
 from pathlib import Path
@@ -15,6 +15,8 @@ from vm_support import set_earth_data_authentication, set_mundi_authentication
 
 from .model import Job
 
+
+logging.getLogger().setLevel(logging.INFO)
 
 CALVALUS_DIR = os.path.abspath(os.path.join(inspect.getfile(Job), os.pardir, os.pardir, os.pardir, os.pardir, 'calvalus-instances'))
 sys.path.insert(0, CALVALUS_DIR)
@@ -62,9 +64,11 @@ class ServiceContext:
             self.set_working_dir(config[WORKING_DIR_CONFIG_KEY])
         if WORKFLOWS_DIRS_CONFIG_KEY in config.keys():
             for workflows_dir in config[WORKFLOWS_DIRS_CONFIG_KEY]:
+                logging.info(f'adding workflows dir {workflows_dir}')
                 self.add_workflows_path(workflows_dir)
         if SCRIPTS_DIRS_CONFIG_KEY in config.keys():
             for scripts_dir in config[SCRIPTS_DIRS_CONFIG_KEY]:
+                logging.info(f'adding scripts dir {scripts_dir}')
                 self.add_scripts_path(scripts_dir)
         path_to_lib_dir = os.path.abspath(os.path.join(CALVALUS_DIR, 'share/lib'))
         path_to_bin_dir = os.path.abspath(os.path.join(CALVALUS_DIR, 'share/bin'))
