@@ -37,8 +37,9 @@ def _get_config() -> dict:
         os.mkdir(multiply_home_dir)
     path_to_multiply_config_file = '{0}/{1}'.format(multiply_home_dir, MULTIPLY_CONFIG_FILE_NAME)
     if os.path.exists(path_to_multiply_config_file):
-        multiply_config = yaml.safe_load(path_to_multiply_config_file)
-        return multiply_config
+        with open(path_to_multiply_config_file, 'r') as multiply_config_file:
+            multiply_config = yaml.safe_load(multiply_config_file)
+            return multiply_config
     return {
         WORKING_DIR_CONFIG_KEY: f'{multiply_home_dir}/multiply',
         WORKFLOWS_DIRS_CONFIG_KEY: [],
@@ -71,8 +72,6 @@ class ServiceContext:
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']
         os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
-        self.add_workflows_path(pkg_resources.resource_filename(__name__, "resources/workflows"))
-        self.add_scripts_path(pkg_resources.resource_filename(__name__, "resources/scripts"))
 
 
     # TODO: require an interface of data access to select data stores to be used
