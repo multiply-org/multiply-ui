@@ -28,6 +28,8 @@ with open(configuration_file) as f:
 
 roi = parameters['General']['roi']
 
+print("Progress=0")
+
 modis_delta = datetime.timedelta(days=16)
 start = datetime.datetime.strptime(start_date, '%Y-%m-%d')
 modis_start = start - modis_delta
@@ -39,7 +41,10 @@ modis_end_date = datetime.datetime.strftime(modis_end, '%Y-%m-%d')
 dac = DataAccessComponent()
 modis_urls = dac.get_data_urls(roi, modis_start_date, modis_end_date, 'MCD43A1.006')
 create_sym_links(modis_urls, modis_dir)
+print("Progress=33")
 cams_urls = dac.get_data_urls(roi, start_date, stop_date, 'CAMS_TIFF')
 create_sym_links(cams_urls, cams_tiff_dir)
+print("Progress=66")
 s2_urls = dac.get_data_urls(roi, start_date, stop_date, 'AWS_S2_L1C')
 create_sym_links(s2_urls, s2_dir)
+print("Progrtess=100")

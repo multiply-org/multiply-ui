@@ -28,9 +28,10 @@ with open(configuration_file) as f:
 roi = parameters['General']['roi']
 
 dac = DataAccessComponent()
+print("Progress=0")
 emu_urls = dac.get_data_urls(roi, start_date, stop_date, 'ISO_MSI_A_EMU,ISO_MSI_B_EMU')
 create_sym_links(emu_urls, emu_dir)
-#wv_emu_urls = dac.get_data_urls(roi, start_date, stop_date, 'WV_EMU')
-#create_sym_links(wv_emu_urls, wv_emu_dir)
+print("Progress=50")
 dem_urls = dac.get_data_urls(roi, start_date, stop_date, 'Aster DEM')
 create_sym_links(dem_urls, dem_dir)
+print("Progress=100")
