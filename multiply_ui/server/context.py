@@ -54,7 +54,10 @@ class ServiceContext:
         self.data_access_component = multiply_data_access.data_access_component.DataAccessComponent()
         self._restrict_to_mundi_datastore()
         self.pm_server = pmserver.PMServer()
+        self._python_dist = sys.executable
         config = _get_config()
+        if MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY in config.keys():
+            self._python_dist = config[MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY]
         if WORKING_DIR_CONFIG_KEY in config.keys():
             self.set_working_dir(config[WORKING_DIR_CONFIG_KEY])
         if WORKFLOWS_DIRS_CONFIG_KEY in config.keys():
@@ -63,9 +66,6 @@ class ServiceContext:
         if SCRIPTS_DIRS_CONFIG_KEY in config.keys():
             for scripts_dir in config[SCRIPTS_DIRS_CONFIG_KEY]:
                 self.add_scripts_path(scripts_dir)
-        self._python_dist = sys.executable
-        if MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY in config.keys():
-            self._python_dist = config[MULTIPLY_PLATFORM_PYTHON_CONFIG_KEY]
         path_to_lib_dir = os.path.abspath(os.path.join(CALVALUS_DIR, 'share/lib'))
         path_to_bin_dir = os.path.abspath(os.path.join(CALVALUS_DIR, 'share/bin'))
         sys.path.insert(0, path_to_lib_dir)
