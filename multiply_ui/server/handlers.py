@@ -15,10 +15,6 @@ _EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 # noinspection PyAbstractClass
 class ServiceRequestHandler(tornado.web.RequestHandler):
 
-    def __init__(self, application, request, **kwargs):
-        super().__init__(application, request, **kwargs)
-        self._params = ServiceRequestParams(self)
-
     @property
     def ctx(self) -> ServiceContext:
         # noinspection PyProtectedMember
@@ -42,10 +38,6 @@ class ServiceRequestHandler(tornado.web.RequestHandler):
                         'access-control-allow-origin,'
                         'authorization,'
                         'content-type')
-
-    @property
-    def params(self) -> 'ServiceRequestParams':
-        return self._params
 
     # noinspection PyUnusedLocal
     def options(self, *args, **kwargs):
@@ -84,21 +76,6 @@ class ServiceRequestHandler(tornado.web.RequestHandler):
         except (json.JSONDecodeError, TypeError, ValueError) as e:
             raise tornado.web.HTTPError(status_code=400,
                                         log_message=f"Invalid or missing {name} in request body") from e
-
-
-class ServiceRequestParams(tornado.web.RequestParams):
-    def __init__(self, handler: tornado.web.RequestHandler):
-        self.handler = handler
-
-    def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
-        """
-        Get query argument.
-        :param name: Query argument name
-        :param default: Default value.
-        :return: the value or none
-        :raise: ServiceBadRequestError
-        """
-        return self.handler.get_query_argument(name, default=default)
 
 
 # noinspection PyAbstractClass
