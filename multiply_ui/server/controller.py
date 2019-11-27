@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import pkg_resources
 import os
 from .context import ServiceContext #import to ensure calvalus-instances is added to system path
@@ -8,6 +9,8 @@ from multiply_core.util import get_time_from_string
 # and add the calvalus-instances as content root to project structure
 from share.lib.pmonitor import PMonitor
 from typing import Dict, List
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 def get_parameters(ctx):
@@ -39,6 +42,7 @@ def submit_request(ctx, request) -> Dict:
     mangled_name = request['name'].replace(' ', '_')
     id = mangled_name  # TODO generate simple unique IDs
     workdir_root = ctx.working_dir
+    logging.info(f'working dir root from context {workdir_root}')
     workdir = workdir_root + '/' + id
     pm_request_file = f'{workdir}/{mangled_name}.json'
 

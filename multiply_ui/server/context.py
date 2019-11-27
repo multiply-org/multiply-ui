@@ -153,6 +153,7 @@ class ServiceContext:
 
     @property
     def working_dir(self) -> str:
+        logging.info(f'working dir root in context {self._working_dir}')
         return self._working_dir
 
     @staticmethod
