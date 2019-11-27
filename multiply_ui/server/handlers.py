@@ -111,12 +111,8 @@ class ExecuteJobsHandler(ServiceRequestHandler):
 # noinspection PyAbstractClass
 class GetJobHandler(ServiceRequestHandler):
     def get(self, job_id: str):
-    # def get(self):
-        logging.info(f'Look for job id {job_id}')
-        # logging.info(f'Look for job id name')
         self.set_header('Content-Type', 'application/json')
         job = controller.get_job(self.ctx, job_id)
-        # job = controller.get_job(self.ctx, 'name')
         json.dump(job, self)
         self.finish()
 
