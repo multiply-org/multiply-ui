@@ -66,8 +66,10 @@ class OnlyGetData(PMonitor):
         """
         Executes command on host, collects output paths if any, returns exit code
         """
-        logging.INFO(f'running step {task_id}')
+        logging.INFO(f'command {command}')
+        logging.INFO(f'output_paths {output_paths}')
         wd = self._prepare_working_dir(task_id)
+        logging.INFO(f'wd {wd}')
         process = PMonitor._start_processor(command, host, wd)
         self._trace_processor_output(output_paths, process, task_id, command, wd, log_prefix, async_)
         process.stdout.close()
