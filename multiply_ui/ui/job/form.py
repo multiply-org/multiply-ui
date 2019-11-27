@@ -62,7 +62,7 @@ def obs_job_form(job: Job, mock=False):
     job_monitor = widgets.VBox([job_grid_box, task_grid_box, info.as_widget(70)])
 
     def monitor(progress_bar, status_bar, progress_bars, status_labels):
-        while True:
+        while job.status not in ['succeeded', 'cancelled', 'failed']:
             progress_bar.value = job.progress
             status_bar.value = job.status
             job_task_names = job.tasks.names
@@ -123,7 +123,9 @@ def obs_jobs_form(mock=False):
     jobs_full_component = widgets.VBox([jobs_monitor_component, info.as_widget(80)])
 
     def jobs_monitor_func(components, empty):
-        while True:
+        at_least_one_job_unfinished = True
+        while at_least_one_job_unfinished:
+            at_least_one_job_unfinished = False
             for progress_bar, status_label, cancel_button, job_func, component_job in components.values():
                 progress_bar.value = component_job.progress
                 status_label.value = component_job.status
@@ -132,6 +134,8 @@ def obs_jobs_form(mock=False):
                 job_state = job_func(component_job, info.message_func)
                 if job_state is not None:
                     _update_job(component_job, job_state)
+                if component_job.status not in ['succeeded', 'cancelled', 'failed']:
+                    at_least_one_job_unfinished = True
             time.sleep(0.5)
 
     _monitor(jobs_monitor_func, jobs_full_component, (job_components, None))
