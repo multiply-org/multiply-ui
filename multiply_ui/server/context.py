@@ -164,6 +164,7 @@ class ServiceContext:
 
 
     def add_scripts_path(self, scripts_path: str):
+        sys.path.insert(0, scripts_path)
         scripts = glob.glob(f'{scripts_path}/*.py')
         for script in scripts:
             read_file = open(script, 'r+')
