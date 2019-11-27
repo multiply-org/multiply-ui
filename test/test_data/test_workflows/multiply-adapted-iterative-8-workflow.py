@@ -1,6 +1,10 @@
 import datetime
+import logging
 import subprocess
 from pmonitor import PMonitor
+
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 class MultiplyAdaptedIterative8(PMonitor):
