@@ -1,5 +1,6 @@
 import concurrent.futures
 import json
+import logging
 import traceback
 
 import tornado.escape
@@ -9,6 +10,7 @@ from .context import ServiceContext
 from multiply_ui.server import controller
 from typing import Optional
 
+logging.getLogger().setLevel(logging.INFO)
 _EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
 
@@ -109,6 +111,7 @@ class ExecuteJobsHandler(ServiceRequestHandler):
 # noinspection PyAbstractClass
 class GetJobHandler(ServiceRequestHandler):
     def get(self, job_id: str):
+        logging.info(f'Look for job id {job_id}')
         self.set_header('Content-Type', 'application/json')
         job = controller.get_job(self.ctx, job_id)
         json.dump(job, self)
