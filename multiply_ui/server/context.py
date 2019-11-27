@@ -76,6 +76,7 @@ class ServiceContext:
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']
         os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
+        logging.info(f"path after ServiceContext init: {os.environ['PATH']}")
 
 
     # TODO: require an interface of data access to select data stores to be used
@@ -158,6 +159,8 @@ class ServiceContext:
     def add_workflows_path(workflows_path: str):
         sys.path.insert(0, workflows_path)
         os.environ['PATH'] += f':{workflows_path}'
+        logging.info(f"path after workflows adding: {os.environ['PATH']}")
+
 
     def add_scripts_path(self, scripts_path: str):
         scripts = glob.glob(f'{scripts_path}/*.py')
@@ -170,3 +173,4 @@ class ServiceContext:
             write_file.write(content)
             write_file.close()
         os.environ['PATH'] += f':{scripts_path}'
+        logging.info(f"path after scripts adding: {os.environ['PATH']}")
