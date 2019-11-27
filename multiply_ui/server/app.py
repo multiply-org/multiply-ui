@@ -1,8 +1,8 @@
 import tornado.web
 
-from .handlers import GetParametersHandler, GetInputsHandler, ExecuteJobsHandler, ExecuteHandler, ListHandler, StatusHandler, \
-    CancelHandler, ResultsFromJobHandler, ResultHandler, ResultsOpenHandler, PostEarthDataAuthHandler, \
-    PostMundiAuthHandler
+from .handlers import GetParametersHandler, GetInputsHandler, GetJobHandler, ExecuteJobsHandler, ExecuteHandler, \
+    ListHandler, StatusHandler, CancelHandler, ResultsFromJobHandler, ResultHandler, ResultsOpenHandler, \
+    PostEarthDataAuthHandler, PostMundiAuthHandler
 
 
 def new_application():
@@ -10,6 +10,7 @@ def new_application():
         (r"/multiply/api/auth/earthdata", PostEarthDataAuthHandler),
         (r"/multiply/api/auth/mundi", PostMundiAuthHandler),
         (r"/multiply/api/jobs/execute", ExecuteJobsHandler),
+        (r"/multiply/api/jobs/{job_id}", GetJobHandler),
         (r"/multiply/api/processing/inputs", GetInputsHandler),
         (r"/multiply/api/processing/parameters", GetParametersHandler),
         (r"/jobs/execute", ExecuteHandler),

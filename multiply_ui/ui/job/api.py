@@ -87,7 +87,7 @@ def _cancel_mock(job_id: str, message_func):
         message_func(f'Job {job.name} has been cancelled.')
 
 
-def get_job(job_id: str, message_func ) -> Optional[Job]:
+def get_job(job: Job, message_func ) -> Optional[Job]:
     def _apply_func(response) -> Job:
         return Job(response)
-    return call_api(GET_JOB_URL.format(job_id), apply_func=_apply_func, message_func=message_func)
+    return call_api(GET_JOB_URL.format(job.id), apply_func=_apply_func, message_func=message_func)

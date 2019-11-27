@@ -46,7 +46,7 @@ def submit_request(ctx, request) -> Dict:
     workdir = workdir_root + '/' + id
     pm_request_file = f'{workdir}/{mangled_name}.json'
 
-    pm_request = _pm_request_of(request, workdir)
+    pm_request = _pm_request_of(request, workdir, id)
     if not os.path.exists(workdir):
         os.makedirs(workdir)
     with open(pm_request_file, "w") as f:
@@ -90,10 +90,11 @@ def _translate_status(pm_status: str) -> str:
         return 'new'
 
 
-def _pm_request_of(request, workdir: str) -> Dict:
+def _pm_request_of(request, workdir: str, id: str) -> Dict:
     template_text = pkg_resources.resource_string(__name__, "resources/pm_request_template.json")
     pm_request = json.loads(template_text)
     pm_request['requestName'] = f"{workdir}/{request['name']}"
+    pm_request['requestId'] = id
     pm_request['productionType'] = _determine_workflow(request)
     pm_request['data_root'] = workdir
     pm_request['simulation'] = pm_request['simulation'] == 'True'
@@ -147,3 +148,25 @@ def set_earth_data_authentication(ctx, parameters):
 
 def set_mundi_authentication(ctx, parameters):
     ctx.set_mundi_authentication(parameters['access_key_id'], parameters['secret_access_key'])
+
+
+def get_job(ctx, id: str) -> Dict:
+    job = ctx.get_job(id)
+    job_dict = {'id': id, 'name': job.request['name'], 'status': _translate_status(job.status)}
+    tasks = _pm_workflow_of(job.pm)
+    job_dict['tasks'] = []
+    job_progress = 0
+    for task in tasks:
+        status = task['status']
+        progress = 0
+        if status is 'succeeded':
+            progress = 100
+        job_progress += progress
+        task_dict = {
+            'name': task['step'],
+            'status': status,
+            'progress': progress
+        }
+        job_dict['tasks'].append(task_dict)
+    job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100
+    return job_dict

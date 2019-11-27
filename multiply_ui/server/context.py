@@ -5,7 +5,7 @@ import os
 import sys
 import yaml
 from pathlib import Path
-from typing import Optional, List
+from typing import List
 
 import multiply_data_access.data_access_component
 from multiply_core.models import get_forward_models
@@ -87,17 +87,6 @@ class ServiceContext:
                 return
         raise ValueError('data store Mundi not found in configuration')
 
-    def new_job(self, duration: int) -> Job:
-        job = Job(duration)
-        self._jobs[job.id] = job
-        return job
-
-    def get_job(self, job_id: int) -> Optional[Job]:
-        return self._jobs.get(job_id)
-
-    def get_jobs(self) -> List[Job]:
-        return [job.to_dict() for job in self._jobs.values()]
-
     @staticmethod
     def get_available_forward_models() -> List[dict]:
         dict_list = []
@@ -162,7 +151,6 @@ class ServiceContext:
         os.environ['PATH'] += f':{workflows_path}'
         logging.info(f"path after workflows adding: {os.environ['PATH']}")
 
-
     def add_scripts_path(self, scripts_path: str):
         sys.path.insert(0, scripts_path)
         scripts = glob.glob(f'{scripts_path}/*.py')
@@ -176,3 +164,8 @@ class ServiceContext:
             write_file.close()
         os.environ['PATH'] += f':{scripts_path}'
         logging.info(f"path after scripts adding: {os.environ['PATH']}")
+
+    def get_job(self, id: str):
+        for job in self.pm_server.queue:
+            if job.request['id'] == id:
+                return job

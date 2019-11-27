@@ -1,5 +1,6 @@
 {
     "requestName" : "NAME",
+    "requestId" : "ID",
     "productionType" : "WORKFLOW",
     "simulation" : "False",
     "data_root" : "WORKDIR",
