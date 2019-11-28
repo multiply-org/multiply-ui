@@ -11,7 +11,6 @@ def new_application():
         (r"/multiply/api/auth/mundi", PostMundiAuthHandler),
         (r"/multiply/api/jobs/execute", ExecuteJobsHandler),
         (url_pattern(r"/multiply/api/jobs/get/{{job_id}}"), GetJobHandler),
-        # (r"/multiply/api/jobs/get", GetJobHandler),
         (r"/multiply/api/processing/inputs", GetInputsHandler),
         (r"/multiply/api/processing/parameters", GetParametersHandler),
         (r"/jobs/execute", ExecuteHandler),
