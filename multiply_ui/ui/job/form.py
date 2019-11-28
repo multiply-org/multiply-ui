@@ -62,14 +62,15 @@ def obs_job_form(job: Job, mock=False):
 
     def monitor(progress_bar, status_bar):
         while job.status not in ['succeeded', 'cancelled', 'failed']:
-            progress_bar.value = job.progress
-            status_bar.value = job.status
-            grid_box = _get_tasks_gridbox(job)
-            job_monitor.children = ([job_grid_box, grid_box, info.as_widget(70)])
             time.sleep(1.0)
             job_state = get_job_func(job, info.message_func)
             if job_state is not None:
                 _update_job(job, job_state)
+            progress_bar.value = job.progress
+            status_bar.value = job.status
+            grid_box = _get_tasks_gridbox(job)
+            job_monitor.children = ([job_grid_box, grid_box, info.as_widget(70)])
+
 
     monitor_components = (job_progress_bar, job_status_label)
     _monitor(monitor, job_monitor, monitor_components)
@@ -123,16 +124,16 @@ def obs_jobs_form(mock=False):
         while at_least_one_job_unfinished:
             at_least_one_job_unfinished = False
             for progress_bar, status_label, cancel_button, job_func, component_job in components.values():
+                job_state = job_func(component_job, info.message_func)
+                if job_state is not None:
+                    _update_job(component_job, job_state)
                 progress_bar.value = component_job.progress
                 status_label.value = component_job.status
                 if component_job.status != 'new' and component_job.status != 'running':
                     cancel_button.disabled = True
-                job_state = job_func(component_job, info.message_func)
-                if job_state is not None:
-                    _update_job(component_job, job_state)
                 if component_job.status not in ['succeeded', 'cancelled', 'failed']:
                     at_least_one_job_unfinished = True
-            time.sleep(0.5)
+            time.sleep(1.0)
 
     _monitor(jobs_monitor_func, jobs_full_component, (job_components, None))
 
