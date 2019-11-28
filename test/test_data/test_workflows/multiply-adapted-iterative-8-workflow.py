@@ -24,6 +24,7 @@ class MultiplyAdaptedIterative8(PMonitor):
         self._one_day_step = datetime.timedelta(days=1)
         self._step = datetime.timedelta(days=int(str(parameters['Inference']['time_interval'])))
         self._tasks_progress = {}
+        self._processor_logs = {}
 
     def create_workflow(self):
         out_1 = self._data_root + '/' + 'out_1'
@@ -83,6 +84,8 @@ class MultiplyAdaptedIterative8(PMonitor):
             trace = open('{0}/{1}-{2:04d}.out'.format(self._logdir, log_prefix, task_id), 'w')
         else:
             trace = open('{0}/{1}-{2:04d}.out'.format(wd, log_prefix, task_id), 'w')
+        if command not in self._processor_logs:
+            self._processor_logs[command] = []
         line = None
         for l in process.stdout:
             line = l.decode()
@@ -90,6 +93,8 @@ class MultiplyAdaptedIterative8(PMonitor):
                 output_paths.append(line[7:].strip())
             elif line.startswith('progress='):
                 self._tasks_progress[command] = line[9:].strip()
+            else:
+                self._processor_logs[command].append(line)
             trace.write(line)
             trace.flush()
         trace.close()
@@ -102,6 +107,11 @@ class MultiplyAdaptedIterative8(PMonitor):
         if command in self._tasks_progress:
             return int(self._tasks_progress[command])
         return 0
+
+    def get_logs(self, command):
+        if command in self._processor_logs:
+            return self._processor_logs[command]
+        return []
 
     def run(self):
         self.wait_for_completion()

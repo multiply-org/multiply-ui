@@ -121,13 +121,13 @@ def _pm_workflow_of(pm) -> List:
                                        ' '.join(PMonitor.Args.get_parameters(r.args)),
                                        ' '.join(PMonitor.Args.get_inputs(r.args)),
                                        ' '.join(PMonitor.Args.get_outputs(r.args)))
-        accu.append({"step": l, "status": "initial", "progress": 0})
+        accu.append({"step": l, "status": "initial", "progress": 0, "logs": []})
     for l in running:
-        accu.append({"step": l, "status": "running", "progress": pm.get_progress(l)})
+        accu.append({"step": l, "status": "running", "progress": pm.get_progress(l), "logs": pm.get_logs(l)})
     for l in commands:
-        accu.append({"step": l, "status": "succeeded", "progress": 100})
+        accu.append({"step": l, "status": "succeeded", "progress": 100, "logs": pm.get_logs(l)})
     for l in failed:
-        accu.append({"step": l, "status": "failed", "progress": pm.get_progress(l)})
+        accu.append({"step": l, "status": "failed", "progress": pm.get_progress(l), "logs": pm.get_logs(l)})
     return accu
 
 
@@ -152,14 +152,13 @@ def _get_job_dict(job, request_id: str, request_name: str):
     job_progress = 0
     for task in tasks:
         status = task['status']
-        progress = 0
-        if status is 'succeeded':
-            progress = 100
+        progress = task['progress']
         job_progress += progress
         task_dict = {
             'name': _translate_step(task['step']),
             'status': status,
-            'progress': progress
+            'progress': progress,
+            'logs': task['logs']
         }
         job_dict['tasks'].append(task_dict)
     job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100

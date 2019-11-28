@@ -25,6 +25,7 @@ class OnlyGetData(PMonitor):
         self._tasks_progress = {}
         self._lower_script_progress = {}
         self._upper_script_progress = {}
+        self._processor_logs = {}
 
     def create_workflow(self):
         modis = self._data_root + '/' + 'modis'
@@ -76,7 +77,6 @@ class OnlyGetData(PMonitor):
         # if code == 0 and not async_ and not self._cache is None and 'cache' in wd:
         #     subprocess.call(['rm', '-rf', wd])
         return code
-
     
     def _trace_processor_output(self, output_paths, process, task_id, command, wd, log_prefix, async_):
         """
@@ -88,6 +88,8 @@ class OnlyGetData(PMonitor):
         else:
             trace = open('{0}/{1}-{2:04d}.out'.format(wd, log_prefix, task_id), 'w')
         line = None
+        if command not in self._processor_logs:
+            self._processor_logs[command] = []
         for l in process.stdout:
             line = l.decode()
             if line.startswith('output='):
@@ -97,6 +99,8 @@ class OnlyGetData(PMonitor):
                 self._lower_script_progress[command] = int(script_progress[0])
                 self._upper_script_progress[command] = int(script_progress[1])
                 self._tasks_progress[command] = int(script_progress[0])
+            else:
+                self._processor_logs[command].append(line)
             trace.write(line)
             trace.flush()
         trace.close()
@@ -109,6 +113,11 @@ class OnlyGetData(PMonitor):
         if command in self._tasks_progress:
             return self._tasks_progress[command]
         return 0
+    
+    def get_logs(self, command):
+        if command in self._processor_logs:
+            return self._processor_logs[command]
+        return []
 
     def run(self):
         self.wait_for_completion()

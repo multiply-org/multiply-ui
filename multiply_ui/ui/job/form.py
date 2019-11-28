@@ -43,25 +43,25 @@ def obs_job_form(job: Job, mock=False):
 
     info_displayed = []
 
-    def _toggle_info_display(task_details, details_button, task_id):
+    def _toggle_info_display(task_details, details_button, task_id, task_logs):
         task_details.clear_output()
         if details_button.icon == "chevron-circle-down":
             task_details.layout = {'border': '1px solid black'}
             info_displayed.append(task_id)
-            # with task_details:
-                # for line in info_displayed:
-                #     print(line)
+            with task_details:
+                for log in task_logs:
+                    print(log)
             details_button.icon = "chevron-circle-up"
         else:
             info_displayed.remove(task_id)
             details_button.icon = "chevron-circle-down"
 
-    def _get_details_button(_func, task_details, task_id):
+    def _get_details_button(_func, task_details, task_id, task_logs):
         details_button = widgets.Button(icon="chevron-circle-down", tooltip="Show processing details",
                                         layout=widgets.Layout(width='80%'))
 
         def _apply_func(b):
-            _func(task_details, details_button, task_id)
+            _func(task_details, details_button, task_id, task_logs)
 
         details_button.on_click(_apply_func)
         if task_id not in info_displayed:
@@ -70,8 +70,8 @@ def obs_job_form(job: Job, mock=False):
         else:
             details_button.icon = "chevron-circle-up"
             task_details.layout = {'border': '1px solid black'}
-            # task_details.append_stdout('hfrghjunz\n')
-            # task_details.append_stdout('jgthnimu')
+            for line in task_logs:
+                task_details.append_stdout(f'{line}\n')
 
         return details_button
 
@@ -85,7 +85,8 @@ def obs_job_form(job: Job, mock=False):
             status_label = widgets.Label(status)
             task_name_label = widgets.Label(task_name)
             task_details = widgets.Output()
-            details_button = _get_details_button(_toggle_info_display, task_details, task_name)
+            logs = grid_job.tasks.get(task_name).logs
+            details_button = _get_details_button(_toggle_info_display, task_details, task_name, logs)
             task_details_list.append(task_details)
             row_children = [task_name_label, progress, status_label, details_button]
             row_box = widgets.GridBox(children=row_children,
@@ -101,7 +102,7 @@ def obs_job_form(job: Job, mock=False):
 
     def monitor(progress_bar, status_bar):
         while job.status not in ['succeeded', 'cancelled', 'failed']:
-            time.sleep(1.0)
+            time.sleep(2.0)
             job_state = get_job_func(job, info.message_func)
             if job_state is not None:
                 _update_job(job, job_state)
@@ -172,7 +173,7 @@ def obs_jobs_form(mock=False):
                     cancel_button.disabled = True
                 if component_job.status not in ['succeeded', 'cancelled', 'failed']:
                     at_least_one_job_unfinished = True
-            time.sleep(1.0)
+            time.sleep(2.0)
 
     _monitor(jobs_monitor_func, jobs_full_component, (job_components, None))
 
@@ -188,7 +189,7 @@ def _get_job_func(job: Job, mock=False):
         debug_view.value = ''
         message_func('Retrieving job status ...')
         import time
-        time.sleep(1)
+        time.sleep(3)
         if job.status != "new" and job.status != "running":
             return None
         job_status = "running"

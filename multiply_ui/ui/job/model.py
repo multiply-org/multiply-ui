@@ -1,7 +1,5 @@
 from typing import Dict, Any, List
 
-import time
-
 from ...util.html import html_table, html_element
 from ...util.schema import PropertyDef, TypeDef
 
@@ -9,6 +7,7 @@ TASK_TYPE = TypeDef(object, properties=[
     PropertyDef('name', TypeDef(str)),
     PropertyDef('progress', TypeDef(int)),
     PropertyDef('status', TypeDef(str)),
+    PropertyDef('logs', TypeDef(list, item_type=TypeDef(str))),
 ])
 
 JOB_TYPE = TypeDef(object, properties=[
@@ -37,6 +36,10 @@ class Task:
     @property
     def status(self) -> str:
         return self._data['status']
+
+    @property
+    def logs(self) -> List[str]:
+        return self._data['logs']
 
     def _repr_html_(self):
         return self.html_table([self])
