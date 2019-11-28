@@ -54,27 +54,7 @@ def submit_request(ctx, request) -> Dict:
     pm_request["requestFile"] = pm_request_file
 
     job = ctx.pm_server.submit_request(pm_request)
-    job_dict = {}
-    job_dict['id'] = id
-    job_dict['name'] = request['name']
-    job_dict['status'] = _translate_status(job.status)
-    tasks = _pm_workflow_of(job.pm)
-    job_dict['tasks'] = []
-    job_progress = 0
-    for task in tasks:
-        status = task['status']
-        progress = 0
-        if status is 'succeeded':
-            progress = 100
-        job_progress += progress
-        task_dict = {
-            'name': _translate_step(task['step']),
-            'status': status,
-            'progress': progress
-        }
-        job_dict['tasks'].append(task_dict)
-    job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100
-    return job_dict
+    return _get_job_dict(job, id, request['name'])
 
 
 def _translate_step(step: str) -> str:
@@ -162,7 +142,11 @@ def set_mundi_authentication(ctx, parameters):
 def get_job(ctx, id: str) -> Dict:
     job = ctx.get_job(id)
     request_name = job.request['requestName'].split('/')[-1]
-    job_dict = {'id': id, 'name': request_name, 'status': _translate_status(job.status)}
+    return _get_job_dict(job, id, request_name)
+
+
+def _get_job_dict(job, request_id: str, request_name: str):
+    job_dict = {'id': request_id, 'name': request_name, 'status': _translate_status(job.status)}
     tasks = _pm_workflow_of(job.pm)
     job_dict['tasks'] = []
     job_progress = 0
@@ -173,7 +157,7 @@ def get_job(ctx, id: str) -> Dict:
             progress = 100
         job_progress += progress
         task_dict = {
-            'name': task['step'],
+            'name': _translate_step(task['step']),
             'status': status,
             'progress': progress
         }
