@@ -561,7 +561,7 @@ def _wrap_variable_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], hand
 
 def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], select_all_buttons: dict,
                                              handle_selection, forward_model_variables: dict) -> widgets.Widget:
-    num_cols = 4
+    num_cols = 3
     # noinspection PyUnusedLocal
     v_box_item_lists = [[] for i in range(num_cols)]
     index = 0
@@ -584,7 +584,7 @@ def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox],
     for v_box_item_list in v_box_item_lists:
         v_box_layout = widgets.Layout(
             overflow='hidden',
-            width='25%',
+            width='33%',
             display='flex'
         )
         v_box = widgets.VBox(v_box_item_list, layout=v_box_layout)
