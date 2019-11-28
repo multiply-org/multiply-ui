@@ -76,7 +76,6 @@ class ServiceContext:
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']
         os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
-        logging.info(f"path after ServiceContext init: {os.environ['PATH']}")
 
 
     # TODO: require an interface of data access to select data stores to be used
@@ -142,14 +141,12 @@ class ServiceContext:
 
     @property
     def working_dir(self) -> str:
-        logging.info(f'working dir root in context {self._working_dir}')
         return self._working_dir
 
     @staticmethod
     def add_workflows_path(workflows_path: str):
         sys.path.insert(0, workflows_path)
         os.environ['PATH'] += f':{workflows_path}'
-        logging.info(f"path after workflows adding: {os.environ['PATH']}")
 
     def add_scripts_path(self, scripts_path: str):
         sys.path.insert(0, scripts_path)
@@ -163,7 +160,6 @@ class ServiceContext:
             write_file.write(content)
             write_file.close()
         os.environ['PATH'] += f':{scripts_path}'
-        logging.info(f"path after scripts adding: {os.environ['PATH']}")
 
     def get_job(self, id: str):
         for job in self.pm_server.queue:
