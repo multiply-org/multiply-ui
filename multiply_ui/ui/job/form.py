@@ -1,4 +1,5 @@
 import ipywidgets as widgets
+import logging
 import threading
 import time
 
@@ -35,25 +36,63 @@ def obs_job_form(job: Job, mock=False):
     task_header_progress_label = widgets.HTML(value = f"<b>Progress</b>")
     task_header_status_label = widgets.HTML(value = f"<b>Status</b>")
 
-    task_gridbox_children = [task_header_name_label, task_header_progress_label, task_header_status_label]
+    task_gridbox_children = widgets.GridBox(
+        children=[task_header_name_label, task_header_progress_label, task_header_status_label],
+        layout=widgets.Layout(grid_template_columns='43% 43% 14%')
+    )
+
+    info_displayed = []
+
+    def _toggle_info_display(task_details, details_button, task_id):
+        task_details.clear_output()
+        if details_button.icon == "chevron-circle-down":
+            task_details.layout = {'border': '1px solid black'}
+            info_displayed.append(task_id)
+            # with task_details:
+                # for line in info_displayed:
+                #     print(line)
+            details_button.icon = "chevron-circle-up"
+        else:
+            info_displayed.remove(task_id)
+            details_button.icon = "chevron-circle-down"
+
+    def _get_details_button(_func, task_details, task_id):
+        details_button = widgets.Button(icon="chevron-circle-down", tooltip="Show processing details",
+                                        layout=widgets.Layout(width='80%'))
+
+        def _apply_func(b):
+            _func(task_details, details_button, task_id)
+
+        details_button.on_click(_apply_func)
+        if task_id not in info_displayed:
+            details_button.icon = "chevron-circle-down"
+            task_details.layout = {}
+        else:
+            details_button.icon = "chevron-circle-up"
+            task_details.layout = {'border': '1px solid black'}
+            # task_details.append_stdout('hfrghjunz\n')
+            # task_details.append_stdout('jgthnimu')
+
+        return details_button
 
     def _get_tasks_gridbox(grid_job):
-        gridbox_children = task_gridbox_children.copy()
+        gridbox_children = [task_gridbox_children]
+        task_details_list = []
         for task_name in grid_job.tasks.names:
             progress = grid_job.tasks.get(task_name).progress
             status = grid_job.tasks.get(task_name).status
             progress = widgets.IntProgress(value=progress, min=0, max=100)
             status_label = widgets.Label(status)
             task_name_label = widgets.Label(task_name)
-            gridbox_children.append(task_name_label)
-            gridbox_children.append(progress)
-            gridbox_children.append(status_label)
-        grid_box = widgets.GridBox(children=gridbox_children,
-                                        layout=widgets.Layout(
-                                            width='80%',
-                                            grid_template_columns='40% 40% 20%'
-                                        )
-                                    )
+            task_details = widgets.Output()
+            details_button = _get_details_button(_toggle_info_display, task_details, task_name)
+            task_details_list.append(task_details)
+            row_children = [task_name_label, progress, status_label, details_button]
+            row_box = widgets.GridBox(children=row_children,
+                                      layout=widgets.Layout(grid_template_columns='43% 43% 9% 5%'))
+            gridbox_children.append(row_box)
+            gridbox_children.append(task_details)
+        grid_box = widgets.GridBox(children=gridbox_children, layout=widgets.Layout(width='80%'))
         return grid_box
 
     tasks_gridbox = _get_tasks_gridbox(job)
