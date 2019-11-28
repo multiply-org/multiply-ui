@@ -23,6 +23,8 @@ class OnlyGetData(PMonitor):
         self._one_day_step = datetime.timedelta(days=1)
         self._step = datetime.timedelta(days=int(str(parameters['Inference']['time_interval'])))
         self._tasks_progress = {}
+        self._lower_script_progress = {}
+        self._upper_script_progress = {}
 
     def create_workflow(self):
         modis = self._data_root + '/' + 'modis'
@@ -90,8 +92,11 @@ class OnlyGetData(PMonitor):
             line = l.decode()
             if line.startswith('output='):
                 output_paths.append(line[7:].strip())
-            elif line.startswith('progress='):
-                self._tasks_progress[command] = line[9:].strip()
+            elif line.startswith('INFO:ScriptProcess'):
+                script_progress = line.split(':')[-1].split('-')
+                self._lower_script_progress[command] = int(script_progress[0])
+                self._upper_script_progress[command] = int(script_progress[1])
+                self._tasks_progress[command] = int(script_progress[0])
             trace.write(line)
             trace.flush()
         trace.close()
@@ -102,7 +107,7 @@ class OnlyGetData(PMonitor):
     
     def get_progress(self, command):
         if command in self._tasks_progress:
-            return int(self._tasks_progress[command])
+            return self._tasks_progress[command]
         return 0
 
     def run(self):
