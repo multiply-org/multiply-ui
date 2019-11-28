@@ -3,9 +3,13 @@
 
 from multiply_prior_engine import PriorEngine
 import datetime
+import logging
 import os
 import sys
 import yaml
+
+logger = logging.getLogger('ScriptProcess')
+logger.setLevel(logging.INFO)
 
 # setup parameters
 configuration_file = sys.argv[1]
@@ -27,11 +31,15 @@ end_time = datetime.datetime.strptime(end, '%Y-%m-%d')
 
 # execute the Prior engine for the requested times
 time = start_time
+num_days = (end_time-start_time).days
+i = 0
 while time<=end_time:
+    logger.info(f'{int((i/num_days) * 100)}-{int((i+1/num_days) * 100)}')
     print(time)
     PE = PriorEngine(config=configuration_file, datestr=time.strftime('%Y-%m-%d'), variables=variables)
     priors = PE.get_priors()
     time = time + datetime.timedelta(days=1)
+    i += 1
 
 # create output_dir (if not already exist)
 if not os.path.exists(output_root_dir):
@@ -51,4 +59,4 @@ if 'General' in parameters['Prior']:
 #    else:
 #        soil_moisture_dir = parameters['Prior']['General']['directory_data']
 #    os.system("mv " + soil_moisture_dir + "/*.vrt " + output_root_dir + "/")
-
+logger.info('100-100')

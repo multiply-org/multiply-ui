@@ -1,12 +1,13 @@
 #!{PYTHON}
-# prepro_hres2.py request_test_all.yaml /data/m3/inputs /data/auxiliary/brdf_des /data/m3/sdrs
-# /Data/m3/inputs/highres/S2/30/S/WJ/2017/11/10/0
 
+import glob
+import logging
 import os
 import sys
 import yaml
-import glob
-import pdb
+
+logger = logging.getLogger('ScriptProcess')
+logger.setLevel(logging.INFO)
 
 # setup parameters
 with open(sys.argv[1]) as f:
@@ -35,10 +36,11 @@ if not os.path.exists(output_root_dir):
 
 # derive proper names for input_dir and products
 dirs = glob.glob(input_root + "/*/*/*/*/*/*/*")
-for dir in dirs:
-   input_dir = dir[len(input_root)+1:]
-   input_parts = input_dir.split('/')
-   product_name = "S2-" + input_parts[-7] + input_parts[-6] + input_parts[-5]  + input_parts[-4] + "-" +  input_parts[-3] + "-" +  input_parts[-2]
+for i, dir in enumerate(dirs):
+    logger.info(f'{int((i/len(dirs)) * 100)}-{int((i+1/len(dirs)) * 100)}')
+    input_dir = dir[len(input_root)+1:]
+    input_parts = input_dir.split('/')
+    product_name = "S2-" + input_parts[-7] + input_parts[-6] + input_parts[-5]  + input_parts[-4] + "-" +  input_parts[-3] + "-" +  input_parts[-2]
 
 # create directories
 #if not os.path.exists(input_dir):
@@ -60,17 +62,18 @@ for dir in dirs:
 #s2_wv_dir = "/data/archive/emulators/s2_wv"
 #s2_atcor_dir = "/data/archive/emulators/s2_atcor"
 #cams_dir = "/data/auxiliary/cams"
-   os.system("PYTHONPATH=$PYTHONPATH:"+processor_dir+"/util python "+processor_dir+"/SIAC_S2.py -f "+input_root+'/'+input_dir+"/ -m "+ brdf_des_dir + " -e "+emu_dir+" -c "+cams_dir + " -d "+vrt_dem_file+" -o False -a \'"+aoi+"\'")
+    os.system("PYTHONPATH=$PYTHONPATH:"+processor_dir+"/util python "+processor_dir+"/SIAC_S2.py -f "+input_root+'/'+input_dir+"/ -m "+ brdf_des_dir + " -e "+emu_dir+" -c "+cams_dir + " -d "+vrt_dem_file+" -o False -a \'"+aoi+"\'")
 
-   if not os.path.exists(output_root_dir+'/'+product_name+'/'):
-       os.makedirs(output_root_dir+'/'+product_name+'/')
+    if not os.path.exists(output_root_dir+'/'+product_name+'/'):
+        os.makedirs(output_root_dir+'/'+product_name+'/')
 
    #os.system('mkdir '+output_root_dir+'/'+product_name+'/')
-   os.system("mv $(find "+input_root+'/'+input_dir+'/ -type f) '+output_root_dir+'/'+product_name+'/')
-   os.system("cp `readlink "+input_root+'/'+input_dir+"/metadata.xml` "+output_root_dir+"/"+product_name+'/metadata.xml')
+    os.system("mv $(find "+input_root+'/'+input_dir+'/ -type f) '+output_root_dir+'/'+product_name+'/')
+    os.system("cp `readlink "+input_root+'/'+input_dir+"/metadata.xml` "+output_root_dir+"/"+product_name+'/metadata.xml')
    #os.system("rm $(find "+input_root+'/'+input_dir+" -type l)")
    #call = "mv "+input_root+'/'+input_dir+"/ "+output_root_dir+"/" + product_name
     #print(call)
    #os.system(call)
    #os.system("rm -r "+input_parts[0])
    #os.system("rm $(find . -type l)")
+logger.info('100-100')
