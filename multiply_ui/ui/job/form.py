@@ -26,7 +26,7 @@ def obs_job_form(job: Job, mock=False):
                                              job_header_progress_label, job_header_status_label,
                                              job_id_label, job_name_label, job_progress_bar, job_status_label],
                                    layout=widgets.Layout(
-                                       width='70%',
+                                       width='80%',
                                        grid_template_rows='auto auto',
                                        grid_template_columns='20% 20% 40% 20%'
                                    )
@@ -34,49 +34,44 @@ def obs_job_form(job: Job, mock=False):
     task_header_name_label = widgets.HTML(value = f"<b>Task Name</b>")
     task_header_progress_label = widgets.HTML(value = f"<b>Progress</b>")
     task_header_status_label = widgets.HTML(value = f"<b>Status</b>")
+
     task_gridbox_children = [task_header_name_label, task_header_progress_label, task_header_status_label]
-    task_gridbox_template_rows = 'auto'
-    task_progress_bars = []
-    task_status_labels = []
-    # todo adapt to that there might be new tasks added later
-    for task_name in job.tasks.names:
-        progress = job.tasks.get(task_name).progress
-        status = job.tasks.get(task_name).status
-        progress = widgets.IntProgress(value=progress, min=0, max=100)
-        status_label = widgets.Label(status)
-        task_name_label = widgets.Label(task_name)
-        task_gridbox_children.append(task_name_label)
-        task_gridbox_children.append(progress)
-        task_gridbox_children.append(status_label)
-        task_progress_bars.append(progress)
-        task_status_labels.append(status_label)
-        task_gridbox_template_rows = task_gridbox_template_rows + ' auto'
 
-    task_grid_box = widgets.GridBox(children=task_gridbox_children,
-                                    layout=widgets.Layout(
-                                        width='70%',
-                                        grid_template_rows=task_gridbox_template_rows,
-                                        grid_template_columns='30% 50% 20%'
+    def _get_tasks_gridbox(grid_job):
+        gridbox_children = task_gridbox_children.copy()
+        for task_name in grid_job.tasks.names:
+            progress = grid_job.tasks.get(task_name).progress
+            status = grid_job.tasks.get(task_name).status
+            progress = widgets.IntProgress(value=progress, min=0, max=100)
+            status_label = widgets.Label(status)
+            task_name_label = widgets.Label(task_name)
+            gridbox_children.append(task_name_label)
+            gridbox_children.append(progress)
+            gridbox_children.append(status_label)
+        grid_box = widgets.GridBox(children=gridbox_children,
+                                        layout=widgets.Layout(
+                                            width='80%',
+                                            grid_template_columns='40% 40% 20%'
+                                        )
                                     )
-                                    )
+        return grid_box
+
+    tasks_gridbox = _get_tasks_gridbox(job)
     info = InfoComponent()
-    job_monitor = widgets.VBox([job_grid_box, task_grid_box, info.as_widget(70)])
+    job_monitor = widgets.VBox([job_grid_box, tasks_gridbox, info.as_widget(70)])
 
-    def monitor(progress_bar, status_bar, progress_bars, status_labels):
+    def monitor(progress_bar, status_bar):
         while job.status not in ['succeeded', 'cancelled', 'failed']:
             progress_bar.value = job.progress
             status_bar.value = job.status
-            job_task_names = job.tasks.names
-            for index, job_task_name in enumerate(job_task_names):
-                task = job.tasks.get(job_task_name)
-                progress_bars[index].value = task.progress
-                status_labels[index].value = task.status
-            time.sleep(0.5)
+            grid_box = _get_tasks_gridbox(job)
+            job_monitor.children = ([job_grid_box, grid_box, info.as_widget(70)])
+            time.sleep(1.0)
             job_state = get_job_func(job, info.message_func)
             if job_state is not None:
                 _update_job(job, job_state)
 
-    monitor_components = (job_progress_bar, job_status_label, task_progress_bars, task_status_labels)
+    monitor_components = (job_progress_bar, job_status_label)
     _monitor(monitor, job_monitor, monitor_components)
 
 
