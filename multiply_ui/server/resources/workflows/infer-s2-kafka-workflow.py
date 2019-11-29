@@ -1,16 +1,17 @@
 import datetime
 from pmonitor import PMonitor
 
+
 class InferS2Kafka(PMonitor):
 
     def __init__(self, parameters):
         PMonitor.__init__(self,
                           ['none', parameters['data_root']],
                           request=parameters['requestName'],
-                          hosts=[('localhost',10)],
-                          types=[('data_access_get_static.py',1), ('data_access_get_dynamic.py', 2),
-                                 ('data_access_put_s2_l2.py',1), ('retr_prior.py',2), ('prepro_hres4.py',2),
-                                 ('infer_s2_kafka.py',2)],
+                          hosts=[('localhost', 10)],
+                          types=[('data_access_get_static.py', 1), ('data_access_get_dynamic.py', 2),
+                                 ('data_access_put_s2_l2.py', 1), ('retrieve_priors.py', 2), ('preprocess_s2.py', 2),
+                                 ('infer_s2_kafka.py', 2)],
                           logdir='log',
                           simulation='simulation' in parameters and parameters['simulation'])
         self._data_root = parameters['data_root']
@@ -19,19 +20,21 @@ class InferS2Kafka(PMonitor):
         self._stop = datetime.datetime.strptime(str(parameters['General']['end_time']), '%Y-%m-%d')
         self._one_day_step = datetime.timedelta(days=1)
         self._step = datetime.timedelta(days=int(str(parameters['Inference']['time_interval'])))
+        self._tasks_progress = {}
+        self._lower_script_progress = {}
+        self._upper_script_progress = {}
+        self._processor_logs = {}
 
     def create_workflow(self):
-        # input_data                 = self._data_root + '/' + 'inputs'
-        priors                     = self._data_root + '/' + 'priors'
-        hres_state_dir             = self._data_root + '/' + 'hresstate'
-        modis                      = self._data_root + '/' + 'modis'
-        cams                       = self._data_root + '/' + 'cams'
-        s2                         = self._data_root + '/' + 's2'
-        sdrs                       = self._data_root + '/' + 'sdrs'
-        hres_biophys_output        = self._data_root + '/' + 'hresbiophys'
-        #wv_emu                     = self._data_root + '/' + 'wv_emu'
-        emus                       = self._data_root + '/' + 'emus'
-        dem                        = self._data_root + '/' + 'dem'
+        priors = self._data_root + '/' + 'priors'
+        hres_state_dir = self._data_root + '/' + 'hresstate'
+        modis = self._data_root + '/' + 'modis'
+        cams = self._data_root + '/' + 'cams'
+        s2 = self._data_root + '/' + 's2'
+        sdrs = self._data_root + '/' + 'sdrs'
+        hres_biophys_output = self._data_root + '/' + 'hresbiophys'
+        emus = self._data_root + '/' + 'emus'
+        dem = self._data_root + '/' + 'dem'
 
         start = datetime.datetime.strftime(self._start, '%Y-%m-%d')
         stop = datetime.datetime.strftime(self._stop, '%Y-%m-%d')
@@ -39,7 +42,6 @@ class InferS2Kafka(PMonitor):
 
         cursor = self._start
         hres_state = 'none'
-        updated_state = 'none'
         while cursor <= self._stop:
             date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
             cursor += self._step
@@ -49,33 +51,88 @@ class InferS2Kafka(PMonitor):
             next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
             cursor += self._one_day_step
 
-            modis_for_date      = modis + '/' + date
-            cams_for_date       = cams + '/' + date
-            s2_for_date         = s2 + '/' + date
-            sdrs_for_date       = sdrs + '/' + date
-            self.execute('data_access_get_dynamic.py', [], [modis_for_date, cams_for_date, s2_for_date], parameters=[self._request_file, date, next_date])
-            self.execute('prepro_hres4.py', [s2_for_date, modis_for_date, emus, cams_for_date, dem], [sdrs_for_date], parameters=[self._request_file])
-            #self.execute('data_access_put_s2_l2.py', [sdrs_for_date], [], parameters=[])
+            modis_for_date = modis + '/' + date
+            cams_for_date = cams + '/' + date
+            s2_for_date = s2 + '/' + date
+            sdrs_for_date = sdrs + '/' + date
+            self.execute('data_access_get_dynamic.py', [], [modis_for_date, cams_for_date, s2_for_date],
+                         parameters=[self._request_file, date, next_date])
+            self.execute('preprocess_s2.py', [s2_for_date, modis_for_date, emus, cams_for_date, dem], [sdrs_for_date],
+                         parameters=[self._request_file])
+            # self.execute('data_access_put_s2_l2.py', [sdrs_for_date], [], parameters=[])
 
             priors_for_date = priors + '/' + date
-            self.execute('retr_prior.py', [], [priors_for_date], parameters=[self._request_file, date, next_date])
+            self.execute('retrieve_priors.py', [], [priors_for_date], parameters=[self._request_file, date, next_date])
             updated_state = hres_state_dir + '/' + date
-
-            print(priors_for_date)
-            print(sdrs_for_date)
-            print(hres_biophys_output)
-            print(updated_state)
-            print(self._request_file)
-            print(date)
-            print(next_date)
-            print(hres_state)
-            self.execute('infer_s2_kafka.py', [priors_for_date, sdrs_for_date], [hres_biophys_output, updated_state], parameters=[self._request_file, date, next_date, hres_state])
+            self.execute('infer_s2_kafka.py', [priors_for_date, sdrs_for_date], [hres_biophys_output, updated_state],
+                         parameters=[self._request_file, date, next_date, hres_state])
             hres_state = updated_state
+
+    def _observe_step(self, call, inputs, outputs, parameters, code):
+        if code > 0:
+            return
+        if self._script:
+            command = '{0} {1} {2} {3} {4}'.format(self._path_of_call(self._script), call, ' '.join(parameters),
+                                                   ' '.join(inputs), ' '.join(outputs))
+        else:
+            command = '{0} {1} {2} {3}'.format(self._path_of_call(call), ' '.join(parameters), ' '.join(inputs),
+                                               ' '.join(outputs))
+        print(f'observing {command}')
+        self._commands.add(command)
+
+    def _run_step(self, task_id, host, command, output_paths, log_prefix, async_):
+        """
+        Executes command on host, collects output paths if any, returns exit code
+        """
+        wd = self._prepare_working_dir(task_id)
+        process = PMonitor._start_processor(command, host, wd)
+        self._trace_processor_output(output_paths, process, task_id, command, wd, log_prefix, async_)
+        process.stdout.close()
+        code = process.wait()
+        # if code == 0 and not async_ and not self._cache is None and 'cache' in wd:
+        #     subprocess.call(['rm', '-rf', wd])
+        return code
+
+    def _trace_processor_output(self, output_paths, process, task_id, command, wd, log_prefix, async_):
+        """
+        traces processor output, recognises 'output=' lines, writes all lines to trace file in working dir.
+        for async calls reads external ID from stdout.
+        """
+        if self._cache is None or self._logdir != '.':
+            trace = open('{0}/{1}-{2:04d}.out'.format(self._logdir, log_prefix, task_id), 'w')
+        else:
+            trace = open('{0}/{1}-{2:04d}.out'.format(wd, log_prefix, task_id), 'w')
+        line = None
+        if command not in self._processor_logs:
+            self._processor_logs[command] = []
+        for l in process.stdout:
+            line = l.decode()
+            if line.startswith('output='):
+                output_paths.append(line[7:].strip())
+            elif line.startswith('INFO:ScriptProcess'):
+                script_progress = line.split(':')[-1].split('-')
+                self._lower_script_progress[command] = int(script_progress[0])
+                self._upper_script_progress[command] = int(script_progress[1])
+                self._tasks_progress[command] = int(script_progress[0])
+            else:
+                self._processor_logs[command].append(line)
+            trace.write(line)
+            trace.flush()
+        trace.close()
+        if async_ and line:
+            # assumption that last line contains external ID, with stderr mixed with stdout
+            output_paths[:] = []
+            output_paths.append(line.strip())
 
     def get_progress(self, command):
         if command in self._tasks_progress:
-            return int(self._tasks_progress[command])
+            return self._tasks_progress[command]
         return 0
+
+    def get_logs(self, command):
+        if command in self._processor_logs:
+            return self._processor_logs[command]
+        return []
 
     def run(self):
         self.wait_for_completion()
