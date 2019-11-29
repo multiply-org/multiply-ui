@@ -116,9 +116,10 @@ class InferS2Kafka(PMonitor):
                 self._tasks_progress[command] = int(script_progress[0])
             elif line.startswith('INFO:ComponentProgress'):
                 component_progress = line.split(':')[-1]
-                progress_diff = float(self._upper_script_progress[command] - self._lower_script_progress[command])
-                relative_progress = int((float(component_progress) * progress_diff) / 100.0)
-                self._tasks_progress[command] = self._lower_script_progress[command] + relative_progress
+                if command in self._upper_script_progress and command in self._lower_script_progress:
+                    progress_diff = float(self._upper_script_progress[command] - self._lower_script_progress[command])
+                    relative_progress = int((float(component_progress) * progress_diff) / 100.0)
+                    self._tasks_progress[command] = self._lower_script_progress[command] + relative_progress
             else:
                 self._processor_logs[command].append(line)
             trace.write(line)
