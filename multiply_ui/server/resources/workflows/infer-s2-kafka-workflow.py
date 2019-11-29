@@ -58,7 +58,7 @@ class InferS2Kafka(PMonitor):
             self.execute('data_access_get_dynamic.py', [], [modis_for_date, cams_for_date, s2_for_date],
                          parameters=[self._request_file, date, next_date])
             self.execute('preprocess_s2.py', [s2_for_date, modis_for_date, emus, cams_for_date, dem], [sdrs_for_date],
-                         parameters=[self._request_file])
+                         parameters=[self._request_file, date, next_date])
             # self.execute('data_access_put_s2_l2.py', [sdrs_for_date], [], parameters=[])
 
             priors_for_date = priors + '/' + date

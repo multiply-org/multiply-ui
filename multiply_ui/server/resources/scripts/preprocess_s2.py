@@ -15,12 +15,12 @@ with open(sys.argv[1]) as f:
 aoi = parameters['General']['roi']
 
 # pathnames
-s2_l1c_dir = sys.argv[2]
-brdf_des_dir = sys.argv[3]
-emu_dir = sys.argv[4]
-cams_dir = sys.argv[5]
-vrt_dem_dir = sys.argv[6]
-output_root_dir = sys.argv[7]
+s2_l1c_dir = sys.argv[4]
+brdf_des_dir = sys.argv[5]
+emu_dir = sys.argv[6]
+cams_dir = sys.argv[7]
+vrt_dem_dir = sys.argv[8]
+output_root_dir = sys.argv[9]
 
 vrt_dem_file = glob.glob(vrt_dem_dir+'/'+'*.vrt')[0]
 processor_dir = '/software/atmospheric_correction/SIAC'

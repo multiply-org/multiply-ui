@@ -63,6 +63,12 @@ def _translate_step(step: str) -> str:
         return f'Retrieving data required for all time steps'
     if step_parts[0] == "data_access_get_dynamic.py":
         return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "retrieve_priors.py":
+        return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "preprocess_s2.py":
+        return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "infer_s2_kafka.py":
+        return f'Inferring variables for time step from {step_parts[2]} to {step_parts[3]}'
     return step
 
 
