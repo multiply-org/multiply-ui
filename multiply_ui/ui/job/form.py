@@ -53,6 +53,7 @@ def obs_job_form(job: Job, mock=False):
                     print(log)
             details_button.icon = "chevron-circle-up"
         else:
+            task_details.layout = {}
             info_displayed.remove(task_id)
             details_button.icon = "chevron-circle-down"
 
