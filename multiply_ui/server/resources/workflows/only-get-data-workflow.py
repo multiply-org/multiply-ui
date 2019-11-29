@@ -13,8 +13,7 @@ class OnlyGetData(PMonitor):
                           ['none', parameters['data_root']],
                           request=parameters['requestName'],
                           hosts=[('localhost',10)],
-                          # types=[('data_access_get_static.py',1), ('data_access_get_dynamic.py', 2)],
-                          types=[('data_access_get_static.py',1)],
+                          types=[('data_access_get_static.py',1), ('data_access_get_dynamic.py', 2)],
                           logdir=parameters['log_dir'],
                           simulation='simulation' in parameters and parameters['simulation'])
         self._data_root = parameters['data_root']
@@ -38,21 +37,21 @@ class OnlyGetData(PMonitor):
         start = datetime.datetime.strftime(self._start, '%Y-%m-%d')
         stop = datetime.datetime.strftime(self._stop, '%Y-%m-%d')
         self.execute('data_access_get_static.py', [], [emus, dem], parameters=[self._request_file, start, stop])
-        # cursor = self._start
-        # while cursor <= self._stop:
-        #     date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
-        #     cursor += self._step
-        #     cursor -= self._one_day_step
-        #     if cursor > self._stop:
-        #         cursor = self._stop
-        #     next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
-        #     cursor += self._one_day_step
-        #
-        #     modis_for_date = modis + '/' + date
-        #     cams_for_date = cams + '/' + date
-        #     s2_for_date = s2 + '/' + date
-        #     self.execute('data_access_get_dynamic.py', [], [modis_for_date, cams_for_date, s2_for_date],
-        #                  parameters=[self._request_file, date, next_date])
+        cursor = self._start
+        while cursor <= self._stop:
+            date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
+            cursor += self._step
+            cursor -= self._one_day_step
+            if cursor > self._stop:
+                cursor = self._stop
+            next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
+            cursor += self._one_day_step
+
+            modis_for_date = modis + '/' + date
+            cams_for_date = cams + '/' + date
+            s2_for_date = s2 + '/' + date
+            self.execute('data_access_get_dynamic.py', [], [modis_for_date, cams_for_date, s2_for_date],
+                         parameters=[self._request_file, date, next_date])
 
     def _observe_step(self, call, inputs, outputs, parameters, code):
         if code > 0:
