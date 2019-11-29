@@ -108,7 +108,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
 def _determine_workflow(request) -> str:
     if "productionType" in request:
         return request["productionType"]
-    return 'only-get-data'
+    return 'infer-s2-kafka'
 
 
 def _pm_workflow_of(pm) -> List:
