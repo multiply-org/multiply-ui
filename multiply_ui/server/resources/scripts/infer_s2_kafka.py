@@ -7,7 +7,7 @@ import os
 import sys
 import yaml
 
-logger = logging.getLogger('ScriptProcess')
+logger = logging.getLogger('ScriptProgress')
 logger.setLevel(logging.INFO)
 
 # extract directory names from input arguments

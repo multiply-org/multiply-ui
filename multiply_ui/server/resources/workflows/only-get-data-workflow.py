@@ -94,11 +94,16 @@ class OnlyGetData(PMonitor):
             line = l.decode()
             if line.startswith('output='):
                 output_paths.append(line[7:].strip())
-            elif line.startswith('INFO:ScriptProcess'):
+            elif line.startswith('INFO:ScriptProgress'):
                 script_progress = line.split(':')[-1].split('-')
                 self._lower_script_progress[command] = int(script_progress[0])
                 self._upper_script_progress[command] = int(script_progress[1])
                 self._tasks_progress[command] = int(script_progress[0])
+            elif line.startswith('INFO:ComponentProgress'):
+                component_progress = line.split(':')[-1]
+                progress_diff = float(self._upper_script_progress[command] - self._lower_script_progress[command])
+                relative_progress = int((float(component_progress) * progress_diff) / 100.0)
+                self._tasks_progress[command] = self._lower_script_progress[command] + relative_progress
             else:
                 self._processor_logs[command].append(line)
             trace.write(line)

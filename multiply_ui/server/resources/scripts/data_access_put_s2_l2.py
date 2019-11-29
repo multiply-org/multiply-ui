@@ -6,7 +6,7 @@ import logging
 import os
 import sys
 
-logger = logging.getLogger('ScriptProcess')
+logger = logging.getLogger('ScriptProgress')
 logger.setLevel(logging.INFO)
 
 # setup parameters
