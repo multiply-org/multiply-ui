@@ -71,7 +71,7 @@ def _translate_status(pm_status: str) -> str:
         return 'failed'
     if pm_status == 'RUNNING':
         return 'running'
-    if pm_status == 'DONE' or pm_status == 'SUCCEEDED':
+    if pm_status == 'DONE' or pm_status == 'SUCCEEDED' or pm_status == 'SUCCESS':
         return 'succeeded'
     if pm_status == 'CANCELLED':
         return 'cancelled'

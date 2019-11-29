@@ -141,4 +141,4 @@ class InferS2Kafka(PMonitor):
         return []
 
     def run(self):
-        self.wait_for_completion()
+        return self.wait_for_completion()
