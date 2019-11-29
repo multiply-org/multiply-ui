@@ -34,7 +34,6 @@ with open(configuration_file) as f:
 
 roi = parameters['General']['roi']
 
-logger.info('0-33')
 modis_delta = datetime.timedelta(days=16)
 start = datetime.datetime.strptime(start_date, '%Y-%m-%d')
 modis_start = start - modis_delta
@@ -44,6 +43,7 @@ modis_end = end + modis_delta
 modis_end_date = datetime.datetime.strftime(modis_end, '%Y-%m-%d')
 
 dac = DataAccessComponent()
+logger.info('0-33')
 modis_urls = dac.get_data_urls(roi, modis_start_date, modis_end_date, 'MCD43A1.006')
 create_sym_links(modis_urls, modis_dir)
 logger.info('33-67')
