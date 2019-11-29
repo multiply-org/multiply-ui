@@ -31,9 +31,9 @@ time = start_time
 num_days = (end_time - start_time).days
 i = 0
 while time <= end_time:
-    logger.info(f'{int((i/num_days) * 100)}-{int((i+1/num_days) * 100)}')
     print(time)
     PE = PriorEngine(config=configuration_file, datestr=time.strftime('%Y-%m-%d'), variables=variables)
+    logger.info(f'{int((i/num_days) * 100)}-{int((i+1/num_days) * 100)}')
     priors = PE.get_priors()
     time = time + datetime.timedelta(days=1)
     i += 1
