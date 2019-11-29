@@ -415,7 +415,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             bbox=f"{x1},{y1},{x2},{y2}",
             spatialResolution=spatial_resolution.value,
             inputTypes=input_types,
-            parameters=selected_variables
+            parameters=selected_variables,
+            forwardModels=selected_forward_models
         ))
 
     # noinspection PyUnusedLocal

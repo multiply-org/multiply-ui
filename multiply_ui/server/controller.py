@@ -100,6 +100,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
     pm_request['General']['spatial_resolution'] = request['spatialResolution']
     pm_request['Inference']['parameters'] = [ parameter[0] for parameter in request['parameters']]
     pm_request['Inference']['time_interval'] = request['timeStep']
+    pm_request['Inference']['forward_models'] = [model[0] for model in request['forwardModels']]
     pm_request['Prior']['output_directory'] = workdir + '/priors'
     return pm_request
 

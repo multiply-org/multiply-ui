@@ -14,5 +14,8 @@
     ],
     "parameters": [
         "lai"
+    ],
+    "forwardModels": [
+        "s1_sail"
     ]
 }

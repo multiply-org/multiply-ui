@@ -16,7 +16,8 @@ INPUT_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('timeStepUnit', TypeDef(str)),
     PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
-    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str)))
+    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str))),
+    PropertyDef('forwardModels', TypeDef(list, item_type=TypeDef(str)))
 ])
 
 PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
@@ -28,7 +29,8 @@ PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
     PropertyDef('inputIdentifiers', INPUT_IDENTIFIERS_TYPE),
-    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str)))
+    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str))),
+    PropertyDef('forwardModels', TypeDef(list, item_type=TypeDef(str)))
 ])
 
 
@@ -92,6 +94,11 @@ class InputRequestMixin:
         # noinspection PyUnresolvedReferences
         return self._data['parameters']
 
+    @property
+    def forward_models(self) -> List[str]:
+        # noinspection PyUnresolvedReferences
+        return self._data['forwardModels']
+
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
         return dict(self._data)
@@ -105,7 +112,8 @@ class InputRequestMixin:
             f'Region box: {self.bbox}<br/>' \
             f'Spatial resolution in m: {self.spatialResolution}<br/>' \
             f'Input types: {", ".join(self.input_types)}<br/>' \
-            f'Parameters: {", ".join(self.parameters)}' \
+            f'Parameters: {", ".join(self.parameters)}<br/>' \
+            f'Forward Models: {", ".join(self.forward_models)}' \
             f'</p>'
 
 

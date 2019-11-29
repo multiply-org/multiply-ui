@@ -16,7 +16,8 @@
 
     "Inference" : {
         "parameters" : [ "VARIABLE", "VARIABLE", "..." ],
-        "time_interval" : "TIME_STEP"
+        "time_interval" : "TIME_STEP",
+        "forward_models" : [ "MODEL", "MODEL", "..." ]
     },
 
     "Prior" : {
