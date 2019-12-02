@@ -103,7 +103,7 @@ def obs_job_form(job: Job, mock=False):
 
     def monitor(progress_bar, status_bar):
         while job.status not in ['succeeded', 'cancelled', 'failed']:
-            time.sleep(2.0)
+            time.sleep(4.0)
             job_state = get_job_func(job, info.message_func)
             if job_state is not None:
                 _update_job(job, job_state)
@@ -174,7 +174,7 @@ def obs_jobs_form(mock=False):
                     cancel_button.disabled = True
                 if component_job.status not in ['succeeded', 'cancelled', 'failed']:
                     at_least_one_job_unfinished = True
-            time.sleep(2.0)
+            time.sleep(4.0)
 
     _monitor(jobs_monitor_func, jobs_full_component, (job_components, None))
 
