@@ -38,7 +38,7 @@ i = 0
 while time <= end_time:
     print(time)
     PE = PriorEngine(config=configuration_file, datestr=time.strftime('%Y-%m-%d'), variables=variables)
-    script_progress_logger.info(f'{int((i/num_days) * 100)}-{int((i+1/num_days) * 100)}')
+    script_progress_logger.info(f'{int((i/num_days) * 100)}-{int(((i+1)/num_days) * 100)}')
     priors = PE.get_priors()
     time = time + datetime.timedelta(days=1)
     i += 1
