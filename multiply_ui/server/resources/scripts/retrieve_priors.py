@@ -8,8 +8,13 @@ import os
 import sys
 import yaml
 
-logger = logging.getLogger('ScriptProgress')
-logger.setLevel(logging.INFO)
+script_progress_logger = logging.getLogger('ScriptProgress')
+script_progress_logger.setLevel(logging.INFO)
+script_progress_formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+script_progress_logging_handler = logging.StreamHandler()
+script_progress_logging_handler.setLevel(logging.INFO)
+script_progress_logging_handler.setFormatter(script_progress_formatter)
+script_progress_logger.addHandler(script_progress_logging_handler)
 
 # setup parameters
 configuration_file = sys.argv[1]
@@ -33,7 +38,7 @@ i = 0
 while time <= end_time:
     print(time)
     PE = PriorEngine(config=configuration_file, datestr=time.strftime('%Y-%m-%d'), variables=variables)
-    logger.info(f'{int((i/num_days) * 100)}-{int((i+1/num_days) * 100)}')
+    script_progress_logger.info(f'{int((i/num_days) * 100)}-{int((i+1/num_days) * 100)}')
     priors = PE.get_priors()
     time = time + datetime.timedelta(days=1)
     i += 1
@@ -56,4 +61,4 @@ if 'General' in parameters['Prior']:
 #    else:
 #        soil_moisture_dir = parameters['Prior']['General']['directory_data']
 #    os.system("mv " + soil_moisture_dir + "/*.vrt " + output_root_dir + "/")
-logger.info('100-100')
+script_progress_logger.info('100-100')
