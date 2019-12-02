@@ -34,8 +34,8 @@ if 'destination_grid' in parameters['General']:
     destination_grid = parameters['General']['destination_grid']
 else:
     destination_grid = None
-parameter_list = ','.join(parameters['Inference']['parameters'])
-forward_model_list = ','.join(parameters['Inference']['forward_models'])
+parameter_list = parameters['Inference']['parameters']
+forward_model_list = parameters['Inference']['forward_models']
 
 if not os.path.exists(next_state):
     os.makedirs(next_state)
