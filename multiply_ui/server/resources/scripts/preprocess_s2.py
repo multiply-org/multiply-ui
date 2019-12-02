@@ -27,14 +27,14 @@ cams_dir = sys.argv[7]
 vrt_dem_dir = sys.argv[8]
 output_root_dir = sys.argv[9]
 
-vrt_dem_file = glob.glob(vrt_dem_dir+'/'+'*.vrt')[0]
+vrt_dem_file = glob.glob(vrt_dem_dir + '/' + '*.vrt')[0]
 processor_dir = '/software/atmospheric_correction/SIAC'
 if not os.path.exists(output_root_dir):
     os.makedirs(output_root_dir)
 dirs = glob.glob(s2_l1c_dir + "/*")
 
 for i, directory in enumerate(dirs):
-    script_progress_logger.info(f'{int((i/len(dirs)) * 100)}-{int((i+1/len(dirs)) * 100)}')
+    script_progress_logger.info(f'{int((i/len(dirs)) * 100)}-{int(((i+1)/len(dirs)) * 100)}')
     directory_parts = directory.split('/')
     product_name = f"{directory_parts[-1]}-ac"
     print(f'Start pre-processing S2 L1 data from {directory_parts[-2]}')
