@@ -10,7 +10,7 @@ class OnlyGetPriors(PMonitor):
                           request=parameters['requestName'],
                           hosts=[('localhost', 10)],
                           types=[('retrieve_priors.py', 2)],
-                          logdir='log',
+                          logdir=parameters['log_dir'],
                           simulation='simulation' in parameters and parameters['simulation'])
         self._data_root = parameters['data_root']
         self._request_file = parameters['requestFile']
