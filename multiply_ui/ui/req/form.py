@@ -364,7 +364,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     map_background_layer = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
     geometry_layer = GeoJSON()
-    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=(58.63, -28.), zoom=11)
+    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=(58.63, 28.), zoom=11)
     draw_control = DrawControl()
     draw_control.polyline = {}
     draw_control.polygon = {}
