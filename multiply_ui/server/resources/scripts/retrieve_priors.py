@@ -33,7 +33,7 @@ end_time = datetime.datetime.strptime(end, '%Y-%m-%d')
 
 # execute the Prior engine for the requested times
 time = start_time
-num_days = (end_time - start_time).days
+num_days = (end_time - start_time).days + 1
 i = 0
 while time <= end_time:
     print(time)
