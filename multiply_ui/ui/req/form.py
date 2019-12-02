@@ -341,8 +341,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     request_name = widgets.Text(name)
     python_var_name = widgets.Text(identifier)
 
-    start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=1))
-    end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=10))
+    start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=5, day=10))
+    end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=5, day=15))
 
     time_steps = Spinner(
         value=10,
@@ -364,7 +364,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     map_background_layer = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
     geometry_layer = GeoJSON()
-    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=(39., -2.1), zoom=11)
+    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=(58.63, -28.), zoom=11)
     draw_control = DrawControl()
     draw_control.polyline = {}
     draw_control.polygon = {}
