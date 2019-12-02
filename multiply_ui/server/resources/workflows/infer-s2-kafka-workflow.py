@@ -12,7 +12,7 @@ class InferS2Kafka(PMonitor):
                           types=[('data_access_get_static.py', 1), ('data_access_get_dynamic.py', 2),
                                  ('data_access_put_s2_l2.py', 1), ('retrieve_priors.py', 2), ('preprocess_s2.py', 2),
                                  ('infer_s2_kafka.py', 2)],
-                          logdir='log',
+                          logdir=parameters['log_dir'],
                           simulation='simulation' in parameters and parameters['simulation'])
         self._data_root = parameters['data_root']
         self._request_file = parameters['requestFile']

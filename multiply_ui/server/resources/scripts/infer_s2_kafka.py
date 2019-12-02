@@ -7,8 +7,13 @@ import os
 import sys
 import yaml
 
-logger = logging.getLogger('ScriptProgress')
-logger.setLevel(logging.INFO)
+script_progress_logger = logging.getLogger('ScriptProgress')
+script_progress_logger.setLevel(logging.INFO)
+script_progress_formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+script_progress_logging_handler = logging.StreamHandler()
+script_progress_logging_handler.setLevel(logging.INFO)
+script_progress_logging_handler.setFormatter(script_progress_formatter)
+script_progress_logger.addHandler(script_progress_logging_handler)
 
 # extract directory names from input arguments
 start_date = sys.argv[2]
@@ -34,15 +39,15 @@ if 'destination_grid' in parameters['General']:
     destination_grid = parameters['General']['destination_grid']
 else:
     destination_grid = None
-parameter_list = ','.join(parameters['Inference']['parameters'])
-forward_model_list = ','.join(parameters['Inference']['forward_models'])
+parameter_list = parameters['Inference']['parameters']
+forward_model_list = parameters['Inference']['forward_models']
 
 if not os.path.exists(next_state):
     os.makedirs(next_state)
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-logger.info('0-100')
+script_progress_logger.info('0-100')
 
 infer(start_time=start_date,
       end_time=end_date,
@@ -58,6 +63,6 @@ infer(start_time=start_date,
       roi_grid=roi_grid,
       destination_grid=destination_grid
       )
-logger.info('100-100')
+script_progress_logger.info('100-100')
 
 

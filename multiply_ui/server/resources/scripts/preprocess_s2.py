@@ -6,8 +6,13 @@ import os
 import sys
 import yaml
 
-logger = logging.getLogger('ScriptProgress')
-logger.setLevel(logging.INFO)
+script_progress_logger = logging.getLogger('ScriptProgress')
+script_progress_logger.setLevel(logging.INFO)
+script_progress_formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+script_progress_logging_handler = logging.StreamHandler()
+script_progress_logging_handler.setLevel(logging.INFO)
+script_progress_logging_handler.setFormatter(script_progress_formatter)
+script_progress_logger.addHandler(script_progress_logging_handler)
 
 # setup parameters
 with open(sys.argv[1]) as f:
@@ -29,7 +34,7 @@ if not os.path.exists(output_root_dir):
 dirs = glob.glob(s2_l1c_dir + "/*")
 
 for i, directory in enumerate(dirs):
-    logger.info(f'{int((i/len(dirs)) * 100)}-{int((i+1/len(dirs)) * 100)}')
+    script_progress_logger.info(f'{int((i/len(dirs)) * 100)}-{int((i+1/len(dirs)) * 100)}')
     directory_parts = directory.split('/')
     product_name = f"{directory_parts[-1]}-ac"
     print(f'Start pre-processing S2 L1 data from {directory_parts[-2]}')
@@ -54,4 +59,4 @@ for i, directory in enumerate(dirs):
     if len(paths_to_mtd_tl) > 0:
         cmd3 = "cp `readlink " + paths_to_mtd_tl[0] + "` " + output_dir + "/MTD_TL.xml"
     os.system(cmd3)
-logger.info('100-100')
+script_progress_logger.info('100-100')
