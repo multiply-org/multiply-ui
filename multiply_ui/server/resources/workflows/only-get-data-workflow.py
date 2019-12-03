@@ -139,4 +139,4 @@ class OnlyGetData(PMonitor):
             pgid = os.getpgid(self._pids[pid])
             logging.info(pgid)
             # os.killpg(pgid, signal.SIGTERM)
-            os.kill(pid, signal.SIGTERM)
+            os.kill(self._pids[pid], signal.SIGTERM)
