@@ -182,4 +182,4 @@ def _get_job_dict(job, request_id: str, request_name: str):
 
 def cancel(ctx, id: str):
     job = ctx.get_job(id)
-    job.cancel()
+    job.pm.cancel()
