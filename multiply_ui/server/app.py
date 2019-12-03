@@ -1,8 +1,10 @@
 import tornado.web
 
-from .handlers import GetParametersHandler, GetInputsHandler, GetJobHandler, ExecuteJobsHandler, ExecuteHandler, \
-    ListHandler, StatusHandler, CancelHandler, ResultsFromJobHandler, ResultHandler, ResultsOpenHandler, \
+from .handlers import GetParametersHandler, GetInputsHandler, GetJobHandler, ExecuteJobsHandler, CancelHandler, \
     PostEarthDataAuthHandler, PostMundiAuthHandler
+    # ExecuteHandler, \
+    # ListHandler, StatusHandler, CancelHandler, ResultsFromJobHandler, ResultHandler, ResultsOpenHandler, \
+
 
 
 def new_application():
@@ -11,15 +13,16 @@ def new_application():
         (r"/multiply/api/auth/mundi", PostMundiAuthHandler),
         (r"/multiply/api/jobs/execute", ExecuteJobsHandler),
         (url_pattern(r"/multiply/api/jobs/get/{{job_id}}"), GetJobHandler),
+        (url_pattern(r"/multiply/api/jobs/cancel/{{job_id}}"), CancelHandler),
         (r"/multiply/api/processing/inputs", GetInputsHandler),
         (r"/multiply/api/processing/parameters", GetParametersHandler),
-        (r"/jobs/execute", ExecuteHandler),
-        (r"/jobs/list", ListHandler),
-        (r"/jobs/([0-9]+)", StatusHandler),
-        (r"/jobs/cancel/([0-9]+)", CancelHandler),
-        (r"/jobs/results/([0-9]+)", ResultsFromJobHandler),
-        (r"/result/([0-9]+)", ResultHandler),
-        (r"/results/open/([0-9]+)", ResultsOpenHandler)
+        # (r"/jobs/execute", ExecuteHandler),
+        # (r"/jobs/list", ListHandler),
+        # (r"/jobs/([0-9]+)", StatusHandler),
+        # (r"/jobs/cancel/([0-9]+)", CancelHandler),
+        # (r"/jobs/results/([0-9]+)", ResultsFromJobHandler),
+        # (r"/result/([0-9]+)", ResultHandler),
+        # (r"/results/open/([0-9]+)", ResultsOpenHandler)
     ])
 
 

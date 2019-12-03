@@ -3,6 +3,7 @@ import json
 import logging
 import pkg_resources
 import os
+import shutil
 from .context import ServiceContext #import to ensure calvalus-instances is added to system path
 from multiply_core.util import get_time_from_string
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
@@ -40,15 +41,22 @@ def get_inputs(ctx, parameters):
 
 def submit_request(ctx, request) -> Dict:
     mangled_name = request['name'].replace(' ', '_')
-    id = mangled_name  # TODO generate simple unique IDs
+    id = mangled_name
+    job = ctx.get_job(mangled_name)
+    index = 0
+    while job is not None:
+        id = f'{mangled_name}_{index}'
+        job = ctx.get_job(id)
+        index += 1
     workdir_root = ctx.working_dir
     logging.info(f'working dir root from context {workdir_root}')
     workdir = workdir_root + '/' + id
     pm_request_file = f'{workdir}/{mangled_name}.json'
 
     pm_request = _pm_request_of(request, workdir, id)
-    if not os.path.exists(workdir):
-        os.makedirs(workdir)
+    if os.path.exists(workdir):
+        shutil.rmtree(workdir)
+    os.makedirs(workdir)
     with open(pm_request_file, "w") as f:
         json.dump(pm_request, f)
     pm_request["requestFile"] = pm_request_file
@@ -170,3 +178,8 @@ def _get_job_dict(job, request_id: str, request_name: str):
         job_dict['tasks'].append(task_dict)
     job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100
     return job_dict
+
+
+def cancel(ctx, id: str):
+    job = ctx.get_job(id)
+    job.cancel()

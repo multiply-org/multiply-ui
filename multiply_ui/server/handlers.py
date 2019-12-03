@@ -118,6 +118,13 @@ class GetJobHandler(ServiceRequestHandler):
 
 
 # noinspection PyAbstractClass
+class CancelHandler(ServiceRequestHandler):
+    def get(self, job_id: str):
+        self.set_header('Content-Type', 'application/json')
+        controller.cancel(self.ctx, job_id)
+
+
+# noinspection PyAbstractClass
 class PostEarthDataAuthHandler(ServiceRequestHandler):
     def post(self):
         self.set_header('Content-Type', 'application/json')
