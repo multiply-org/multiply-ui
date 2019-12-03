@@ -167,18 +167,18 @@ class StatusHandler(ServiceRequestHandler):
 
 
 # noinspection PyAbstractClass
-class CancelHandler(ServiceRequestHandler):
-    def get(self, job_id: str):
-        job_id = int(job_id)
-
-        job = self.ctx.get_job(job_id)
-        if job is None:
-            self.send_error(404, reason="Job not found")
-            return
-        job.cancel()
-
-        self.set_header('Content-Type', 'application/json')
-        self.write(job.to_dict())
+# class CancelHandler(ServiceRequestHandler):
+#     def get(self, job_id: str):
+#         job_id = int(job_id)
+#
+#         job = self.ctx.get_job(job_id)
+#         if job is None:
+#             self.send_error(404, reason="Job not found")
+#             return
+#         job.cancel()
+#
+#         self.set_header('Content-Type', 'application/json')
+#         self.write(job.to_dict())
 
 
 # noinspection PyAbstractClass
