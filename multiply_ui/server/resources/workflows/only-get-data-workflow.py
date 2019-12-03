@@ -135,4 +135,5 @@ class OnlyGetData(PMonitor):
     def cancel(self):
         self._canceled = True
         for pid in self._pids:
-            os.killpg(os.getpgid(pid), signal.SIGTERM)
+            pgid = os.getpgid(pid)
+            os.killpg(pgid, signal.SIGTERM)
