@@ -135,8 +135,8 @@ class OnlyGetData(PMonitor):
     def cancel(self):
         self._canceled = True
         for pid in self._pids:
-            logging.info(self._pids[pid])
-            pgid = os.getpgid(self._pids[pid])
-            logging.info(pgid)
-            # os.killpg(pgid, signal.SIGTERM)
-            os.kill(self._pids[pid], signal.SIGTERM)
+            try:
+                os.kill(self._pids[pid], signal.SIGTERM)
+            except ProcessLookupError:
+                # okay, process was outdated
+                continue
