@@ -2,8 +2,8 @@ import datetime
 import logging
 import os
 import signal
+import sys
 from pmonitor import PMonitor
-
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -14,8 +14,8 @@ class OnlyGetData(PMonitor):
         PMonitor.__init__(self,
                           ['none', parameters['data_root']],
                           request=parameters['requestName'],
-                          hosts=[('localhost',10)],
-                          types=[('data_access_get_static.py',1), ('data_access_get_dynamic.py', 2)],
+                          hosts=[('localhost', 10)],
+                          types=[('data_access_get_static.py', 1), ('data_access_get_dynamic.py', 2)],
                           logdir=parameters['log_dir'],
                           simulation='simulation' in parameters and parameters['simulation'])
         self._data_root = parameters['data_root']
@@ -29,6 +29,8 @@ class OnlyGetData(PMonitor):
         self._upper_script_progress = {}
         self._processor_logs = {}
         self._pids = {}
+        self._to_be_cancelled = []
+        self._cancelled = []
 
     def create_workflow(self):
         modis = self._data_root + '/' + 'modis'
@@ -81,7 +83,7 @@ class OnlyGetData(PMonitor):
         # if code == 0 and not async_ and not self._cache is None and 'cache' in wd:
         #     subprocess.call(['rm', '-rf', wd])
         return code
-    
+
     def _trace_processor_output(self, output_paths, process, task_id, command, wd, log_prefix, async_):
         """
         traces processor output, recognises 'output=' lines, writes all lines to trace file in working dir.
@@ -118,25 +120,77 @@ class OnlyGetData(PMonitor):
             # assumption that last line contains external ID, with stderr mixed with stdout
             output_paths[:] = []
             output_paths.append(line.strip())
-    
+
     def get_progress(self, command):
         if command in self._tasks_progress:
             return self._tasks_progress[command]
         return 0
-    
+
     def get_logs(self, command):
         if command in self._processor_logs:
             return self._processor_logs[command]
         return []
 
     def run(self):
-        return self.wait_for_completion()
+        code = self.wait_for_completion()
+        if len(self._cancelled) > 0:
+            return -1
+        return code
 
     def cancel(self):
-        self._canceled = True
         for pid in self._pids:
             try:
                 os.kill(self._pids[pid], signal.SIGTERM)
             except ProcessLookupError:
                 # okay, process was outdated
                 continue
+
+    def _write_status(self, with_backlog=False):
+        self._status.seek(0)
+        # pending = len(self._pool.workRequests) - len(self._running)
+        self._status.write('{0} created, {1} running, {2} backlog, {3} processed, {4} failed, {5} cancelled\n'. \
+                           format(self._created, len(self._running), len(self._backlog), self._processed,
+                                  len(self._failed), len(self._cancelled)))
+
+        for l in self._failed:
+            self._status.write('f {0}\n'.format(l))
+        for l in self._cancelled:
+            self._status.write('c {0}\n'.format(l))
+        for l in self._running:
+            if isinstance(self._running[l], PMonitor.Args):
+                self._status.write('r [{0}] {1}\n'.format(self._running[l].external_id, l))
+            elif isinstance(self._running[l], str):
+                self._status.write('r [{0}] {1}\n'.format(self._running[l], l))
+            else:
+                self._status.write('r {0}\n'.format(l))
+        if with_backlog:
+            for r in self._backlog:
+                self._status.write('b {0} {1} {2} {3}\n'.format(PMonitor.Args.get_call(r.args),
+                                                                ' '.join(PMonitor.Args.get_parameters(r.args)),
+                                                                ' '.join(PMonitor.Args.get_inputs(r.args)),
+                                                                ' '.join(PMonitor.Args.get_outputs(r.args))))
+        self._status.truncate()
+        self._status.flush()
+
+    def _finalise_step(self, call, code, command, host, output_paths, outputs, typeOnly=False):
+        """
+        releases host and type resources, updates report, schedules mature steps, handles failure
+        """
+        # print '... mutex 6 acquiring'
+        with self._mutex:
+            # print '... mutex 6 acquired'
+            self._release_constraint(call, host, typeOnly=typeOnly)
+            self._running.pop(command)
+            if code == 0:
+                self._report.write(command + '\n')
+                self._report_and_bind_outputs(outputs, output_paths)
+                self._report.flush()
+                self._processed += 1
+            elif command in self._to_be_cancelled:
+                self._cancelled.append(command)
+                sys.__stderr__.write('cancelled {0}\n'.format(command))
+            else:
+                self._failed.append(command)
+                sys.__stderr__.write('failed {0}\n'.format(command))
+            self._check_for_mature_tasks()
+        # print '... mutex 6 released'

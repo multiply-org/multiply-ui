@@ -131,6 +131,7 @@ def _pm_workflow_of(pm) -> List:
     backlog = pm._backlog.copy()
     running = pm._running.copy()
     commands = pm._commands.copy()
+    cancelled = pm._cancelled.copy()
     failed = pm._failed.copy()
     for r in backlog:
         l = '{0} {1} {2} {3}\n'.format(PMonitor.Args.get_call(r.args),
@@ -142,6 +143,8 @@ def _pm_workflow_of(pm) -> List:
         accu.append({"step": l, "status": "running", "progress": pm.get_progress(l), "logs": pm.get_logs(l)})
     for l in commands:
         accu.append({"step": l, "status": "succeeded", "progress": 100, "logs": pm.get_logs(l)})
+    for l in cancelled:
+        accu.append({"step": l, "status": "cancelled", "progress": pm.get_progress(l), "logs": pm.get_logs(l)})
     for l in failed:
         accu.append({"step": l, "status": "failed", "progress": pm.get_progress(l), "logs": pm.get_logs(l)})
     return accu
