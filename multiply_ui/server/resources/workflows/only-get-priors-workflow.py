@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import signal
 import sys
@@ -127,6 +128,8 @@ class OnlyGetPriors(PMonitor):
         for pid in self._pids:
             try:
                 os.kill(self._pids[pid], signal.SIGTERM)
+                logging.info(f'Cancelling {pid}')
+                self._to_be_cancelled.append(pid)
             except ProcessLookupError:
                 # okay, process was outdated
                 continue
