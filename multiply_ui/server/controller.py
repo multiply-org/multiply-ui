@@ -54,7 +54,8 @@ def submit_request(ctx, request) -> Dict:
     pm_request_file = f'{workdir}/{mangled_name}.json'
 
     pm_request = _pm_request_of(request, workdir, id)
-    shutil.rmtree(workdir)
+    if os.path.exists(workdir):
+        shutil.rmtree(workdir)
     os.makedirs(workdir)
     with open(pm_request_file, "w") as f:
         json.dump(pm_request, f)
@@ -177,3 +178,8 @@ def _get_job_dict(job, request_id: str, request_name: str):
         job_dict['tasks'].append(task_dict)
     job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100
     return job_dict
+
+
+def cancel(ctx, id: str):
+    job = ctx.get_job(id)
+    job.cancel()

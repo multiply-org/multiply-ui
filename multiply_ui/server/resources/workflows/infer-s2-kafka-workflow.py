@@ -1,4 +1,6 @@
 import datetime
+import os
+import signal
 from pmonitor import PMonitor
 
 
@@ -24,6 +26,7 @@ class InferS2Kafka(PMonitor):
         self._lower_script_progress = {}
         self._upper_script_progress = {}
         self._processor_logs = {}
+        self._pids = {}
 
     def create_workflow(self):
         priors = self._data_root + '/' + 'priors'
@@ -86,6 +89,7 @@ class InferS2Kafka(PMonitor):
         """
         wd = self._prepare_working_dir(task_id)
         process = PMonitor._start_processor(command, host, wd)
+        self._pids[command] = process.pid
         self._trace_processor_output(output_paths, process, task_id, command, wd, log_prefix, async_)
         process.stdout.close()
         code = process.wait()
@@ -142,3 +146,8 @@ class InferS2Kafka(PMonitor):
 
     def run(self):
         return self.wait_for_completion()
+
+    def cancel(self):
+        self._canceled = True
+        for pid in self._pids:
+            os.killpg(os.getpgid(pid), signal.SIGTERM)
