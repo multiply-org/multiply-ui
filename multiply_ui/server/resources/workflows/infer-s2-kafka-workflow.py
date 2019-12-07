@@ -7,7 +7,7 @@ class InferS2Kafka(MultiplyMonitor):
     def __init__(self, parameters):
         MultiplyMonitor.__init__(self,
                           parameters,
-                          types=[('data_access_get_static.py', 1), ('data_access_get_dynamic.py', 2),
+                          types=[('data_access_get_static.py', 1), ('get_data_for_s2_preprocessing.py', 2),
                                  ('data_access_put_s2_l2.py', 1), ('retrieve_priors.py', 2), ('preprocess_s2.py', 2),
                                  ('infer_s2_kafka.py', 2)]
                           )
@@ -48,7 +48,7 @@ class InferS2Kafka(MultiplyMonitor):
             cams_for_date = cams + '/' + date
             s2_for_date = s2 + '/' + date
             sdrs_for_date = sdrs + '/' + date
-            self.execute('data_access_get_dynamic.py', [], [modis_for_date, cams_for_date, s2_for_date],
+            self.execute('get_data_for_s2_preprocessing.py', [], [modis_for_date, cams_for_date, s2_for_date],
                          parameters=[self._request_file, date, next_date])
             self.execute('preprocess_s2.py', [s2_for_date, modis_for_date, emus, cams_for_date, dem], [sdrs_for_date],
                          parameters=[self._request_file, date, next_date])

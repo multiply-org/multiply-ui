@@ -1,5 +1,5 @@
 #!{PYTHON}
-# example syntax: data_access_get_dynamic.py request_test_all.yaml 2017-06-11 2016-06-21 /data/mx/2017-06-11/modis_dir /data/mx/2017-06-11/cams_tiff_dir /data/mx/2017-06-11/s2_dir
+# example syntax: get_data_for_s2_preprocessing.py request_test_all.yaml 2017-06-11 2016-06-21 /data/mx/2017-06-11/modis_dir /data/mx/2017-06-11/cams_tiff_dir /data/mx/2017-06-11/s2_dir
 
 from multiply_data_access import DataAccessComponent
 from vm_support import create_sym_links

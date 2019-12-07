@@ -7,7 +7,7 @@ class PreprocessSar(MultiplyMonitor):
     def __init__(self, parameters):
         MultiplyMonitor.__init__(self,
                                  parameters,
-                                 types=[('data_access_get_s1.py', 2), ('preprocess_s1.py', 2)])
+                                 types=[('get_data_for_s1_preprocessing.py', 2), ('preprocess_s1.py', 2)])
         self._data_root = parameters['data_root']
         self._request_file = parameters['requestFile']
         self._start = datetime.datetime.strptime(str(parameters['General']['start_time']), '%Y-%m-%d')
@@ -29,7 +29,7 @@ class PreprocessSar(MultiplyMonitor):
             cursor += self._one_day_step
             s1_slc_for_date =  s1_slc + '/' + date
             s1_grd_for_date =  s1_grd + '/' + date
-            self.execute('data_access_get_s1.py', [], [s1_slc_for_date],
+            self.execute('get_data_for_s1_preprocessing.py', [], [s1_slc_for_date],
                          parameters=[self._request_file, date, next_date])
             self.execute('preprocess_s1.py', [s1_slc_for_date], [s1_grd_for_date],
                          parameters=[self._request_file, date, next_date])

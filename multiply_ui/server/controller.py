@@ -69,9 +69,9 @@ def _translate_step(step: str) -> str:
     step_parts = step.split(" ")
     if step_parts[0] == "data_access_get_static.py":
         return f'Retrieving data required for all time steps'
-    if step_parts[0] == "data_access_get_dynamic.py":
+    if step_parts[0] == "get_data_for_s2_preprocessing.py":
         return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
-    if step_parts[0] == "data_access_get_s1.py":
+    if step_parts[0] == "get_data_for_s1_preprocessing.py":
         return f'Retrieving SAR data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "retrieve_priors.py":
         return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'

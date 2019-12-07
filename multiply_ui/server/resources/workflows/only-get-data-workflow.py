@@ -7,11 +7,11 @@ class OnlyGetData(MultiplyMonitor):
     def __init__(self, parameters):
         MultiplyMonitor.__init__(self,
                                  parameters,
-                                 types=[('data_access_get_static.py', 1), ('data_access_get_dynamic.py', 2)])
+                                 types=[('data_access_get_static.py', 1), ('get_data_for_s2_preprocessing.py', 2)])
                           # ['none', parameters['data_root']],
                           # request=parameters['requestName'],
                           # hosts=[('localhost', 10)],
-                          # types=[('data_access_get_static.py', 1), ('data_access_get_dynamic.py', 2)],
+                          # types=[('data_access_get_static.py', 1), ('get_data_for_s2_preprocessing.py', 2)],
                           # logdir=parameters['log_dir'],
                           # simulation='simulation' in parameters and parameters['simulation'])
         self._data_root = parameters['data_root']
@@ -44,5 +44,5 @@ class OnlyGetData(MultiplyMonitor):
             modis_for_date = modis + '/' + date
             cams_for_date = cams + '/' + date
             s2_for_date = s2 + '/' + date
-            self.execute('data_access_get_dynamic.py', [], [modis_for_date, cams_for_date, s2_for_date],
+            self.execute('get_data_for_s2_preprocessing.py', [], [modis_for_date, cams_for_date, s2_for_date],
                          parameters=[self._request_file, date, next_date])
