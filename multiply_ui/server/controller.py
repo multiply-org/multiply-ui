@@ -5,11 +5,11 @@ import pkg_resources
 import os
 import shutil
 from .context import ServiceContext #import to ensure calvalus-instances is added to system path
-from multiply_core.util import get_time_from_string
+from multiply_core.util import get_num_tiles, get_time_from_string
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
 # and add the calvalus-instances as content root to project structure
 from share.lib.pmonitor import PMonitor
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -73,7 +73,7 @@ def _translate_step(step: str) -> str:
         return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "get_data_for_s1_preprocessing.py":
         return f'Retrieving SAR data for time step from {step_parts[2]} to {step_parts[3]}'
-    if step_parts[0] == "retrieve_priors.py":
+    if step_parts[0] == "retrieve_s2_priors.py":
         return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "preprocess_s2.py":
         return f'Preprocessing S2 Data for time step from {step_parts[2]} to {step_parts[3]}'
@@ -116,11 +116,42 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
         datetime.datetime.strftime(get_time_from_string(request['timeRange'][1]), '%Y-%m-%d')
     pm_request['General']['time_interval'] = request['timeStep']
     pm_request['General']['spatial_resolution'] = request['spatialResolution']
-    pm_request['Inference']['parameters'] = [parameter for parameter in request['parameters']]
+    pm_request['General']['tile_width'] = 512
+    pm_request['General']['tile_height'] = 512
+    num_tiles_x, num_tiles_y = _get_num_tiles_of_request(request)
+    pm_request['General']['num_tiles_x'] = num_tiles_x
+    pm_request['General']['num_tiles_y'] = num_tiles_y
     pm_request['Inference']['time_interval'] = request['timeStep']
-    pm_request['Inference']['forward_models'] = [model for model in request['forwardModels']]
+    forward_models = []
+    for model_dict in request['forwardModels']:
+        model = {"name": model_dict["name"],
+                 "type": model_dict["type"],
+                 "data_type": model_dict["modelDataType"],
+                 "required_priors": [prior for prior in model_dict["requiredPriors"]],
+                 "output_parameters": [parameter for parameter in model_dict["output_parameters"]]}
+        forward_models.append(model)
+    pm_request['Inference']['forward_models'] = forward_models
     pm_request['Prior']['output_directory'] = workdir + '/priors'
     return pm_request
+
+
+def _get_num_tiles_of_request(request) -> Tuple:
+    (minLon, minLat, maxLon, maxLat) = request["bbox"].split(",")
+    region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
+                                                                   minLon, maxLat, minLon, minLat)
+    roi = region_wkt
+    spatial_resolution = request['spatialResolution']
+    # if 'roi_grid' in parameters['General']:
+    #     roi_grid = parameters['General']['roi_grid']
+    # else:
+    #     roi_grid = None
+    # if 'destination_grid' in parameters['General']:
+    #     destination_grid = parameters['General']['destination_grid']
+    # else:
+    #     destination_grid = None
+    return get_num_tiles(spatial_resolution=spatial_resolution, roi=roi,
+                         # roi_grid=roi_grid, destination_grid=destination_grid,
+                         tile_width=512, tile_height=512)
 
 
 def _determine_workflow(request) -> str:

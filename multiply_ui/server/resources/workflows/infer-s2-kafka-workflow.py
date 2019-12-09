@@ -8,7 +8,7 @@ class InferS2Kafka(MultiplyMonitor):
         MultiplyMonitor.__init__(self,
                           parameters,
                           types=[('data_access_get_static.py', 1), ('get_data_for_s2_preprocessing.py', 2),
-                                 ('data_access_put_s2_l2.py', 1), ('retrieve_priors.py', 2), ('preprocess_s2.py', 2),
+                                 ('data_access_put_s2_l2.py', 1), ('retrieve_s2_priors.py', 2), ('preprocess_s2.py', 2),
                                  ('infer_s2_kafka.py', 2)]
                           )
         self._data_root = parameters['data_root']
@@ -55,7 +55,7 @@ class InferS2Kafka(MultiplyMonitor):
             # self.execute('data_access_put_s2_l2.py', [sdrs_for_date], [], parameters=[])
 
             priors_for_date = priors + '/' + date
-            self.execute('retrieve_priors.py', [], [priors_for_date], parameters=[self._request_file, date, next_date])
+            self.execute('retrieve_s2_priors.py', [], [priors_for_date], parameters=[self._request_file, date, next_date])
             updated_state = hres_state_dir + '/' + date
             self.execute('infer_s2_kafka.py', [priors_for_date, sdrs_for_date], [hres_biophys_output, updated_state],
                          parameters=[self._request_file, date, next_date, hres_state])

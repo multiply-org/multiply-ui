@@ -3,6 +3,7 @@
 import glob
 import logging
 import os
+import shutil
 import sys
 import yaml
 
@@ -25,7 +26,8 @@ brdf_des_dir = sys.argv[5]
 emu_dir = sys.argv[6]
 cams_dir = sys.argv[7]
 vrt_dem_dir = sys.argv[8]
-output_root_dir = sys.argv[9]
+provided_sdrs_dir = sys.argv[9]
+output_root_dir = sys.argv[10]
 
 vrt_dem_file = glob.glob(vrt_dem_dir + '/' + '*.vrt')[0]
 processor_dir = '/software/atmospheric_correction/SIAC'
@@ -59,4 +61,7 @@ for i, directory in enumerate(dirs):
     if len(paths_to_mtd_tl) > 0:
         cmd3 = "cp `readlink " + paths_to_mtd_tl[0] + "` " + output_dir + "/MTD_TL.xml"
     os.system(cmd3)
+provided_sdr_files = os.listdir(provided_sdrs_dir)
+for provided_sdr_file in provided_sdr_files:
+    shutil.copy(provided_sdr_file, output_root_dir)
 script_progress_logger.info('100-100')

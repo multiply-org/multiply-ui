@@ -12,10 +12,17 @@
     "inputTypes": [
         "S2_L1C"
     ],
-    "parameters": [
-        "lai"
-    ],
     "forwardModels": [
-        "s1_sail"
+        {
+            "name": "s1_sail",
+            "type": "kafka",
+            "modelDataType": "Sentinel-1",
+            "requiredPriors": [
+                "cb"
+            ],
+            "outputParameters": [
+                "lai"
+            ]
+        }
     ]
 }

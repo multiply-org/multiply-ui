@@ -6,7 +6,7 @@ class OnlyGetPriors(MultiplyMonitor):
     def __init__(self, parameters):
         MultiplyMonitor.__init__(self,
                                  parameters,
-                                 types=[('retrieve_priors.py', 2)])
+                                 types=[('retrieve_s2_priors.py', 2)])
         self._data_root = parameters['data_root']
         self._request_file = parameters['requestFile']
         self._start = datetime.datetime.strptime(str(parameters['General']['start_time']), '%Y-%m-%d')
@@ -26,4 +26,5 @@ class OnlyGetPriors(MultiplyMonitor):
             next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
             cursor += self._one_day_step
             priors_for_date = priors + '/' + date
-            self.execute('retrieve_priors.py', [], [priors_for_date], parameters=[self._request_file, date, next_date])
+            self.execute('retrieve_s2_priors.py', [], [priors_for_date], 
+                         parameters=[self._request_file, date, next_date])

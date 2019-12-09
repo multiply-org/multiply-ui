@@ -15,9 +15,20 @@
     },
 
     "Inference" : {
-        "parameters" : [ "VARIABLE", "VARIABLE", "..." ],
         "time_interval" : "TIME_STEP",
-        "forward_models" : [ "MODEL", "MODEL", "..." ]
+        "forward_models" : [
+            {
+                "name" : "FORWARD_MODEL_NAME",
+                "type" : "INFERENCE_TYPE",
+                "data_type" : "DATA_TYPE",
+                "required_priors" : [
+                    "PRIOR", "PRIOR", "..."
+                ],
+                "output_parameters" : [
+                    "VARIABLE", "VARIABLE", "..."
+                ]
+            }
+        ]
     },
 
     "Prior" : {

@@ -1,5 +1,5 @@
 #!{PYTHON}
-# example syntax: retrieve_priors.py workshop-test.yaml /data/m5/priors
+# example syntax: retrieve_s2_priors.py workshop-test.yaml /data/m5/priors
 
 from multiply_prior_engine import PriorEngine
 import datetime
@@ -26,7 +26,10 @@ output_root_dir = sys.argv[4]
 with open(configuration_file) as f:
     parameters = yaml.load(f)
 
-variables = parameters['Inference']['parameters']
+required_priors = []
+for model in parameters['Inference']:
+    if model['type'] == 'kaska' and model['data_type'] == 'Sentinel-2':
+        required_priors = model['required_priors']
 
 start_time = datetime.datetime.strptime(start, '%Y-%m-%d')
 end_time = datetime.datetime.strptime(end, '%Y-%m-%d')
@@ -37,7 +40,7 @@ num_days = (end_time - start_time).days + 1
 i = 0
 while time <= end_time:
     print(time)
-    PE = PriorEngine(config=configuration_file, datestr=time.strftime('%Y-%m-%d'), variables=variables)
+    PE = PriorEngine(config=configuration_file, datestr=time.strftime('%Y-%m-%d'), variables=required_priors)
     script_progress_logger.info(f'{int((i/num_days) * 100)}-{int(((i+1)/num_days) * 100)}')
     priors = PE.get_priors()
     time = time + datetime.timedelta(days=1)
