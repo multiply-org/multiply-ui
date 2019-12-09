@@ -13,8 +13,12 @@ class RequestModelTest(unittest.TestCase):
                                           timeStepUnit='days',
                                           spatialResolution=20,
                                           inputTypes=['S2_L1C'],
-                                          parameters=['LAI'],
-                                          forwardModels=['s1_sail']
+                                          forwardModels=[dict(
+                                              name='s1_sail',
+                                              type='kafka',
+                                              modelDataType='Sentinel-1',
+                                              requiredPriors=['rgwf6', 'fg6'],
+                                              outputParameters=['LAI'])]
                                           ))
 
         self.assertEqual('bibo', input_request.name)
@@ -24,8 +28,12 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual('days', input_request.time_step_unit)
         self.assertEqual(20, input_request.spatialResolution)
         self.assertEqual(['S2_L1C'], input_request.input_types)
-        self.assertEqual(['LAI'], input_request.parameters)
-        self.assertEqual(['s1_sail'], input_request.forward_models)
+        self.assertEqual('s1_sail', input_request.forward_models[0]['name'])
+        self.assertEqual('kafka', input_request.forward_models[0]['type'])
+        self.assertEqual('Sentinel-1', input_request.forward_models[0]['modelDataType'])
+        self.assertEqual('rgwf6', input_request.forward_models[0]['requiredPriors'][0])
+        self.assertEqual('fg6', input_request.forward_models[0]['requiredPriors'][1])
+        self.assertEqual('LAI', input_request.forward_models[0]['outputParameters'][0])
         self.assertIsNotNone(input_request._repr_html_())
 
     def test_processing_request(self):
@@ -36,8 +44,13 @@ class RequestModelTest(unittest.TestCase):
                                                timeStepUnit='days',
                                                spatialResolution=20,
                                                inputTypes=['S2_L1C'],
-                                               parameters=['lai', 'cab'],
-                                               forwardModels=['s1_sail', 's2_pro'],
+                                               forwardModels=[dict(
+                                                   name='s1_sail',
+                                                   type='kafka',
+                                                   modelDataType='Sentinel-1',
+                                                   requiredPriors=['rgwf6', 'fg6'],
+                                                   outputParameters=['LAI'],
+                                               )],
                                                inputIdentifiers={'S2_L1C': ['IID1', 'IID2', 'IID3']}))
 
         self.assertEqual('bibo', input_request.name)
@@ -47,8 +60,12 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual('days', input_request.time_step_unit)
         self.assertEqual(20, input_request.spatialResolution)
         self.assertEqual(['S2_L1C'], input_request.input_types)
-        self.assertEqual(['lai', 'cab'], input_request.parameters)
-        self.assertEqual(['s1_sail', 's2_pro'], input_request.forward_models)
+        self.assertEqual('s1_sail', input_request.forward_models[0]['name'])
+        self.assertEqual('kafka', input_request.forward_models[0]['type'])
+        self.assertEqual('Sentinel-1', input_request.forward_models[0]['modelDataType'])
+        self.assertEqual('rgwf6', input_request.forward_models[0]['requiredPriors'][0])
+        self.assertEqual('fg6', input_request.forward_models[0]['requiredPriors'][1])
+        self.assertEqual('LAI', input_request.forward_models[0]['outputParameters'][0])
         self.assertIsInstance(input_request.inputs, InputIdentifiers)
         self.assertIsNotNone(input_request._repr_html_())
 

@@ -4,6 +4,14 @@ from ..params.model import TIME_RANGE_TYPE
 from ...util.html import html_element, html_table
 from ...util.schema import PropertyDef, TypeDef
 
+FORWARD_MODELS_TYPE = TypeDef(object, properties=[
+                              PropertyDef('name', TypeDef(str)),
+                              PropertyDef('type', TypeDef(str)),
+                              PropertyDef('modelDataType', TypeDef(str)),
+                              PropertyDef('requiredPriors', TypeDef(list, item_type=TypeDef(str))),
+                              PropertyDef('outputParameters', TypeDef(list, item_type=TypeDef(str)))
+])
+
 INPUT_IDENTIFIERS_TYPE = TypeDef(dict,
                                  key_type=TypeDef(str),
                                  item_type=TypeDef(list, item_type=TypeDef(str)))
@@ -16,8 +24,7 @@ INPUT_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('timeStepUnit', TypeDef(str)),
     PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
-    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str))),
-    PropertyDef('forwardModels', TypeDef(list, item_type=TypeDef(str)))
+    PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODELS_TYPE))
 ])
 
 PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
@@ -29,8 +36,7 @@ PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
     PropertyDef('inputIdentifiers', INPUT_IDENTIFIERS_TYPE),
-    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str))),
-    PropertyDef('forwardModels', TypeDef(list, item_type=TypeDef(str)))
+    PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODELS_TYPE))
 ])
 
 
@@ -95,7 +101,7 @@ class InputRequestMixin:
         return self._data['parameters']
 
     @property
-    def forward_models(self) -> List[str]:
+    def forward_models(self) -> List[Dict]:
         # noinspection PyUnresolvedReferences
         return self._data['forwardModels']
 
@@ -105,6 +111,13 @@ class InputRequestMixin:
 
     def _repr_html_(self):
         # TODO: make HTML look nice
+        parameters = []
+        models = []
+        for model in self.forward_models:
+            for param in model['outputParameters']:
+                if param not in parameters:
+                    parameters.append(param)
+            models.append(model['name'])
         return f'<p>' \
             f'Name: {self.name}<br/>' \
             f'Time range: {self.time_range}<br/>' \
@@ -112,8 +125,8 @@ class InputRequestMixin:
             f'Region box: {self.bbox}<br/>' \
             f'Spatial resolution in m: {self.spatialResolution}<br/>' \
             f'Input types: {", ".join(self.input_types)}<br/>' \
-            f'Parameters: {", ".join(self.parameters)}<br/>' \
-            f'Forward Models: {", ".join(self.forward_models)}' \
+            f'Parameters: {", ".join(parameters)}<br/>' \
+            f'Forward models: {", ".join(models)}' \
             f'</p>'
 
 

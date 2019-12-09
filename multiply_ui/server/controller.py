@@ -140,7 +140,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
                  "type": model_dict["type"],
                  "data_type": model_dict["modelDataType"],
                  "required_priors": [prior for prior in model_dict["requiredPriors"]],
-                 "output_parameters": [parameter for parameter in model_dict["output_parameters"]]}
+                 "output_parameters": [parameter for parameter in model_dict["outputParameters"]]}
         forward_models.append(model)
     pm_request['Inference']['forward_models'] = forward_models
     pm_request['Prior']['output_directory'] = workdir + '/priors'

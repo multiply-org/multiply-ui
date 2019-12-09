@@ -77,7 +77,6 @@ class ServiceContext:
         path = os.environ['PATH']
         os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
 
-
     # TODO: require an interface of data access to select data stores to be used
     def _restrict_to_mundi_datastore(self):
         for data_store in self.data_access_component._data_stores:
@@ -98,6 +97,8 @@ class ServiceContext:
                 "modelAuthors": model.authors,
                 "modelUrl": model.url,
                 "inputType": model.model_data_type,
+                "type": model.inference_engine_type,
+                "requiredPriors": model.required_priors,
                 "variables": model.variables
             })
         return dict_list

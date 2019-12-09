@@ -96,7 +96,9 @@
       "modelAuthors": "",
       "modelUrl": "http://teledetection.ipgp.jussieu.fr/prosail/",
       "inputType": "S2_L1C",
-      "variables": ["n", "cab", "car", "cb", "cw", "cdm", "lai", "ala", "bsoil", "psoil"]
+      "variables": ["n", "cab", "car", "cb", "cw", "cdm", "lai", "ala", "bsoil", "psoil"],
+      "requiredPriors": ["lai", "cab", "cb", "sm", "sr"],
+      "type": "kaska"
     }
   ]
 }

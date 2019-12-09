@@ -405,7 +405,17 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             return
         roi = shape(roi_data)
         x1, y1, x2, y2 = roi.bounds
-
+        request_models = []
+        for model_id in selected_forward_models:
+            request_model = processing_parameters.forward_models.get(model_id)
+            request_model_dict = dict(
+                name=model_id,
+                type=request_model.type,
+                modelDataType=request_model.input_type,
+                requiredPriors=request_model.requiredPriors,
+                outputParameters=request_model.variables
+            )
+            request_models.append(request_model_dict)
         return InputRequest(dict(
             name=request_name.value,
             timeRange=[datetime.datetime.strftime(start_date.value, "%Y-%m-%d"),
@@ -415,8 +425,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             bbox=f"{x1},{y1},{x2},{y2}",
             spatialResolution=spatial_resolution.value,
             inputTypes=input_types,
-            parameters=selected_variables,
-            forwardModels=selected_forward_models
+            # parameters=selected_variables,
+            forwardModels=request_models
         ))
 
     # noinspection PyUnusedLocal
