@@ -11,6 +11,8 @@ logger.setLevel(logging.INFO)
 
 # setup parameters
 sdrs_dir = sys.argv[1]
+start_date = sys.argv[2]
+stop_date = sys.argv[3]
 
 dac = DataAccessComponent()
 sdrs = os.listdir(sdrs_dir)

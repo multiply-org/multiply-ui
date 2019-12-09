@@ -16,9 +16,7 @@ script_progress_logger.addHandler(script_progress_logging_handler)
 
 # setup parameters
 configuration_file = sys.argv[1]
-start_date = sys.argv[2]
-end_date = sys.argv[3]
-hres_biophys_outputs = sys.argv[4:-2]
+hres_biophys_outputs = sys.argv[2:-2]
 hres_biophys_output_main = sys.argv[-1]
 
 script_progress_logger.info('0-100')

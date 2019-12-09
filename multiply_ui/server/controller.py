@@ -67,20 +67,32 @@ def submit_request(ctx, request) -> Dict:
 
 def _translate_step(step: str) -> str:
     step_parts = step.split(" ")
+    if step_parts[0] == "combine_hres_biophys_outputs.py":
+        return 'Assembling results from S2 inference'
     if step_parts[0] == "data_access_get_static.py":
         return f'Retrieving data required for all time steps'
-    if step_parts[0] == "get_data_for_s2_preprocessing.py":
-        return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "data_access_put_s2_l2.py":
+        return f'Storing S2 Pre-processing results of time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "determine_s1_priors.py":
+        return f'Assembling Priors for S1 Retrieval for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "get_data_for_s1_preprocessing.py":
         return f'Retrieving SAR data for time step from {step_parts[2]} to {step_parts[3]}'
-    if step_parts[0] == "retrieve_s2_priors.py":
-        return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
-    if step_parts[0] == "preprocess_s2.py":
-        return f'Preprocessing S2 Data for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "get_data_for_s2_preprocessing.py":
+        return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s2_kafka.py":
         return f'Inferring variables for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "infer_s1_kaska.py":
+        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "infer_s2_kaska.py":
+        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]}'
     if step_parts[0] == "preprocess_s1.py":
-        return f'Preprocessing S1 data for time step from {step_parts[2]} to {step_parts[3]}'
+        return 'Preprocessing S1 data for all time steps'
+    if step_parts[0] == "preprocess_s2.py":
+        return f'Preprocessing S2 Data for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "retrieve_s2_priors.py":
+        return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "stack_s1.py":
+        return f'Creating S1 Stack for time step from {step_parts[2]} to {step_parts[3]}'
     return step
 
 
