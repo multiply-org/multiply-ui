@@ -57,7 +57,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     forward_model_boxes_dict = _get_checkboxes_dict(processing_parameters.forward_models.ids, forward_model_names)
     request_validation = widgets.HTML(value=html_element('h3',
                                                          att=dict(style='color:red'),
-                                                         value='No variable or forward model selected'))
+                                                         value='No variable_id or forward model selected'))
     non_disabled_forward_models = []
     available_forward_models_per_type = {}
     forward_models_per_variable = {}
@@ -124,9 +124,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     def _request_status() -> str:
         if len(selected_variables) == 0 and len(selected_forward_models) == 0:
-            return 'No variable or forward model selected'
+            return 'No variable_id or forward model selected'
         elif len(selected_variables) == 0:
-            return 'No variable selected'
+            return 'No variable_id selected'
         elif len(selected_forward_models) == 0:
             return 'No forward model selected'
         else:
@@ -146,7 +146,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                         break
                 if not at_least_one_variable_selected:
                     return f"Selection is valid, " \
-                           f"but no variable is selected for forward model '{selected_forward_model}'."
+                           f"but no variable_id is selected for forward model '{selected_forward_model}'."
             return 'Selection is valid'
 
     def _validate_selection():
@@ -408,12 +408,16 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         request_models = []
         for model_id in selected_forward_models:
             request_model = processing_parameters.forward_models.get(model_id)
+            request_variables = []
+            for variable_id in request_model.variables:
+                if variable_id in selected_variables:
+                    request_variables.append(variable_id)
             request_model_dict = dict(
                 name=model_id,
                 type=request_model.type,
                 modelDataType=request_model.input_type,
                 requiredPriors=request_model.requiredPriors,
-                outputParameters=request_model.variables
+                outputParameters=request_variables
             )
             request_models.append(request_model_dict)
         return InputRequest(dict(
@@ -425,7 +429,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             bbox=f"{x1},{y1},{x2},{y2}",
             spatialResolution=spatial_resolution.value,
             inputTypes=input_types,
-            # parameters=selected_variables,
             forwardModels=request_models
         ))
 
@@ -453,14 +456,14 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
         result_html = html_table(data_rows, header_row=['Input Type', 'Number of inputs found'])
 
-        # insert shall variable whose value is processing_request
+        # insert shall variable_id whose value is processing_request
         # users can later call the GUI with that object to edit it
         if req_var_name:
             shell = IPython.get_ipython()
             shell.push({req_var_name: processing_request}, interactive=True)
             var_name_html = html_element('p',
                                             value=f'Note: a new processing request has been '
-                                             f'stored in variable <code>{req_var_name}</code>.')
+                                             f'stored in variable_id <code>{req_var_name}</code>.')
             result_html = html_element('div',
                                            value=result_html + var_name_html)
         info.output_html(result_html)
@@ -483,7 +486,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             shell.push({req_var_name: job}, interactive=True)
             result_html = html_element('p',
                                        value=f'Note: a new job is currently being executed and is '
-                                       f'stored in variable <code>{req_var_name}</code>.')
+                                       f'stored in variable_id <code>{req_var_name}</code>.')
             info.output_html(result_html)
 
     # TODO: make GUI form look nice
