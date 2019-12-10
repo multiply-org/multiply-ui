@@ -1,8 +1,11 @@
 from typing import List
 from ipyleaflet import Map, basemaps, basemap_to_tiles, DrawControl, GeoJSON
-from shapely.geometry import shape
+from shapely.errors import WKTReadingError
+from shapely.geometry import Polygon, shape
+from shapely.wkt import loads
 
 import datetime
+import geojson
 import IPython
 import ipywidgets as widgets
 import time
@@ -16,7 +19,6 @@ from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
 from ..info import InfoComponent
 from ..userprior import user_prior_component
-
 
 _NUM_REQUESTS = 0
 
@@ -160,7 +162,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             else:
                 color = 'orange'
             request_status = _format_request_status(request_status)
-        request_validation.value=html_element('h3', att=dict(style=f'color:{color}'), value=request_status)
+        request_validation.value = html_element('h3', att=dict(style=f'color:{color}'), value=request_status)
 
     def _format_request_status(request_status: str) -> str:
         if not request_status.startswith('Selection is valid'):
@@ -193,7 +195,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         _update_forward_models_after_variable_change(variable_id, True)
         _validate_selection()
 
-    def _update_forward_models_after_variable_change(variable_id: str, examine_secondary_models: bool=False):
+    def _update_forward_models_after_variable_change(variable_id: str, examine_secondary_models: bool = False):
         already_examined_types = []
         for potential_forward_model in forward_models_per_variable[variable_id]:
             fm_type = _fm_input_type(potential_forward_model)
@@ -371,8 +373,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 if 'unc' in user_priors_dict[possible_user_prior_id]:
                     unc = user_priors_dict[possible_user_prior_id]['unc']
             user_prior_components.append(user_prior_component(prior.id, prior.unit, _handle_user_prior_change, mu, unc))
-        user_priors_box.children =  [_wrap_user_priors_in_widget(user_prior_components)]
-
+        user_priors_box.children = [_wrap_user_priors_in_widget(user_prior_components)]
 
     global _NUM_REQUESTS
     _NUM_REQUESTS += 1
@@ -382,10 +383,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=5, day=10))
     end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=5, day=15))
 
-    time_steps = Spinner(
-        value=10,
-        min = 1
-    )
+    time_steps = Spinner(value=10, min=1)
 
     time_steps_unit = widgets.Dropdown(
         options=['days', 'weeks'],
@@ -393,16 +391,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         disabled=False
     )
 
-    def format_angle(a):
-        if a < 0:
-            return f" {a} "
-        if a > 0:
-            return f" +{a} "
-        return " 0 "
-
     map_background_layer = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
     geometry_layer = GeoJSON()
-    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=(58.63, 28.), zoom=11)
+    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=[52., 10.], zoom=4)
     draw_control = DrawControl()
     draw_control.polyline = {}
     draw_control.polygon = {}
@@ -411,20 +402,76 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     draw_control.edit = False
     draw_control.remove = False
 
-    def _remove_previous_polygon(self, action, geo_json):
+    @debug_view.capture(clear_output=True)
+    def _handle_draw(self, action, geo_json):
         self.clear()
         leaflet_map.remove_layer(leaflet_map.layers[1])
         geometry_layer = GeoJSON(data=geo_json['geometry'])
         leaflet_map.add_layer(geometry_layer)
 
-    draw_control.on_draw(_remove_previous_polygon)
+        roi_shape = shape(leaflet_map.layers[1].data)
+        roi_area.value = roi_shape.wkt
+        roi_validation.value = html_element('h3', att=dict(style=f'color:green'), value=action)
+
+    draw_control.on_draw(_handle_draw)
     leaflet_map.add_control(draw_control)
 
-    spatial_resolution = Spinner(
-        value=100,
-        min = 1,
-        step = 1
-    )
+    roi_area = widgets.Textarea(layout=widgets.Layout(flex='1 10 90%', align_items='stretch'))
+    roi_map_button = widgets.Button(description="Map region", layout=widgets.Layout(flex='0 1 10%'))
+
+    def _update_roi_status_for_error(message: str):
+        roi_data = leaflet_map.layers[1].data
+        if not roi_data:
+            roi_validation.value = html_element('h3', att=dict(style=f'color:red'),
+                                                value=message)
+            return
+        roi_validation.value = html_element('h3', att=dict(style=f'color:orange'),
+                                            value=f'{message} Keep previously defined Region of Interest.')
+
+    @debug_view.capture(clear_output=True)
+    def _handle_roi_map_button_clicked(*args, **kwargs):
+        try:
+            geom = loads(roi_area.value)
+            if type(geom) is not Polygon:
+                _update_roi_status_for_error('User-provided Region of Interest is not of type Polygon.')
+                return
+            geojson_feature = geojson.Feature(geometry=geom, properties={})
+            draw_control.clear()
+            leaflet_map.remove_layer(leaflet_map.layers[1])
+            geometry_layer = GeoJSON(data=geojson_feature['geometry'])
+            leaflet_map.add_layer(geometry_layer)
+            center_lon, center_lat = geom.centroid.coords.xy
+            leaflet_map.center = [center_lat[0], center_lon[0]]
+
+            @debug_view.capture(clear_output=False)
+            def _adjust_zoom_level(event):
+                if event['name'] == 'bounds' and leaflet_map.zoom < 18:
+                    southwest, northeast = leaflet_map.bounds
+                    map_bounds = Polygon([(southwest[1], southwest[0]), (southwest[1], northeast[0]),
+                                          (northeast[1], northeast[0]), (northeast[1], southwest[0]),
+                                          (southwest[1], southwest[0])])
+                    if map_bounds.covers(geom):
+                        leaflet_map.zoom = leaflet_map.zoom + 1
+                    elif leaflet_map.zoom > 1:
+                        leaflet_map.zoom = leaflet_map.zoom - 1
+                        leaflet_map.unobserve(_adjust_zoom_level)
+
+            leaflet_map.zoom = 1
+            leaflet_map.observe(_adjust_zoom_level)
+            if geom.is_valid:
+                roi_validation.value = html_element('h3', att=dict(style=f'color:green'),
+                                                    value='Region of Interest defined.')
+            else:
+                roi_validation.value = html_element('h3', att=dict(style=f'color:orange'),
+                                                    value='User-provided Region of Interest is invalid.')
+        except WKTReadingError:
+            _update_roi_status_for_error('User-provided Region of Interest cannot be read.')
+
+    roi_map_button.on_click(_handle_roi_map_button_clicked)
+    spatial_resolution = Spinner(value=100, min=1, step=1)
+    roi_validation = widgets.HTML(value=html_element('h3',
+                                                     att=dict(style='color:red'),
+                                                     value='No region of interest defined'))
 
     info = InfoComponent()
 
@@ -439,9 +486,12 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 input_types.append(input_type)
         roi_data = leaflet_map.layers[1].data
         if not roi_data:
-            info.output_error('Error: No region of Interest specified')
+            info.output_error('Error: No Region of Interest specified')
             return
         roi = shape(roi_data)
+        if not roi.is_valid:
+            info.output_error('Error: Region of Interest is invalid')
+            return
         x1, y1, x2, y2 = roi.bounds
         request_models = []
         required_priors = []
@@ -514,10 +564,10 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             shell = IPython.get_ipython()
             shell.push({req_var_name: processing_request}, interactive=True)
             var_name_html = html_element('p',
-                                            value=f'Note: a new processing request has been '
-                                             f'stored in variable_id <code>{req_var_name}</code>.')
+                                         value=f'Note: a new processing request has been '
+                                               f'stored in variable <code>{req_var_name}</code>.')
             result_html = html_element('div',
-                                           value=result_html + var_name_html)
+                                       value=result_html + var_name_html)
         info.output_html(result_html)
 
     # noinspection PyUnusedLocal
@@ -538,7 +588,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             shell.push({req_var_name: job}, interactive=True)
             result_html = html_element('p',
                                        value=f'Note: a new job is currently being executed and is '
-                                       f'stored in variable_id <code>{req_var_name}</code>.')
+                                             f'stored in variable_id <code>{req_var_name}</code>.')
             info.output_html(result_html)
 
     # TODO: make GUI form look nice
@@ -546,6 +596,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     new_button.on_click(handle_new_button_clicked)
     submit_button = widgets.Button(description="Submit Request", icon="upload")
     submit_button.on_click(handle_submit_button_clicked)
+
     form_items = [
         widgets.Box([widgets.HTML(value=html_element('h2', value='Output Variables'))], layout=form_item_layout),
         widgets.Box([variables_box], layout=var_checks_layout),
@@ -561,20 +612,21 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([widgets.Label(value='Time steps'), widgets.Box([time_steps, time_steps_unit])],
                     layout=form_item_layout),
         widgets.Box([widgets.HTML(value=html_element('h2', value='Region of Interest'))], layout=form_item_layout),
-        widgets.Box([widgets.Label(value="Region of Interest"), leaflet_map], layout=form_item_layout),
+        widgets.Box([roi_area, roi_map_button], layout=form_item_layout),
+        widgets.Box([leaflet_map], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Resolution (m)'), spatial_resolution], layout=form_item_layout),
+        widgets.Box([roi_validation], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Request/job name'), request_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Python identifier'), python_var_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value=''), widgets.Box([new_button, submit_button])], layout=form_item_layout),
         widgets.Box([info.as_widget()], layout=form_item_layout)
     ]
-
     form = widgets.Box(form_items, layout=widgets.Layout(
         display='flex',
         flex_flow='column',
         border='solid 1px lightgray',
         align_items='stretch',
-        width='50%'
+        width='100%'
     ))
 
     return form
