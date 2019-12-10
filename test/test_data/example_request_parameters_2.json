@@ -24,5 +24,20 @@
                 "lai"
             ]
         }
+    ],
+    "userPriors": [
+        {
+            "name": "lai",
+            "mu": 0.1,
+            "unc": 0.01
+        },
+        {
+            "name": "ala",
+            "unc": 0.05
+        },
+        {
+            "name": "cb",
+            "mu": 0.3
+        }
     ]
 }

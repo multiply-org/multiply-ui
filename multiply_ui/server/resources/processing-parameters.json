@@ -13,6 +13,7 @@
       "unit": "m2/m2",
       "description": "Effective Leaf Area Index",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -21,6 +22,7 @@
       "unit": "ug/cm2",
       "description": "Leaf Chlorophyll Content",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -29,6 +31,7 @@
       "unit": "",
       "description": "Leaf Senescent Material",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -37,6 +40,7 @@
       "unit": "ug/cm2",
       "description": "Leaf Carotonoid Content",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -45,6 +49,7 @@
       "unit": "cm",
       "description": "Leaf Water Content",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -53,6 +58,7 @@
       "unit": "g/cm2",
       "description": "Leaf Dry Mass",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -61,6 +67,7 @@
       "unit": "",
       "description": "Leaf Structure Parameter",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -69,6 +76,7 @@
       "unit": "degrees",
       "description": "Average Leaf Angle",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -77,6 +85,7 @@
       "unit": "",
       "description": "Soil Brightness Parameter",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     },
     {
@@ -85,6 +94,7 @@
       "unit": "",
       "description": "Soil Wetness Parameter",
       "valueRange": "",
+      "mayBeUserPrior": true,
       "applications": []
     }
   ],

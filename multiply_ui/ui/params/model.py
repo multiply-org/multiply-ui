@@ -17,6 +17,7 @@ VARIABLE_TYPE = TypeDef(object, properties=[
     PropertyDef('unit', TypeDef(str, optional=True)),
     PropertyDef('description', TypeDef(str, optional=True)),
     PropertyDef('valueRange', TypeDef(str, optional=True)),
+    PropertyDef('mayBeUserPrior', TypeDef(bool)),
     PropertyDef('applications', TypeDef(list, optional=True, item_type=TypeDef(str))),
 ])
 
@@ -58,6 +59,10 @@ class Variable:
     @property
     def description(self) -> Optional[str]:
         return self._data['description']
+
+    @property
+    def may_be_user_prior(self):
+        return self._data['mayBeUserPrior']
 
     def _repr_html_(self):
         return self.html_table([self])

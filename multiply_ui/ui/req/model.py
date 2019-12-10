@@ -4,12 +4,16 @@ from ..params.model import TIME_RANGE_TYPE
 from ...util.html import html_element, html_table
 from ...util.schema import PropertyDef, TypeDef
 
-FORWARD_MODELS_TYPE = TypeDef(object, properties=[
-                              PropertyDef('name', TypeDef(str)),
-                              PropertyDef('type', TypeDef(str)),
-                              PropertyDef('modelDataType', TypeDef(str)),
-                              PropertyDef('requiredPriors', TypeDef(list, item_type=TypeDef(str))),
-                              PropertyDef('outputParameters', TypeDef(list, item_type=TypeDef(str)))
+FORWARD_MODEL_TYPE = TypeDef(object, properties=[PropertyDef('name', TypeDef(str)),
+                                                 PropertyDef('type', TypeDef(str)),
+                                                 PropertyDef('modelDataType', TypeDef(str)),
+                                                 PropertyDef('requiredPriors', TypeDef(list, item_type=TypeDef(str))),
+                                                 PropertyDef('outputParameters', TypeDef(list, item_type=TypeDef(str)))
+                                                 ])
+
+USER_PRIOR_TYPE = TypeDef(object, properties=[PropertyDef('name', TypeDef(str)),
+                                              PropertyDef('mu', TypeDef(float, optional=True)),
+                                              PropertyDef('unc', TypeDef(float, optional=True))
 ])
 
 INPUT_IDENTIFIERS_TYPE = TypeDef(dict,
@@ -24,7 +28,8 @@ INPUT_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('timeStepUnit', TypeDef(str)),
     PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
-    PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODELS_TYPE))
+    PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
+    PropertyDef('userPriors', TypeDef(list, item_type=USER_PRIOR_TYPE))
 ])
 
 PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
@@ -36,7 +41,8 @@ PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
     PropertyDef('inputIdentifiers', INPUT_IDENTIFIERS_TYPE),
-    PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODELS_TYPE))
+    PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
+    PropertyDef('userPriors', TypeDef(list, item_type=USER_PRIOR_TYPE))
 ])
 
 
@@ -94,7 +100,7 @@ class InputRequestMixin:
     def input_types(self) -> List[str]:
         # noinspection PyUnresolvedReferences
         return self._data['inputTypes']
-    
+
     @property
     def parameters(self) -> List[str]:
         # noinspection PyUnresolvedReferences
@@ -104,6 +110,10 @@ class InputRequestMixin:
     def forward_models(self) -> List[Dict]:
         # noinspection PyUnresolvedReferences
         return self._data['forwardModels']
+
+    @property
+    def user_priors(self) -> List[Dict]:
+        return self._data['userPriors']
 
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
@@ -118,16 +128,20 @@ class InputRequestMixin:
                 if param not in parameters:
                     parameters.append(param)
             models.append(model['name'])
+        user_prior_names = []
+        for user_prior in self.user_priors:
+            user_prior_names.append(user_prior['name'])
         return f'<p>' \
-            f'Name: {self.name}<br/>' \
-            f'Time range: {self.time_range}<br/>' \
-            f'Time step: {self.time_step} {self.time_step_unit}<br/>' \
-            f'Region box: {self.bbox}<br/>' \
-            f'Spatial resolution in m: {self.spatialResolution}<br/>' \
-            f'Input types: {", ".join(self.input_types)}<br/>' \
-            f'Parameters: {", ".join(parameters)}<br/>' \
-            f'Forward models: {", ".join(models)}' \
-            f'</p>'
+               f'Name: {self.name}<br/>' \
+               f'Time range: {self.time_range}<br/>' \
+               f'Time step: {self.time_step} {self.time_step_unit}<br/>' \
+               f'Region box: {self.bbox}<br/>' \
+               f'Spatial resolution in m: {self.spatialResolution}<br/>' \
+               f'Input types: {", ".join(self.input_types)}<br/>' \
+               f'Parameters: {", ".join(parameters)}<br/>' \
+               f'Forward models: {", ".join(models)}<br/>' \
+               f'User priors: {", ".join(user_prior_names)}' \
+               f'</p>'
 
 
 class InputRequest(InputRequestMixin):

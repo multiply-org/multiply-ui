@@ -144,6 +144,13 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
         forward_models.append(model)
     pm_request['Inference']['forward_models'] = forward_models
     pm_request['Prior']['output_directory'] = workdir + '/priors'
+    for user_prior_dict in request['userPriors']:
+        if 'mu' in user_prior_dict:
+            pm_request['Prior'][user_prior_dict['name']] = {'user': {'mu': user_prior_dict['mu']}}
+        if 'unc' in user_prior_dict:
+            if 'user' not in pm_request['Prior'][user_prior_dict['name']]:
+                pm_request['Prior'][user_prior_dict['name']]['user'] = {}
+            pm_request['Prior'][user_prior_dict['name']]['user']['unc'] = user_prior_dict['unc']
     return pm_request
 
 

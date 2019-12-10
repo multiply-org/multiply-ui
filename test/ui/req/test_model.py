@@ -13,13 +13,22 @@ class RequestModelTest(unittest.TestCase):
                                           timeStepUnit='days',
                                           spatialResolution=20,
                                           inputTypes=['S2_L1C'],
-                                          forwardModels=[dict(
-                                              name='s1_sail',
-                                              type='kafka',
-                                              modelDataType='Sentinel-1',
-                                              requiredPriors=['rgwf6', 'fg6'],
-                                              outputParameters=['LAI'])]
-                                          ))
+                                          forwardModels=[
+                                              dict(name='s1_sail',
+                                                   type='kafka',
+                                                   modelDataType='Sentinel-1',
+                                                   requiredPriors=['rgwf6', 'fg6'],
+                                                   outputParameters=['LAI'])],
+                                          userPriors=[
+                                              dict(name='LAI',
+                                                   mu=0.2,
+                                                   unc=0.01),
+                                              dict(name='ALA',
+                                                   mu=1.3),
+                                              dict(name='fzxh',
+                                                   unc=0.01)]
+                                          )
+                                     )
 
         self.assertEqual('bibo', input_request.name)
         self.assertEqual((10.2, 51.2, 11.3, 53.6), input_request.bbox)
@@ -34,6 +43,15 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual('rgwf6', input_request.forward_models[0]['requiredPriors'][0])
         self.assertEqual('fg6', input_request.forward_models[0]['requiredPriors'][1])
         self.assertEqual('LAI', input_request.forward_models[0]['outputParameters'][0])
+        self.assertEqual(3, len(input_request.user_priors))
+        self.assertEqual('LAI', input_request.user_priors[0]['name'])
+        self.assertEqual(0.2, input_request.user_priors[0]['mu'])
+        self.assertEqual(0.01, input_request.user_priors[0]['unc'])
+        self.assertEqual('ALA', input_request.user_priors[1]['name'])
+        self.assertEqual(1.3, input_request.user_priors[1]['mu'])
+        self.assertEqual('fzxh', input_request.user_priors[2]['name'])
+        self.assertEqual(0.01, input_request.user_priors[2]['unc'])
+
         self.assertIsNotNone(input_request._repr_html_())
 
     def test_processing_request(self):
@@ -51,6 +69,14 @@ class RequestModelTest(unittest.TestCase):
                                                    requiredPriors=['rgwf6', 'fg6'],
                                                    outputParameters=['LAI'],
                                                )],
+                                               userPriors=[
+                                                   dict(name='LAI',
+                                                        mu=0.2,
+                                                        unc=0.01),
+                                                   dict(name='ALA',
+                                                        mu=1.3),
+                                                   dict(name='fzxh',
+                                                        unc=0.01)],
                                                inputIdentifiers={'S2_L1C': ['IID1', 'IID2', 'IID3']}))
 
         self.assertEqual('bibo', input_request.name)
@@ -66,6 +92,14 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual('rgwf6', input_request.forward_models[0]['requiredPriors'][0])
         self.assertEqual('fg6', input_request.forward_models[0]['requiredPriors'][1])
         self.assertEqual('LAI', input_request.forward_models[0]['outputParameters'][0])
+        self.assertEqual(3, len(input_request.user_priors))
+        self.assertEqual('LAI', input_request.user_priors[0]['name'])
+        self.assertEqual(0.2, input_request.user_priors[0]['mu'])
+        self.assertEqual(0.01, input_request.user_priors[0]['unc'])
+        self.assertEqual('ALA', input_request.user_priors[1]['name'])
+        self.assertEqual(1.3, input_request.user_priors[1]['mu'])
+        self.assertEqual('fzxh', input_request.user_priors[2]['name'])
+        self.assertEqual(0.01, input_request.user_priors[2]['unc'])
         self.assertIsInstance(input_request.inputs, InputIdentifiers)
         self.assertIsNotNone(input_request._repr_html_())
 

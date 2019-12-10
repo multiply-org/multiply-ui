@@ -11,6 +11,7 @@ import multiply_data_access.data_access_component
 from multiply_core.models import get_forward_models
 from multiply_core.observations import INPUT_TYPES
 from multiply_core.variables import get_registered_variables
+from multiply_prior_engine.vegetation_prior_creator import SUPPORTED_VARIABLES as POSSIBLE_USER_PRIORS
 from vm_support import set_earth_data_authentication, set_mundi_authentication
 
 from .model import Job
@@ -122,6 +123,7 @@ class ServiceContext:
                 "unit": variable.unit,
                 "description": variable.description,
                 "valueRange": variable.range,
+                "mayBeUserPrior": variable.short_name in POSSIBLE_USER_PRIORS,
                 "applications": variable.applications
             })
         return dict_list
