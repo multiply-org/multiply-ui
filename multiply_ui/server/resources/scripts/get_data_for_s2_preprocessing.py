@@ -29,6 +29,7 @@ def create_dir(dir):
 create_dir(modis_dir)
 create_dir(cams_tiff_dir)
 create_dir(s2_dir)
+create_dir(provided_sdrs_dir)
 
 # read request file for parameters
 with open(configuration_file) as f:
