@@ -97,7 +97,7 @@ class MultiplyFull(MultiplyMonitor):
                          parameters=[self._request_file, date, next_date, hres_state])
             hres_state = updated_state
         self.execute('combine_hres_biophys_outputs.py', hres_biophys_output_per_dates, [hres_biophys_output],
-                     arameters=[self._request_file])
+                     parameters=[self._request_file])
         params_dict['hres_biophys_output'] = hres_biophys_output
         return params_dict
 

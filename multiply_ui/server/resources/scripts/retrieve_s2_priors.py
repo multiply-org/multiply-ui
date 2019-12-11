@@ -27,8 +27,8 @@ with open(configuration_file) as f:
     parameters = yaml.load(f)
 
 required_priors = []
-for model in parameters['Inference']:
-    if model['type'] == 'kaska' and model['data_type'] == 'Sentinel-2':
+for model in parameters['Inference']['forward_models']:
+    if model['data_type'] == 'Sentinel-2':
         required_priors = model['required_priors']
 
 start_time = datetime.datetime.strptime(start, '%Y-%m-%d')
