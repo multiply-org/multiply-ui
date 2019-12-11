@@ -32,7 +32,7 @@ def obs_job_form(job: Job, mock=False):
                                        grid_template_columns='22% 21% 43% 14%'
                                    )
                                    )
-    task_header_name_label = widgets.HTML(value = f"<b>Task Name</b>")
+    task_header_name_label = widgets.HTML(value = f"<b>Task</b>")
     task_header_progress_label = widgets.HTML(value = f"<b>Progress</b>")
     task_header_status_label = widgets.HTML(value = f"<b>Status</b>")
 
