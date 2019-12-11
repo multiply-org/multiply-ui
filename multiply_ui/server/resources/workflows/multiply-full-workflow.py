@@ -1,7 +1,7 @@
 import datetime
 from typing import Dict
 from multiply_core.util import get_num_tiles
-from .multiply_workflow import MultiplyMonitor
+from multiply_workflow import MultiplyMonitor
 
 
 class MultiplyFull(MultiplyMonitor):
@@ -43,7 +43,7 @@ class MultiplyFull(MultiplyMonitor):
         stop = datetime.datetime.strftime(self._stop, '%Y-%m-%d')
         params_dict = self._create_kafka_s2_inference_workflow(start, stop, {})
         params_dict = self._create_kaska_s2_inference_workflow(start, stop, params_dict)
-        params_dict = self._create_kafka_s1_inference_workflow(start, stop, params_dict)
+        params_dict = self._create_kaska_s1_inference_workflow(start, stop, params_dict)
         # params_dict = self._create_eo_post_processing_workflow(start, stop, params_dict)
         # params_dict = self._create_variable_post_processing_workflow(start, stop, params_dict)
 
