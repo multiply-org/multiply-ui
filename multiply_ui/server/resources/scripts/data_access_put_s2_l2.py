@@ -10,13 +10,16 @@ logger = logging.getLogger('ScriptProgress')
 logger.setLevel(logging.INFO)
 
 # setup parameters
-sdrs_dir = sys.argv[1]
+configuration_file = sys.argv[1]
 start_date = sys.argv[2]
 stop_date = sys.argv[3]
+sdrs_dir = sys.argv[4]
+provided_sdrs_dir = sys.argv[5]
 
 dac = DataAccessComponent()
 sdrs = os.listdir(sdrs_dir)
 for i, sdr in enumerate(sdrs):
     logger.info(f'{int((i/len(sdrs)) * 100)}-{int((i+1/len(sdrs)) * 100)}')
-    dac.put(sdrs_dir + '/' + sdr, 'S2L2')
+    if not os.path.exists(os.path.join(provided_sdrs_dir, sdr)):
+        dac.put(os.path.join(sdrs_dir, sdr), 'S2L2')
 logger.info('100-100')

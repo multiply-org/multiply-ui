@@ -85,8 +85,8 @@ class MultiplyFull(MultiplyMonitor):
                                               provided_sdrs_for_date], [sdrs_for_date],
                          parameters=[self._request_file, date, next_date])
             #todo add asking whether preprocessing was performed on full tile
-            self.execute('data_access_put_s2_l2.py', [sdrs_for_date, provided_sdrs_for_date], [],
-                         parameters=[self._request_file, date, next_date])
+            # self.execute('data_access_put_s2_l2.py', [sdrs_for_date, provided_sdrs_for_date], [],
+            #              parameters=[self._request_file, date, next_date])
             priors_for_date = priors + '/' + date
             self.execute('retrieve_s2_priors.py', [], [priors_for_date], parameters=[self._request_file, date, next_date])
             updated_state = hres_state_dir + '/' + date
@@ -119,8 +119,8 @@ class MultiplyFull(MultiplyMonitor):
         self.execute('preprocess_s2.py', [s2, modis, emus, cams, dem, provided_sdrs], [sdrs],
                      parameters=[self._request_file, start, stop])
         # todo add asking whether preprocessing was performed on full tile
-        self.execute('data_access_put_s2_l2.py', [sdrs, provided_sdrs], [],
-                     parameters=[self._request_file, start, stop])
+        # self.execute('data_access_put_s2_l2.py', [sdrs, provided_sdrs], [],
+        #              parameters=[self._request_file, start, stop])
         self.execute('retrieve_s2_priors.py', [], [priors], parameters=[self._request_file, start, stop])
         for tile_x in self._num_tiles_x:
             for tile_y in self._num_tiles_y:

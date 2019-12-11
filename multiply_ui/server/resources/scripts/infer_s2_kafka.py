@@ -1,6 +1,7 @@
 #!{PYTHON}
 
 from multiply_inference_engine import infer
+from multiply_core.models import get_forward_model
 
 import logging
 import os
@@ -39,8 +40,28 @@ if 'destination_grid' in parameters['General']:
     destination_grid = parameters['General']['destination_grid']
 else:
     destination_grid = None
-parameter_list = parameters['Inference']['parameters']
-forward_model_list = parameters['Inference']['forward_models']
+
+forward_models = []
+requested_parameters = []
+model_parameters = []
+required_priors = []
+for model_dict in parameters['Inference']['forward_models']:
+    if model_dict['type'] == 'kafka' and model_dict['data_type'] == 'Sentinel-2':
+        forward_models.append(model_dict['name'])
+        requested_model_parameters = model_dict['output_parameters']
+        for model_parameter in requested_model_parameters:
+            if model_parameter not in requested_parameters:
+                requested_parameters.append(model_parameter)
+        forward_model = get_forward_model(model_dict['name'])
+        output_parameters = forward_model.variables
+        for output_parameter in output_parameters:
+            if output_parameter not in model_parameters:
+                model_parameters.append(output_parameter)
+    elif model_dict['type'] == 'kaska' and model_dict['data_type'] == 'Sentinel-1':
+        required_priors = model_dict['required_priors']
+for prior in required_priors:
+    if prior in model_parameters and prior not in requested_parameters:
+        requested_parameters.append(prior)
 
 if not os.path.exists(next_state):
     os.makedirs(next_state)
@@ -51,12 +72,12 @@ script_progress_logger.info('0-100')
 
 infer(start_time=start_date,
       end_time=end_date,
-      parameter_list=parameter_list,
+      parameter_list=requested_parameters,
       prior_directory=priors_dir,
       datasets_dir=observations_dir,
       previous_state_dir=previous_state,
       next_state_dir=next_state,
-      forward_models=forward_model_list,
+      forward_models=forward_models,
       output_directory=output_dir,
       roi=roi,
       spatial_resolution=spatial_resolution,
