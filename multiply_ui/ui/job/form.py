@@ -29,7 +29,6 @@ def obs_job_form(job: Job, mock=False):
                                    layout=widgets.Layout(
                                        width='100%',
                                        grid_template_rows='auto auto',
-                                       # grid_template_columns='20% 20% 40% 20%'
                                        grid_template_columns='22% 21% 43% 14%'
                                    )
                                    )
