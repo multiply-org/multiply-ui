@@ -176,8 +176,7 @@ def _get_num_tiles_of_request(request) -> Tuple:
 def _determine_workflow(request) -> str:
     if "productionType" in request:
         return request["productionType"]
-    # return 'infer-s2-kafka'
-    return 'only-get-data'
+    return 'multiply-full'
 
 
 def _pm_workflow_of(pm) -> List:
