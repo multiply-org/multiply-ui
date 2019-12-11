@@ -411,7 +411,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
         roi_shape = shape(leaflet_map.layers[1].data)
         roi_area.value = roi_shape.wkt
-        roi_validation.value = html_element('h3', att=dict(style=f'color:green'), value=action)
+        roi_validation.value = html_element('h3', att=dict(style=f'color:green'), value='Region of Interest defined.')
 
     draw_control.on_draw(_handle_draw)
     leaflet_map.add_control(draw_control)
@@ -469,8 +469,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
     roi_map_button.on_click(_handle_roi_map_button_clicked)
     spatial_resolution = Spinner(value=100, min=1, step=1)
-    roi_validation = widgets.HTML(value=html_element('h3',
-                                                     att=dict(style='color:red'),
+    roi_validation = widgets.HTML(value=html_element('h3', att=dict(style='color:red'),
                                                      value='No region of interest defined'))
 
     info = InfoComponent()
