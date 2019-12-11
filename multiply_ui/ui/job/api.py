@@ -46,12 +46,14 @@ def _submit_processing_request_mock(request: InputRequestMixin) -> Job:
                             {
                                 "name": "Collecting static Data",
                                 "progress": 0,
-                                "status": "new"
+                                "status": "new",
+                                "logs": ['Getting some static data', 'Getting more static data']
                             },
                             {
                                 "name": "Collecting Data from 2017-06-01 to 2017-06-10",
                                 "progress": 0,
-                                "status": "new"
+                                "status": "new",
+                                "logs": ['Getting data for time step', 'Getting more data for time step']
                             }
                         ],
                         ))
