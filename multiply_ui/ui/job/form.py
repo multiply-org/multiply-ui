@@ -27,9 +27,10 @@ def obs_job_form(job: Job, mock=False):
                                              job_header_progress_label, job_header_status_label,
                                              job_id_label, job_name_label, job_progress_bar, job_status_label],
                                    layout=widgets.Layout(
-                                       width='80%',
+                                       width='100%',
                                        grid_template_rows='auto auto',
-                                       grid_template_columns='20% 20% 40% 20%'
+                                       # grid_template_columns='20% 20% 40% 20%'
+                                       grid_template_columns='22% 21% 43% 14%'
                                    )
                                    )
     task_header_name_label = widgets.HTML(value = f"<b>Task Name</b>")
@@ -94,12 +95,12 @@ def obs_job_form(job: Job, mock=False):
                                       layout=widgets.Layout(grid_template_columns='43% 43% 9% 5%'))
             gridbox_children.append(row_box)
             gridbox_children.append(task_details)
-        grid_box = widgets.GridBox(children=gridbox_children, layout=widgets.Layout(width='80%'))
+        grid_box = widgets.GridBox(children=gridbox_children, layout=widgets.Layout(width='100%'))
         return grid_box
 
     tasks_gridbox = _get_tasks_gridbox(job)
     info = InfoComponent()
-    job_monitor = widgets.VBox([job_grid_box, tasks_gridbox, info.as_widget(70)])
+    job_monitor = widgets.VBox([job_grid_box, tasks_gridbox, info.as_widget(100)])
 
     def monitor(progress_bar, status_bar):
         while job.status not in ['succeeded', 'cancelled', 'failed']:
@@ -110,7 +111,7 @@ def obs_job_form(job: Job, mock=False):
             progress_bar.value = job.progress
             status_bar.value = job.status
             grid_box = _get_tasks_gridbox(job)
-            job_monitor.children = ([job_grid_box, grid_box, info.as_widget(70)])
+            job_monitor.children = ([job_grid_box, grid_box, info.as_widget(100)])
 
 
     monitor_components = (job_progress_bar, job_status_label)
@@ -153,12 +154,12 @@ def obs_jobs_form(mock=False):
         job_components[f'{job.id}'] = (job_progress_bar, job_status_label, job_cancel_button, _get_job_func(job, mock), job)
     jobs_monitor_component = widgets.GridBox(children=jobs_box_children,
                                     layout=widgets.Layout(
-                                        width='80%',
+                                        width='100%',
                                         grid_template_rows=grid_template_rows,
                                         grid_template_columns='10% 20% 40% 10% 20%'
                                     )
                                     )
-    jobs_full_component = widgets.VBox([jobs_monitor_component, info.as_widget(80)])
+    jobs_full_component = widgets.VBox([jobs_monitor_component, info.as_widget(100)])
 
     def jobs_monitor_func(components, empty):
         at_least_one_job_unfinished = True
@@ -200,6 +201,7 @@ def _get_job_func(job: Job, mock=False):
         for job_task_name in job.tasks.names:
             task_progress = job.tasks.get(job_task_name).progress
             task_status = job.tasks.get(job_task_name).status
+            task_logs = job.tasks.get(job_task_name).logs
             if previous_task_succeeded and task_progress < 100:
                 task_progress += 5
                 task_progress = min(task_progress, 100)
@@ -213,7 +215,8 @@ def _get_job_func(job: Job, mock=False):
                 {
                     "name": job_task_name,
                     "progress": task_progress,
-                    "status": task_status
+                    "status": task_status,
+                    "logs": task_logs
                 }
             )
         if previous_task_succeeded:
