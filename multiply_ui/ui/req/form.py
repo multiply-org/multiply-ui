@@ -287,6 +287,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         _validate_forward_models_of_type(selected_fm_it)
         _validate_variables_of_forward_models_of_type(selected_fm_it)
         _validate_selection()
+        _update_preprocessing_states()
         _setup_user_priors()
 
     def _clear_variable_selection(b):
@@ -311,7 +312,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         for input_type in affected_input_types:
             _validate_forward_models_of_type(input_type)
             _validate_variables_of_forward_models_of_type(input_type)
+        _update_preprocessing_states()
         _validate_selection()
+        _setup_user_priors()
 
     def _select_all_variables_for_forward_model(forward_model_id: str):
         fm_variables = _fm_variables(forward_model_id)
@@ -374,6 +377,17 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                     unc = user_priors_dict[possible_user_prior_id]['unc']
             user_prior_components.append(user_prior_component(prior.id, prior.unit, _handle_user_prior_change, mu, unc))
         user_priors_box.children = [_wrap_user_priors_in_widget(user_prior_components)]
+
+    def _update_preprocessing_states():
+        preprocess_s1_temporal_filter.disabled = 'Sentinel-1' not in selected_forward_model_per_type or \
+                                                 selected_forward_model_per_type['Sentinel-1'] is None
+        preprocess_s2_only_roi_checkbox.enabled = 'Sentinel-2' in selected_forward_model_per_type and \
+                                                  selected_forward_model_per_type['Sentinel-2'] is not None
+
+    preprocess_s1_temporal_filter = widgets.BoundedIntText(value=5, min=2, max=15, step=1, disabled=True)
+    preprocess_s2_only_roi_checkbox = LabeledCheckbox(selected=False, label_text='Only preprocess Region of Interest',
+                                                      tooltip='Only preprocess Region of Interest', enabled=False,
+                                                      layout=widgets.Layout(display='flex', width='30%'))
 
     global _NUM_REQUESTS
     _NUM_REQUESTS += 1
@@ -491,7 +505,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         if not roi.is_valid:
             info.output_error('Error: Region of Interest is invalid')
             return
-        x1, y1, x2, y2 = roi.bounds
         request_models = []
         required_priors = []
         for model_id in selected_forward_models:
@@ -520,17 +533,25 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 if 'unc' in user_priors_dict:
                     user_priors_for_request_dict['unc'] = user_priors_dict['unc']
                 user_priors_for_request_list.append(user_priors_for_request_dict)
+        temporalFilter = None
+        if not preprocess_s1_temporal_filter.disabled:
+            temporalFilter = preprocess_s1_temporal_filter.value
+        computeOnlyRoi = None
+        if preprocess_s2_only_roi_checkbox.enabled:
+            computeOnlyRoi = preprocess_s2_only_roi_checkbox.selected
         return InputRequest(dict(
             name=request_name.value,
             timeRange=[datetime.datetime.strftime(start_date.value, "%Y-%m-%d"),
                        datetime.datetime.strftime(end_date.value, "%Y-%m-%d")],
             timeStep=time_steps.value,
             timeStepUnit=time_steps_unit.value,
-            bbox=f"{x1},{y1},{x2},{y2}",
+            roi=f"{roi.wkt}",
             spatialResolution=spatial_resolution.value,
             inputTypes=input_types,
             forwardModels=request_models,
-            userPriors=user_priors_for_request_list
+            userPriors=user_priors_for_request_list,
+            s1TemporalFilter=temporalFilter,
+            s2ComputeRoi=computeOnlyRoi
         ))
 
     # noinspection PyUnusedLocal
@@ -604,6 +625,12 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([forward_models_box], layout=var_checks_layout),
         widgets.Box([clear_model_selection_button], layout=form_item_layout),
         widgets.Box([request_validation], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Sentinel-1 Pre-Processing'))],
+                    layout=form_item_layout),
+        widgets.Box([widgets.Label(value='Temporal Filter'), preprocess_s1_temporal_filter], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Sentinel-2 Pre-Processing'))],
+                    layout=form_item_layout),
+        preprocess_s2_only_roi_checkbox,
         widgets.Box([user_priors_component], layout=form_item_layout),
         widgets.Box([widgets.HTML(value=html_element('h2', value='Time Period of Interest'))], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Start date'), start_date], layout=form_item_layout),

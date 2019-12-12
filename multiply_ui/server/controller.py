@@ -9,6 +9,7 @@ from multiply_core.util import get_num_tiles, get_time_from_string
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
 # and add the calvalus-instances as content root to project structure
 from share.lib.pmonitor import PMonitor
+from shapely.wkt import loads
 from typing import Dict, List, Tuple
 
 logging.getLogger().setLevel(logging.INFO)
@@ -28,9 +29,7 @@ def get_parameters(ctx):
 
 def get_inputs(ctx, parameters):
     time_range = parameters["timeRange"]
-    (minLon, minLat, maxLon, maxLat) = parameters["bbox"].split(",")
-    region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
-                                                                   minLon, maxLat, minLon, minLat)
+    region_wkt = parameters["roi"]
     input_types = parameters["inputTypes"]
     parameters["inputIdentifiers"] = {}
     for input_type in input_types:
@@ -118,10 +117,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
     pm_request['data_root'] = workdir
     pm_request['simulation'] = pm_request['simulation'] == 'True'
     pm_request['log_dir'] = f'{workdir}/log'
-    (minLon, minLat, maxLon, maxLat) = request["bbox"].split(",")
-    region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
-                                                                   minLon, maxLat, minLon, minLat)
-    pm_request['General']['roi'] = region_wkt
+    pm_request['General']['roi'] = request['roi']
     pm_request['General']['start_time'] = \
         datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y-%m-%d')
     pm_request['General']['end_time'] = \
@@ -151,26 +147,23 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
             if 'user' not in pm_request['Prior'][user_prior_dict['name']]:
                 pm_request['Prior'][user_prior_dict['name']]['user'] = {}
             pm_request['Prior'][user_prior_dict['name']]['user']['unc'] = user_prior_dict['unc']
+    if 's1TemporalFilter' in request:
+        pm_request['SAR']['speckle_filter']['multi_temporal']['temporal_filter'] = request['s1TemporalFilter']
+        (min_lon, min_lat, max_lon, max_lat) = loads(request['roi']).bounds()
+        pm_request['SAR']['region']['ul']['lat'] = max_lat
+        pm_request['SAR']['region']['ul']['lon'] = min_lon
+        pm_request['SAR']['region']['lr']['lat'] = min_lat
+        pm_request['SAR']['region']['lr']['lon'] = max_lon
+        pm_request['SAR']['year'] = datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y')
+    if 's2ComputeRoi' in request:
+        pm_request['s2_pre_processing']['compute_only_roi'] = request['s2ComputeRoi']
     return pm_request
 
 
 def _get_num_tiles_of_request(request) -> Tuple:
-    (minLon, minLat, maxLon, maxLat) = request["bbox"].split(",")
-    region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
-                                                                   minLon, maxLat, minLon, minLat)
-    roi = region_wkt
+    roi = request['roi']
     spatial_resolution = request['spatialResolution']
-    # if 'roi_grid' in parameters['General']:
-    #     roi_grid = parameters['General']['roi_grid']
-    # else:
-    #     roi_grid = None
-    # if 'destination_grid' in parameters['General']:
-    #     destination_grid = parameters['General']['destination_grid']
-    # else:
-    #     destination_grid = None
-    return get_num_tiles(spatial_resolution=spatial_resolution, roi=roi,
-                         # roi_grid=roi_grid, destination_grid=destination_grid,
-                         tile_width=512, tile_height=512)
+    return get_num_tiles(spatial_resolution=spatial_resolution, roi=roi, tile_width=512, tile_height=512)
 
 
 def _determine_workflow(request) -> str:

@@ -91,6 +91,31 @@
                 "static_dir" : "same as General directory_data"
             }
         }
+    },
+    "SAR" : {
+        "input_folder" : "INPUT_FOLDER_NAME",
+        "output_folder" : "OUTPUT_FOLDER_NAME",
+        "gpt" : "/software/snap/bin/gpt",
+        "speckle_filter" : {
+            "multi_temporal" : {
+                "apply" : "yes",
+                "temporal_filter" : "TEMPORAL_FILTER"
+            }
+        },
+        "region" : {
+            "ul" : {
+                "lat" : "UPPER_LEFT_LAT",
+                "lon" : "UPPER_LEFT_LON"
+            },
+            "lr" : {
+                "lat" : "LOWER_RIGHT_LAT",
+                "lon" : "LOWER_RIGHT_LON"
+            }
+        },
+        "year" : "YEAR"
+    },
+    "S2-PreProcessing" : {
+        "compute_only_roi" : false
     }
 }
 

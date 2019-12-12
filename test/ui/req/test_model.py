@@ -7,7 +7,9 @@ class RequestModelTest(unittest.TestCase):
 
     def test_input_request(self):
         input_request = InputRequest(dict(name='bibo',
-                                          bbox='10.2,51.2,11.3,53.6',
+                                          roi='POLYGON ((7.890891 51.997565, 7.890891 53.066801, '
+                                              '9.033867000000001 53.066801, 9.033867000000001 51.997565, '
+                                              '7.890891 51.997565))',
                                           timeRange=['2018-07-06', '2018-07-20'],
                                           timeStep=4,
                                           timeStepUnit='days',
@@ -26,12 +28,14 @@ class RequestModelTest(unittest.TestCase):
                                               dict(name='ALA',
                                                    mu=1.3),
                                               dict(name='fzxh',
-                                                   unc=0.01)]
+                                                   unc=0.01)],
+                                          s1TemporalFilter=4
                                           )
                                      )
 
         self.assertEqual('bibo', input_request.name)
-        self.assertEqual((10.2, 51.2, 11.3, 53.6), input_request.bbox)
+        self.assertEqual('POLYGON ((7.890891 51.997565, 7.890891 53.066801, 9.033867000000001 53.066801, '
+                         '9.033867000000001 51.997565, 7.890891 51.997565))', input_request.roi)
         self.assertEqual(('2018-07-06', '2018-07-20'), input_request.time_range)
         self.assertEqual(4, input_request.time_step)
         self.assertEqual('days', input_request.time_step_unit)
@@ -51,12 +55,15 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual(1.3, input_request.user_priors[1]['mu'])
         self.assertEqual('fzxh', input_request.user_priors[2]['name'])
         self.assertEqual(0.01, input_request.user_priors[2]['unc'])
-
+        self.assertEqual(4, input_request.s1_temporal_filter)
+        self.assertIsNone(input_request.s2_compute_roi)
         self.assertIsNotNone(input_request._repr_html_())
 
     def test_processing_request(self):
         input_request = ProcessingRequest(dict(name='bibo',
-                                               bbox='10.2,51.2,11.3,53.6',
+                                               roi='POLYGON ((7.890891 51.997565, 7.890891 53.066801, '
+                                                   '9.033867000000001 53.066801, 9.033867000000001 51.997565, '
+                                                   '7.890891 51.997565))',
                                                timeRange=['2018-07-06', '2018-07-20'],
                                                timeStep=4,
                                                timeStepUnit='days',
@@ -77,10 +84,12 @@ class RequestModelTest(unittest.TestCase):
                                                         mu=1.3),
                                                    dict(name='fzxh',
                                                         unc=0.01)],
+                                               s2ComputeRoi=False,
                                                inputIdentifiers={'S2_L1C': ['IID1', 'IID2', 'IID3']}))
 
         self.assertEqual('bibo', input_request.name)
-        self.assertEqual((10.2, 51.2, 11.3, 53.6), input_request.bbox)
+        self.assertEqual('POLYGON ((7.890891 51.997565, 7.890891 53.066801, 9.033867000000001 53.066801, '
+                         '9.033867000000001 51.997565, 7.890891 51.997565))', input_request.roi)
         self.assertEqual(('2018-07-06', '2018-07-20'), input_request.time_range)
         self.assertEqual(4, input_request.time_step)
         self.assertEqual('days', input_request.time_step_unit)
@@ -100,6 +109,8 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual(1.3, input_request.user_priors[1]['mu'])
         self.assertEqual('fzxh', input_request.user_priors[2]['name'])
         self.assertEqual(0.01, input_request.user_priors[2]['unc'])
+        self.assertIsNone(input_request.s1_temporal_filter)
+        self.assertFalse(input_request.s2_compute_roi)
         self.assertIsInstance(input_request.inputs, InputIdentifiers)
         self.assertIsNotNone(input_request._repr_html_())
 

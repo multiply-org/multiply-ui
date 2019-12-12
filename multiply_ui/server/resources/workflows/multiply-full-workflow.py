@@ -37,6 +37,7 @@ class MultiplyFull(MultiplyMonitor):
                 self._infer_s2_kaska = True
             elif model['type'] == 'kaska' and model['data_type'] == 'Sentinel-1':
                 self._infer_s1_kaska = True
+        self._s2_preprocess_only_roi = parameters['S2-PreProcessing']['compute_only_roi']
 
     def create_workflow(self):
         start = datetime.datetime.strftime(self._start, '%Y-%m-%d')
@@ -84,11 +85,12 @@ class MultiplyFull(MultiplyMonitor):
             self.execute('preprocess_s2.py', [s2_for_date, modis_for_date, emus, cams_for_date, dem,
                                               provided_sdrs_for_date], [sdrs_for_date],
                          parameters=[self._request_file, date, next_date])
-            #todo add asking whether preprocessing was performed on full tile
-            # self.execute('data_access_put_s2_l2.py', [sdrs_for_date, provided_sdrs_for_date], [],
-            #              parameters=[self._request_file, date, next_date])
+            if not self._s2_preprocess_only_roi:
+                self.execute('data_access_put_s2_l2.py', [sdrs_for_date, provided_sdrs_for_date], [],
+                             parameters=[self._request_file, date, next_date])
             priors_for_date = priors + '/' + date
-            self.execute('retrieve_s2_priors.py', [], [priors_for_date], parameters=[self._request_file, date, next_date])
+            self.execute('retrieve_s2_priors.py', [], [priors_for_date],
+                         parameters=[self._request_file, date, next_date])
             updated_state = hres_state_dir + '/' + date
             hres_biophys_output_per_date = hres_biophys_output + '/' + date
             hres_biophys_output_per_dates.append(hres_biophys_output_per_date)
@@ -118,9 +120,9 @@ class MultiplyFull(MultiplyMonitor):
                      parameters=[self._request_file, start, stop])
         self.execute('preprocess_s2.py', [s2, modis, emus, cams, dem, provided_sdrs], [sdrs],
                      parameters=[self._request_file, start, stop])
-        # todo add asking whether preprocessing was performed on full tile
-        # self.execute('data_access_put_s2_l2.py', [sdrs, provided_sdrs], [],
-        #              parameters=[self._request_file, start, stop])
+        if not self._s2_preprocess_only_roi:
+            self.execute('data_access_put_s2_l2.py', [sdrs, provided_sdrs], [],
+                         parameters=[self._request_file, start, stop])
         self.execute('retrieve_s2_priors.py', [], [priors], parameters=[self._request_file, start, stop])
         for tile_x in self._num_tiles_x:
             for tile_y in self._num_tiles_y:
@@ -168,7 +170,6 @@ class MultiplyFull(MultiplyMonitor):
     #             eo_indicators_for_date = eo_indicators + '/' + date
     #             self.execute('post_process_s2.py', [sdrs | sdrs_for_date], [eo_indicators_for_date],
     #                              parameters=[self._request_file, date, next_date])
-
 
     # def _create_variable_post_processing_workflow(self, start: str, stop: str, params_dict: Dict):
     #         eo_indicators = self._data_root + '/' + 'eo_indicators'
