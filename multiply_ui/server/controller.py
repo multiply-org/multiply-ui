@@ -156,7 +156,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
         pm_request['SAR']['region']['lr']['lon'] = max_lon
         pm_request['SAR']['year'] = datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y')
     if 's2ComputeRoi' in request:
-        pm_request['s2_pre_processing']['compute_only_roi'] = request['s2ComputeRoi']
+        pm_request['S2-PreProcessing']['compute_only_roi'] = request['s2ComputeRoi']
     return pm_request
 
 
