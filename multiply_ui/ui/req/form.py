@@ -397,7 +397,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=5, day=10))
     end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=5, day=15))
 
-    time_steps = Spinner(value=10, min=1)
+    time_steps = Spinner(value=5, min=1)
 
     time_steps_unit = widgets.Dropdown(
         options=['days', 'weeks'],
