@@ -1,6 +1,6 @@
 #!{PYTHON}
 
-from multiply_inference_engine import infer
+from multiply_inference_engine import infer_kaska_s2
 from multiply_core.models import get_forward_model
 
 import logging
@@ -16,30 +16,28 @@ script_progress_logging_handler.setLevel(logging.INFO)
 script_progress_logging_handler.setFormatter(script_progress_formatter)
 script_progress_logger.addHandler(script_progress_logging_handler)
 
-# extract directory names from input arguments
-start_date = sys.argv[2]
-end_date = sys.argv[3]
-previous_state = sys.argv[4]
-if previous_state == 'none':
-    previous_state=None
-priors_dir = sys.argv[5]
-observations_dir = sys.argv[6]
-output_dir = sys.argv[7]
-next_state = sys.argv[8]
-
 # setup parameters
-with open(sys.argv[1]) as f:
-    parameters = yaml.load(f)
+configuration_file = sys.argv[1]
+start_date = sys.argv[2]
+stop_date = sys.argv[3]
+tile_x = sys.argv[4]
+tile_y = sys.argv[5]
+sdrs_dir = sys.argv[6]
+priors_dir = sys.argv[7]
+output_dir = sys.argv[8]
+
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+# read request file for parameters
+with open(configuration_file) as f:
+    parameters = yaml.safe_load(f)
+
 roi = parameters['General']['roi']
-spatial_resolution = parameters['General']['spatial_resolution'] # in m
-if 'roi_grid' in parameters['General']:
-    roi_grid = parameters['General']['roi_grid']
-else:
-    roi_grid = None
-if 'destination_grid' in parameters['General']:
-    destination_grid = parameters['General']['destination_grid']
-else:
-    destination_grid = None
+spatial_resolution = parameters['General']['spatial_resolution']  # in m
+time_step = parameters['General']['time_interval']
+tile_width = parameters['General']['tile_width']
+tile_height = parameters['General']['tile_height']
 
 forward_models = []
 requested_parameters = []
@@ -63,27 +61,19 @@ for prior in required_priors:
     if prior in model_parameters and prior not in requested_parameters:
         requested_parameters.append(prior)
 
-if not os.path.exists(next_state):
-    os.makedirs(next_state)
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
 script_progress_logger.info('0-100')
-
-infer(start_time=start_date,
-      end_time=end_date,
-      parameter_list=requested_parameters,
-      prior_directory=priors_dir,
-      datasets_dir=observations_dir,
-      previous_state_dir=previous_state,
-      next_state_dir=next_state,
-      forward_models=forward_models,
-      output_directory=output_dir,
-      roi=roi,
-      spatial_resolution=spatial_resolution,
-      roi_grid=roi_grid,
-      destination_grid=destination_grid
-      )
+infer_kaska_s2(start_time=start_date,
+               end_time=stop_date,
+               time_step=time_step,
+               datasets_dir=sdrs_dir,
+               forward_models=forward_models,
+               output_directory=output_dir,
+               parameters=requested_parameters,
+               roi=roi,
+               spatial_resolution=spatial_resolution,
+               tile_index_x=tile_x,
+               tile_index_y=tile_y,
+               tile_width=tile_width,
+               tile_height=tile_height
+               )
 script_progress_logger.info('100-100')
-
-

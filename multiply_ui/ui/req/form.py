@@ -1,8 +1,11 @@
 from typing import List
 from ipyleaflet import Map, basemaps, basemap_to_tiles, DrawControl, GeoJSON
-from shapely.geometry import shape
+from shapely.errors import WKTReadingError
+from shapely.geometry import Polygon, shape
+from shapely.wkt import loads
 
 import datetime
+import geojson
 import IPython
 import ipywidgets as widgets
 import time
@@ -15,6 +18,7 @@ from ..jswidgets import LabeledCheckbox, Spinner
 from ..params.model import ProcessingParameters
 from ...util.html import html_element, html_table
 from ..info import InfoComponent
+from ..userprior import user_prior_component
 
 _NUM_REQUESTS = 0
 
@@ -158,7 +162,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             else:
                 color = 'orange'
             request_status = _format_request_status(request_status)
-        request_validation.value=html_element('h3', att=dict(style=f'color:{color}'), value=request_status)
+        request_validation.value = html_element('h3', att=dict(style=f'color:{color}'), value=request_status)
 
     def _format_request_status(request_status: str) -> str:
         if not request_status.startswith('Selection is valid'):
@@ -191,7 +195,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         _update_forward_models_after_variable_change(variable_id, True)
         _validate_selection()
 
-    def _update_forward_models_after_variable_change(variable_id: str, examine_secondary_models: bool=False):
+    def _update_forward_models_after_variable_change(variable_id: str, examine_secondary_models: bool = False):
         already_examined_types = []
         for potential_forward_model in forward_models_per_variable[variable_id]:
             fm_type = _fm_input_type(potential_forward_model)
@@ -268,6 +272,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     def _handle_forward_model_selection(change: dict):
         if change['name'] is not '_property_lock':
             return
+        if 'selected' not in change['new']:
+            return
         selected_fm_id = change['owner'].label_text
         selected_fm_it = _fm_input_type(selected_fm_id)
         if change['new']['selected']:
@@ -281,6 +287,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         _validate_forward_models_of_type(selected_fm_it)
         _validate_variables_of_forward_models_of_type(selected_fm_it)
         _validate_selection()
+        _update_preprocessing_states()
+        _setup_user_priors()
 
     def _clear_variable_selection(b):
         for variable_id in variable_boxes_dict:
@@ -290,8 +298,6 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 _validate_variable(variable_id)
                 _update_forward_models_after_variable_change(variable_id)
         _validate_selection()
-
-    output = widgets.HTML()
 
     def _clear_forward_model_selection(b):
         affected_input_types = []
@@ -306,7 +312,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         for input_type in affected_input_types:
             _validate_forward_models_of_type(input_type)
             _validate_variables_of_forward_models_of_type(input_type)
+        _update_preprocessing_states()
         _validate_selection()
+        _setup_user_priors()
 
     def _select_all_variables_for_forward_model(forward_model_id: str):
         fm_variables = _fm_variables(forward_model_id)
@@ -336,18 +344,60 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                                                   layout=widgets.Layout(left='60%', width='35%'))
     clear_model_selection_button.on_click(_clear_forward_model_selection)
 
+    user_priors_box = widgets.Box(children=[], layout=widgets.Layout(overflow='hidden', display='flex'))
+    user_priors_component = widgets.VBox(children=[
+        widgets.HTML(value=html_element('h2', value='User Priors')),
+        user_priors_box
+    ])
+    user_priors_dict = {}
+
+    def _handle_user_prior_change(user_prior_dict):
+        for user_prior in user_prior_dict:
+            user_priors_dict[user_prior] = user_prior_dict[user_prior]
+
+    @debug_view.capture(clear_output=True)
+    def _setup_user_priors():
+        possible_user_priors = []
+        for selected_forward_model_id in selected_forward_models:
+            selected_forward_model = processing_parameters.forward_models.get(selected_forward_model_id)
+            for prior in selected_forward_model.requiredPriors:
+                if prior not in possible_user_priors:
+                    possible_user_priors.append(prior)
+        user_prior_components = []
+        for possible_user_prior_id in possible_user_priors:
+            prior = processing_parameters.variables.get(possible_user_prior_id)
+            if not prior.may_be_user_prior:
+                continue
+            mu = None
+            unc = None
+            if possible_user_prior_id in user_priors_dict:
+                if 'mu' in user_priors_dict[possible_user_prior_id]:
+                    mu = user_priors_dict[possible_user_prior_id]['mu']
+                if 'unc' in user_priors_dict[possible_user_prior_id]:
+                    unc = user_priors_dict[possible_user_prior_id]['unc']
+            user_prior_components.append(user_prior_component(prior.id, prior.unit, _handle_user_prior_change, mu, unc))
+        user_priors_box.children = [_wrap_user_priors_in_widget(user_prior_components)]
+
+    def _update_preprocessing_states():
+        preprocess_s1_temporal_filter.disabled = 'Sentinel-1' not in selected_forward_model_per_type or \
+                                                 selected_forward_model_per_type['Sentinel-1'] is None
+        preprocess_s2_only_roi_checkbox.enabled = 'Sentinel-2' in selected_forward_model_per_type and \
+                                                  selected_forward_model_per_type['Sentinel-2'] is not None
+
+    preprocess_s1_temporal_filter = widgets.BoundedIntText(value=5, min=2, max=15, step=1, disabled=True)
+    preprocess_s2_only_roi_checkbox = LabeledCheckbox(selected=False, label_text='Only preprocess Region of Interest',
+                                                      tooltip='Only preprocess Region of Interest', enabled=False,
+                                                      layout=widgets.Layout(display='flex', width='30%'))
+
     global _NUM_REQUESTS
     _NUM_REQUESTS += 1
     request_name = widgets.Text(name)
     python_var_name = widgets.Text(identifier)
 
-    start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=1))
-    end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=6, day=10))
+    start_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=5, day=10))
+    end_date = widgets.DatePicker(value=datetime.datetime(year=2018, month=5, day=15))
 
-    time_steps = Spinner(
-        value=10,
-        min = 1
-    )
+    time_steps = Spinner(value=10, min=1)
 
     time_steps_unit = widgets.Dropdown(
         options=['days', 'weeks'],
@@ -355,16 +405,9 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         disabled=False
     )
 
-    def format_angle(a):
-        if a < 0:
-            return f" {a} "
-        if a > 0:
-            return f" +{a} "
-        return " 0 "
-
     map_background_layer = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
     geometry_layer = GeoJSON()
-    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=(39., -2.1), zoom=11)
+    leaflet_map = Map(layers=(map_background_layer, geometry_layer), center=[52., 10.], zoom=4)
     draw_control = DrawControl()
     draw_control.polyline = {}
     draw_control.polygon = {}
@@ -373,20 +416,75 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     draw_control.edit = False
     draw_control.remove = False
 
-    def _remove_previous_polygon(self, action, geo_json):
+    @debug_view.capture(clear_output=True)
+    def _handle_draw(self, action, geo_json):
         self.clear()
         leaflet_map.remove_layer(leaflet_map.layers[1])
         geometry_layer = GeoJSON(data=geo_json['geometry'])
         leaflet_map.add_layer(geometry_layer)
 
-    draw_control.on_draw(_remove_previous_polygon)
+        roi_shape = shape(leaflet_map.layers[1].data)
+        roi_area.value = roi_shape.wkt
+        roi_validation.value = html_element('h3', att=dict(style=f'color:green'), value='Region of Interest defined.')
+
+    draw_control.on_draw(_handle_draw)
     leaflet_map.add_control(draw_control)
 
-    spatial_resolution = Spinner(
-        value=100,
-        min = 1,
-        step = 1
-    )
+    roi_area = widgets.Textarea(layout=widgets.Layout(flex='1 10 90%', align_items='stretch'))
+    roi_map_button = widgets.Button(description="Map region", layout=widgets.Layout(flex='0 1 10%'))
+
+    def _update_roi_status_for_error(message: str):
+        roi_data = leaflet_map.layers[1].data
+        if not roi_data:
+            roi_validation.value = html_element('h3', att=dict(style=f'color:red'),
+                                                value=message)
+            return
+        roi_validation.value = html_element('h3', att=dict(style=f'color:orange'),
+                                            value=f'{message} Keep previously defined Region of Interest.')
+
+    @debug_view.capture(clear_output=True)
+    def _handle_roi_map_button_clicked(*args, **kwargs):
+        try:
+            geom = loads(roi_area.value)
+            if type(geom) is not Polygon:
+                _update_roi_status_for_error('User-provided Region of Interest is not of type Polygon.')
+                return
+            geojson_feature = geojson.Feature(geometry=geom, properties={})
+            draw_control.clear()
+            leaflet_map.remove_layer(leaflet_map.layers[1])
+            geometry_layer = GeoJSON(data=geojson_feature['geometry'])
+            leaflet_map.add_layer(geometry_layer)
+            center_lon, center_lat = geom.centroid.coords.xy
+            leaflet_map.center = [center_lat[0], center_lon[0]]
+
+            @debug_view.capture(clear_output=False)
+            def _adjust_zoom_level(event):
+                if event['name'] == 'bounds' and leaflet_map.zoom < 18:
+                    southwest, northeast = leaflet_map.bounds
+                    map_bounds = Polygon([(southwest[1], southwest[0]), (southwest[1], northeast[0]),
+                                          (northeast[1], northeast[0]), (northeast[1], southwest[0]),
+                                          (southwest[1], southwest[0])])
+                    if map_bounds.covers(geom):
+                        leaflet_map.zoom = leaflet_map.zoom + 1
+                    elif leaflet_map.zoom > 1:
+                        leaflet_map.zoom = leaflet_map.zoom - 1
+                        leaflet_map.unobserve(_adjust_zoom_level)
+
+            leaflet_map.zoom = 1
+            leaflet_map.observe(_adjust_zoom_level)
+            if geom.is_valid:
+                roi_validation.value = html_element('h3', att=dict(style=f'color:green'),
+                                                    value='Region of Interest defined.')
+            else:
+                roi_validation.value = html_element('h3', att=dict(style=f'color:orange'),
+                                                    value='User-provided Region of Interest is invalid.')
+        except WKTReadingError:
+            _update_roi_status_for_error('User-provided Region of Interest cannot be read.')
+
+    roi_map_button.on_click(_handle_roi_map_button_clicked)
+    spatial_resolution = Spinner(value=100, min=1, step=1)
+    roi_validation = widgets.HTML(value=html_element('h3', att=dict(style='color:red'),
+                                                     value='No region of interest defined'))
 
     info = InfoComponent()
 
@@ -401,21 +499,59 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
                 input_types.append(input_type)
         roi_data = leaflet_map.layers[1].data
         if not roi_data:
-            info.output_error('Error: No region of Interest specified')
+            info.output_error('Error: No Region of Interest specified')
             return
         roi = shape(roi_data)
-        x1, y1, x2, y2 = roi.bounds
-
+        if not roi.is_valid:
+            info.output_error('Error: Region of Interest is invalid')
+            return
+        request_models = []
+        required_priors = []
+        for model_id in selected_forward_models:
+            request_model = processing_parameters.forward_models.get(model_id)
+            request_variables = []
+            for variable_id in request_model.variables:
+                if variable_id in selected_variables:
+                    request_variables.append(variable_id)
+            request_model_dict = dict(
+                name=model_id,
+                type=request_model.type,
+                modelDataType=request_model.input_type,
+                requiredPriors=request_model.requiredPriors,
+                outputParameters=request_variables
+            )
+            for required_model_prior in request_model.requiredPriors:
+                if not required_model_prior in required_priors:
+                    required_priors.append(required_model_prior)
+            request_models.append(request_model_dict)
+        user_priors_for_request_list = []
+        for user_prior in user_priors_dict:
+            if user_prior in required_priors:
+                user_priors_for_request_dict = {'name': user_prior}
+                if 'mu' in user_priors_dict:
+                    user_priors_for_request_dict['mu'] = user_priors_dict['mu']
+                if 'unc' in user_priors_dict:
+                    user_priors_for_request_dict['unc'] = user_priors_dict['unc']
+                user_priors_for_request_list.append(user_priors_for_request_dict)
+        temporalFilter = None
+        if not preprocess_s1_temporal_filter.disabled:
+            temporalFilter = preprocess_s1_temporal_filter.value
+        computeOnlyRoi = None
+        if preprocess_s2_only_roi_checkbox.enabled:
+            computeOnlyRoi = preprocess_s2_only_roi_checkbox.selected
         return InputRequest(dict(
             name=request_name.value,
             timeRange=[datetime.datetime.strftime(start_date.value, "%Y-%m-%d"),
                        datetime.datetime.strftime(end_date.value, "%Y-%m-%d")],
             timeStep=time_steps.value,
             timeStepUnit=time_steps_unit.value,
-            bbox=f"{x1},{y1},{x2},{y2}",
+            roi=f"{roi.wkt}",
             spatialResolution=spatial_resolution.value,
             inputTypes=input_types,
-            parameters=selected_variables
+            forwardModels=request_models,
+            userPriors=user_priors_for_request_list,
+            s1TemporalFilter=temporalFilter,
+            s2ComputeRoi=computeOnlyRoi
         ))
 
     # noinspection PyUnusedLocal
@@ -442,16 +578,16 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
 
         result_html = html_table(data_rows, header_row=['Input Type', 'Number of inputs found'])
 
-        # insert shall variable whose value is processing_request
+        # insert shall variable_id whose value is processing_request
         # users can later call the GUI with that object to edit it
         if req_var_name:
             shell = IPython.get_ipython()
             shell.push({req_var_name: processing_request}, interactive=True)
             var_name_html = html_element('p',
-                                            value=f'Note: a new processing request has been '
-                                             f'stored in variable <code>{req_var_name}</code>.')
+                                         value=f'Note: a new processing request has been '
+                                               f'stored in variable <code>{req_var_name}</code>.')
             result_html = html_element('div',
-                                           value=result_html + var_name_html)
+                                       value=result_html + var_name_html)
         info.output_html(result_html)
 
     # noinspection PyUnusedLocal
@@ -472,7 +608,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             shell.push({req_var_name: job}, interactive=True)
             result_html = html_element('p',
                                        value=f'Note: a new job is currently being executed and is '
-                                       f'stored in variable <code>{req_var_name}</code>.')
+                                             f'stored in variable_id <code>{req_var_name}</code>.')
             info.output_html(result_html)
 
     # TODO: make GUI form look nice
@@ -480,6 +616,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     new_button.on_click(handle_new_button_clicked)
     submit_button = widgets.Button(description="Submit Request", icon="upload")
     submit_button.on_click(handle_submit_button_clicked)
+
     form_items = [
         widgets.Box([widgets.HTML(value=html_element('h2', value='Output Variables'))], layout=form_item_layout),
         widgets.Box([variables_box], layout=var_checks_layout),
@@ -488,24 +625,34 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([forward_models_box], layout=var_checks_layout),
         widgets.Box([clear_model_selection_button], layout=form_item_layout),
         widgets.Box([request_validation], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Sentinel-1 Pre-Processing'))],
+                    layout=form_item_layout),
+        widgets.Box([widgets.Label(value='Temporal Filter'), preprocess_s1_temporal_filter], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Sentinel-2 Pre-Processing'))],
+                    layout=form_item_layout),
+        preprocess_s2_only_roi_checkbox,
+        widgets.Box([user_priors_component], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Time Period of Interest'))], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Start date'), start_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='End date'), end_date], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Time steps'), widgets.Box([time_steps, time_steps_unit])],
                     layout=form_item_layout),
-        widgets.Box([widgets.Label(value="Region of Interest"), leaflet_map], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Region of Interest'))], layout=form_item_layout),
+        widgets.Box([roi_area, roi_map_button], layout=form_item_layout),
+        widgets.Box([leaflet_map], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Resolution (m)'), spatial_resolution], layout=form_item_layout),
+        widgets.Box([roi_validation], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Request/job name'), request_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Python identifier'), python_var_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value=''), widgets.Box([new_button, submit_button])], layout=form_item_layout),
         widgets.Box([info.as_widget()], layout=form_item_layout)
     ]
-
     form = widgets.Box(form_items, layout=widgets.Layout(
         display='flex',
         flex_flow='column',
         border='solid 1px lightgray',
         align_items='stretch',
-        width='50%'
+        width='100%'
     ))
 
     return form
@@ -529,6 +676,33 @@ def _get_checkboxes_dict(ids: List[str], names: List[str]) -> dict:
                                    layout=widgets.Layout(flex='0 1 78%'))
         checkboxes[var_id] = checkbox
     return checkboxes
+
+
+def _wrap_user_priors_in_widget(user_prior_components: List[widgets.Widget]):
+    num_cols = 2
+    # noinspection PyUnusedLocal
+    v_box_item_lists = [[] for i in range(num_cols)]
+    index = 0
+    for user_prior_component in user_prior_components:
+        col = index % num_cols
+        # noinspection PyTypeChecker
+        v_box_item_lists[col].append(user_prior_component)
+        index += 1
+    v_boxes = []
+    for v_box_item_list in v_box_item_lists:
+        v_box_layout = widgets.Layout(
+            overflow='hidden',
+            width='100%',
+            display='flex'
+        )
+        v_box = widgets.VBox(v_box_item_list, layout=v_box_layout)
+        v_boxes.append(v_box)
+    h_box_layout = widgets.Layout(
+        overflow='hidden',
+        display='flex'
+    )
+    h_box = widgets.HBox(v_boxes, layout=h_box_layout)
+    return h_box
 
 
 def _wrap_variable_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_selection) -> widgets.Widget:
@@ -561,7 +735,7 @@ def _wrap_variable_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], hand
 
 def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], select_all_buttons: dict,
                                              handle_selection, forward_model_variables: dict) -> widgets.Widget:
-    num_cols = 4
+    num_cols = 3
     # noinspection PyUnusedLocal
     v_box_item_lists = [[] for i in range(num_cols)]
     index = 0
@@ -584,7 +758,7 @@ def _wrap_forward_model_checkboxes_in_widget(checkboxes: List[widgets.Checkbox],
     for v_box_item_list in v_box_item_lists:
         v_box_layout = widgets.Layout(
             overflow='hidden',
-            width='25%',
+            width='33%',
             display='flex'
         )
         v_box = widgets.VBox(v_box_item_list, layout=v_box_layout)

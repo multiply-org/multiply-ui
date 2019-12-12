@@ -5,12 +5,13 @@ import os
 import sys
 import yaml
 from pathlib import Path
-from typing import Optional, List
+from typing import List
 
 import multiply_data_access.data_access_component
 from multiply_core.models import get_forward_models
 from multiply_core.observations import INPUT_TYPES
 from multiply_core.variables import get_registered_variables
+from multiply_prior_engine.vegetation_prior_creator import SUPPORTED_VARIABLES as POSSIBLE_USER_PRIORS
 from vm_support import set_earth_data_authentication, set_mundi_authentication
 
 from .model import Job
@@ -76,8 +77,6 @@ class ServiceContext:
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']
         os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
-        logging.info(f"path after ServiceContext init: {os.environ['PATH']}")
-
 
     # TODO: require an interface of data access to select data stores to be used
     def _restrict_to_mundi_datastore(self):
@@ -86,17 +85,6 @@ class ServiceContext:
                 self.data_access_component._data_stores = [data_store]
                 return
         raise ValueError('data store Mundi not found in configuration')
-
-    def new_job(self, duration: int) -> Job:
-        job = Job(duration)
-        self._jobs[job.id] = job
-        return job
-
-    def get_job(self, job_id: int) -> Optional[Job]:
-        return self._jobs.get(job_id)
-
-    def get_jobs(self) -> List[Job]:
-        return [job.to_dict() for job in self._jobs.values()]
 
     @staticmethod
     def get_available_forward_models() -> List[dict]:
@@ -110,6 +98,8 @@ class ServiceContext:
                 "modelAuthors": model.authors,
                 "modelUrl": model.url,
                 "inputType": model.model_data_type,
+                "type": model.inference_engine_type,
+                "requiredPriors": model.required_priors,
                 "variables": model.variables
             })
         return dict_list
@@ -133,6 +123,7 @@ class ServiceContext:
                 "unit": variable.unit,
                 "description": variable.description,
                 "valueRange": variable.range,
+                "mayBeUserPrior": variable.short_name in POSSIBLE_USER_PRIORS,
                 "applications": variable.applications
             })
         return dict_list
@@ -153,15 +144,12 @@ class ServiceContext:
 
     @property
     def working_dir(self) -> str:
-        logging.info(f'working dir root in context {self._working_dir}')
         return self._working_dir
 
     @staticmethod
     def add_workflows_path(workflows_path: str):
         sys.path.insert(0, workflows_path)
         os.environ['PATH'] += f':{workflows_path}'
-        logging.info(f"path after workflows adding: {os.environ['PATH']}")
-
 
     def add_scripts_path(self, scripts_path: str):
         sys.path.insert(0, scripts_path)
@@ -175,4 +163,8 @@ class ServiceContext:
             write_file.write(content)
             write_file.close()
         os.environ['PATH'] += f':{scripts_path}'
-        logging.info(f"path after scripts adding: {os.environ['PATH']}")
+
+    def get_job(self, id: str):
+        for job in self.pm_server.queue:
+            if job.request['requestId'] == id:
+                return job

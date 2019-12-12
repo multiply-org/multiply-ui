@@ -1,11 +1,20 @@
 #!{PYTHON}
-# example syntax: retr_prior.py workshop-test.yaml /data/m5/priors
+# example syntax: retrieve_s2_priors.py workshop-test.yaml /data/m5/priors
 
 from multiply_prior_engine import PriorEngine
 import datetime
+import logging
 import os
 import sys
 import yaml
+
+script_progress_logger = logging.getLogger('ScriptProgress')
+script_progress_logger.setLevel(logging.INFO)
+script_progress_formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+script_progress_logging_handler = logging.StreamHandler()
+script_progress_logging_handler.setLevel(logging.INFO)
+script_progress_logging_handler.setFormatter(script_progress_formatter)
+script_progress_logger.addHandler(script_progress_logging_handler)
 
 # setup parameters
 configuration_file = sys.argv[1]
@@ -16,22 +25,26 @@ output_root_dir = sys.argv[4]
 # read request file for parameters
 with open(configuration_file) as f:
     parameters = yaml.load(f)
-processor_dir = '/software/prior-engine-0.5/multiply_prior_engine'
 
-#start_time = parameters['General']['start_time']
-#end_time = parameters['General']['end_time']
-variables =  parameters['Inference']['parameters']
+required_priors = []
+for model in parameters['Inference']['forward_models']:
+    if model['data_type'] == 'Sentinel-2':
+        required_priors = model['required_priors']
 
 start_time = datetime.datetime.strptime(start, '%Y-%m-%d')
 end_time = datetime.datetime.strptime(end, '%Y-%m-%d')
 
 # execute the Prior engine for the requested times
 time = start_time
-while time<=end_time:
+num_days = (end_time - start_time).days + 1
+i = 0
+while time <= end_time:
     print(time)
-    PE = PriorEngine(config=configuration_file, datestr=time.strftime('%Y-%m-%d'), variables=variables)
+    PE = PriorEngine(config=configuration_file, datestr=time.strftime('%Y-%m-%d'), variables=required_priors)
+    script_progress_logger.info(f'{int((i/num_days) * 100)}-{int(((i+1)/num_days) * 100)}')
     priors = PE.get_priors()
     time = time + datetime.timedelta(days=1)
+    i += 1
 
 # create output_dir (if not already exist)
 if not os.path.exists(output_root_dir):
@@ -40,15 +53,15 @@ if not os.path.exists(output_root_dir):
 # put the files for the 'vegetation priors' into the proper directory
 if 'General' in parameters['Prior']:
     directory = parameters['Prior']['output_directory']
-    os.system("cp "+directory+"/*.vrt " +output_root_dir+"/")
+    os.system("cp " + directory + "/*.vrt " + output_root_dir + "/")
 
 # put the files for the 'soil moisture' into the proper directory
-#if 'sm' in parameters['Prior']:
+# if 'sm' in parameters['Prior']:
 #    ptype = parameters['Prior']['sm']
 #    if 'climatology' in ptype:
 #        soil_moisture_dir = parameters['Prior']['sm']['climatology']['climatology_dir']
-    #soil_moisture_dir = '/data/auxiliary/priors/Climatology/SoilMoisture'
+# soil_moisture_dir = '/data/auxiliary/priors/Climatology/SoilMoisture'
 #    else:
 #        soil_moisture_dir = parameters['Prior']['General']['directory_data']
 #    os.system("mv " + soil_moisture_dir + "/*.vrt " + output_root_dir + "/")
-
+script_progress_logger.info('100-100')

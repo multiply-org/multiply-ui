@@ -1,13 +1,13 @@
 import datetime
-from multiply_ui.server.resources.workflows import MultiplyMonitor
+from .multiply_workflow import MultiplyMonitor
 
 
-class MultiplyAdaptedIterative8(MultiplyMonitor):
+class PreprocessSar(MultiplyMonitor):
 
     def __init__(self, parameters):
         MultiplyMonitor.__init__(self,
                                  parameters,
-                                 types=[('test_script_1.py', 2), ('test_script_2.py', 2), ('test_script_3.py', 2)])
+                                 types=[('get_data_for_s1_preprocessing.py', 2), ('preprocess_s1.py', 2)])
         self._data_root = parameters['data_root']
         self._request_file = parameters['requestFile']
         self._start = datetime.datetime.strptime(str(parameters['General']['start_time']), '%Y-%m-%d')
@@ -16,10 +16,8 @@ class MultiplyAdaptedIterative8(MultiplyMonitor):
         self._step = datetime.timedelta(days=int(str(parameters['Inference']['time_interval'])))
 
     def create_workflow(self):
-        out_1 = self._data_root + '/' + 'out_1'
-        out_2 = self._data_root + '/' + 'out_2'
-        out_3 = self._data_root + '/' + 'out_3'
-
+        s1_slc = self._data_root + '/' + 's1_slc'
+        s1_grd = self._data_root + '/' + 's1_grd'
         cursor = self._start
         while cursor <= self._stop:
             date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
@@ -29,12 +27,9 @@ class MultiplyAdaptedIterative8(MultiplyMonitor):
                 cursor = self._stop
             next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
             cursor += self._one_day_step
-            out_1_for_date = out_1 + '/' + date
-            out_2_for_date = out_2 + '/' + date
-            out_3_for_date = out_3 + '/' + date
-            self.execute('test_script_1.py', [], [out_1_for_date],
+            s1_slc_for_date =  s1_slc + '/' + date
+            s1_grd_for_date =  s1_grd + '/' + date
+            self.execute('get_data_for_s1_preprocessing.py', [], [s1_slc_for_date],
                          parameters=[self._request_file, date, next_date])
-            self.execute('test_script_2.py', [out_1_for_date], [out_2_for_date],
-                         parameters=[self._request_file])
-            self.execute('test_script_3.py', [out_2_for_date], [out_3_for_date],
-                         parameters=[self._request_file])
+            self.execute('preprocess_s1.py', [s1_slc_for_date], [s1_grd_for_date],
+                         parameters=[self._request_file, date, next_date])

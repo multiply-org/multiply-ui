@@ -4,31 +4,49 @@ from ..params.model import TIME_RANGE_TYPE
 from ...util.html import html_element, html_table
 from ...util.schema import PropertyDef, TypeDef
 
+FORWARD_MODEL_TYPE = TypeDef(object, properties=[PropertyDef('name', TypeDef(str)),
+                                                 PropertyDef('type', TypeDef(str)),
+                                                 PropertyDef('modelDataType', TypeDef(str)),
+                                                 PropertyDef('requiredPriors', TypeDef(list, item_type=TypeDef(str))),
+                                                 PropertyDef('outputParameters', TypeDef(list, item_type=TypeDef(str)))
+                                                 ])
+
+USER_PRIOR_TYPE = TypeDef(object, properties=[PropertyDef('name', TypeDef(str)),
+                                              PropertyDef('mu', TypeDef(float, optional=True)),
+                                              PropertyDef('unc', TypeDef(float, optional=True))
+])
+
 INPUT_IDENTIFIERS_TYPE = TypeDef(dict,
                                  key_type=TypeDef(str),
                                  item_type=TypeDef(list, item_type=TypeDef(str)))
 
 INPUT_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('name', TypeDef(str)),
-    PropertyDef('bbox', TypeDef(str)),
+    PropertyDef('roi', TypeDef(str)),
     PropertyDef('timeRange', TIME_RANGE_TYPE),
     PropertyDef('timeStep', TypeDef(int)),
     PropertyDef('timeStepUnit', TypeDef(str)),
     PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
-    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str)))
+    PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
+    PropertyDef('userPriors', TypeDef(list, item_type=USER_PRIOR_TYPE)),
+    PropertyDef('s1TemporalFilter', TypeDef(int, optional=True)),
+    PropertyDef('s2ComputeRoi', TypeDef(bool, optional=True))
 ])
 
 PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('name', TypeDef(str)),
-    PropertyDef('bbox', TypeDef(str)),
+    PropertyDef('roi', TypeDef(str)),
     PropertyDef('timeRange', TIME_RANGE_TYPE),
     PropertyDef('timeStep', TypeDef(int)),
     PropertyDef('timeStepUnit', TypeDef(str)),
     PropertyDef('spatialResolution', TypeDef(int)),
     PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
     PropertyDef('inputIdentifiers', INPUT_IDENTIFIERS_TYPE),
-    PropertyDef('parameters', TypeDef(list, item_type=TypeDef(str)))
+    PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
+    PropertyDef('userPriors', TypeDef(list, item_type=USER_PRIOR_TYPE)),
+    PropertyDef('s1TemporalFilter', TypeDef(int, optional=True)),
+    PropertyDef('s2ComputeRoi', TypeDef(bool, optional=True))
 ])
 
 
@@ -56,10 +74,9 @@ class InputRequestMixin:
         return self._data['name']
 
     @property
-    def bbox(self) -> Tuple[float, float, float, float]:
+    def roi(self) -> str:
         # noinspection PyUnresolvedReferences
-        x1, y1, x2, y2 = tuple(map(float, self._data['bbox'].split(',')))
-        return x1, y1, x2, y2
+        return self._data['roi']
 
     @property
     def spatialResolution(self) -> int:
@@ -86,11 +103,37 @@ class InputRequestMixin:
     def input_types(self) -> List[str]:
         # noinspection PyUnresolvedReferences
         return self._data['inputTypes']
-    
+
     @property
     def parameters(self) -> List[str]:
         # noinspection PyUnresolvedReferences
         return self._data['parameters']
+
+    @property
+    def forward_models(self) -> List[Dict]:
+        # noinspection PyUnresolvedReferences
+        return self._data['forwardModels']
+
+    @property
+    def user_priors(self) -> List[Dict]:
+        # noinspection PyUnresolvedReferences
+        return self._data['userPriors']
+
+    @property
+    def s1_temporal_filter(self) -> Optional[int]:
+        # noinspection PyUnresolvedReferences
+        if 's1TemporalFilter' in self._data:
+            # noinspection PyUnresolvedReferences
+            return self._data['s1TemporalFilter']
+        return None
+
+    @property
+    def s2_compute_roi(self) -> Optional[bool]:
+        # noinspection PyUnresolvedReferences
+        if 's2ComputeRoi' in self._data:
+            # noinspection PyUnresolvedReferences
+            return self._data['s2ComputeRoi']
+        return None
 
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
@@ -98,15 +141,35 @@ class InputRequestMixin:
 
     def _repr_html_(self):
         # TODO: make HTML look nice
+        parameters = []
+        models = []
+        for model in self.forward_models:
+            for param in model['outputParameters']:
+                if param not in parameters:
+                    parameters.append(param)
+            models.append(model['name'])
+        user_prior_names = []
+        for user_prior in self.user_priors:
+            user_prior_names.append(user_prior['name'])
+        temporal_filter_part = ''
+        if self.s1_temporal_filter is not None:
+            temporal_filter_part = f'<br/>Temporal filter for S1-Pre-Processing: {self.s1_temporal_filter}'
+        compute_roi_part = ''
+        if self.s2_compute_roi is not None:
+            compute_roi_part = f'<br/>Compute only ROI during S2-Pre-Processing: {self.s2_compute_roi}'
         return f'<p>' \
-            f'Name: {self.name}<br/>' \
-            f'Time range: {self.time_range}<br/>' \
-            f'Time step: {self.time_step} {self.time_step_unit}<br/>' \
-            f'Region box: {self.bbox}<br/>' \
-            f'Spatial resolution in m: {self.spatialResolution}<br/>' \
-            f'Input types: {", ".join(self.input_types)}<br/>' \
-            f'Parameters: {", ".join(self.parameters)}' \
-            f'</p>'
+               f'Name: {self.name}<br/>' \
+               f'Time range: {self.time_range}<br/>' \
+               f'Time step: {self.time_step} {self.time_step_unit}<br/>' \
+               f'Region: {self.roi}<br/>' \
+               f'Spatial resolution in m: {self.spatialResolution}<br/>' \
+               f'Input types: {", ".join(self.input_types)}<br/>' \
+               f'Parameters: {", ".join(parameters)}<br/>' \
+               f'Forward models: {", ".join(models)}<br/>' \
+               f'User priors: {", ".join(user_prior_names)}' \
+               f'{temporal_filter_part}' \
+               f'{compute_roi_part}' \
+               f'</p>'
 
 
 class InputRequest(InputRequestMixin):

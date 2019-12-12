@@ -1,5 +1,6 @@
 import concurrent.futures
 import json
+import logging
 import traceback
 
 import tornado.escape
@@ -7,7 +8,9 @@ import tornado.web
 
 from .context import ServiceContext
 from multiply_ui.server import controller
+from typing import Optional
 
+logging.getLogger().setLevel(logging.INFO)
 _EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
 
@@ -94,6 +97,7 @@ class GetInputsHandler(ServiceRequestHandler):
         json.dump(request, self)
         self.finish()
 
+
 # noinspection PyAbstractClass
 class ExecuteJobsHandler(ServiceRequestHandler):
     def post(self):
@@ -102,6 +106,22 @@ class ExecuteJobsHandler(ServiceRequestHandler):
         job = controller.submit_request(self.ctx, request)
         json.dump(job, self)
         self.finish()
+
+
+# noinspection PyAbstractClass
+class GetJobHandler(ServiceRequestHandler):
+    def get(self, job_id: str):
+        self.set_header('Content-Type', 'application/json')
+        job = controller.get_job(self.ctx, job_id)
+        json.dump(job, self)
+        self.finish()
+
+
+# noinspection PyAbstractClass
+class CancelHandler(ServiceRequestHandler):
+    def get(self, job_id: str):
+        self.set_header('Content-Type', 'application/json')
+        controller.cancel(self.ctx, job_id)
 
 
 # noinspection PyAbstractClass
@@ -147,18 +167,18 @@ class StatusHandler(ServiceRequestHandler):
 
 
 # noinspection PyAbstractClass
-class CancelHandler(ServiceRequestHandler):
-    def get(self, job_id: str):
-        job_id = int(job_id)
-
-        job = self.ctx.get_job(job_id)
-        if job is None:
-            self.send_error(404, reason="Job not found")
-            return
-        job.cancel()
-
-        self.set_header('Content-Type', 'application/json')
-        self.write(job.to_dict())
+# class CancelHandler(ServiceRequestHandler):
+#     def get(self, job_id: str):
+#         job_id = int(job_id)
+#
+#         job = self.ctx.get_job(job_id)
+#         if job is None:
+#             self.send_error(404, reason="Job not found")
+#             return
+#         job.cancel()
+#
+#         self.set_header('Content-Type', 'application/json')
+#         self.write(job.to_dict())
 
 
 # noinspection PyAbstractClass

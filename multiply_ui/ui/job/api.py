@@ -10,7 +10,7 @@ from ...util.callapi import call_api
 
 URL_BASE = "http://localhost:9090/"
 CANCEL_URL = URL_BASE + "multiply/api/jobs/cancel/{}"
-GET_JOB_URL = URL_BASE + "multiply/api/jobs/{}"
+GET_JOB_URL = URL_BASE + "multiply/api/jobs/get/{}"
 SUBMIT_PROCESSING_REQUEST_URL = URL_BASE + "multiply/api/jobs/execute"
 
 
@@ -46,12 +46,14 @@ def _submit_processing_request_mock(request: InputRequestMixin) -> Job:
                             {
                                 "name": "Collecting static Data",
                                 "progress": 0,
-                                "status": "new"
+                                "status": "new",
+                                "logs": ['Getting some static data', 'Getting more static data']
                             },
                             {
                                 "name": "Collecting Data from 2017-06-01 to 2017-06-10",
                                 "progress": 0,
-                                "status": "new"
+                                "status": "new",
+                                "logs": ['Getting data for time step', 'Getting more data for time step']
                             }
                         ],
                         ))
@@ -87,7 +89,7 @@ def _cancel_mock(job_id: str, message_func):
         message_func(f'Job {job.name} has been cancelled.')
 
 
-def get_job(job_id: str, message_func ) -> Optional[Job]:
+def get_job(job: Job, message_func ) -> Optional[Job]:
     def _apply_func(response) -> Job:
         return Job(response)
-    return call_api(GET_JOB_URL.format(job_id), apply_func=_apply_func, message_func=message_func)
+    return call_api(GET_JOB_URL.format(job.id), apply_func=_apply_func, message_func=message_func)

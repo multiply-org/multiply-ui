@@ -3,12 +3,14 @@ import json
 import logging
 import pkg_resources
 import os
+import shutil
 from .context import ServiceContext #import to ensure calvalus-instances is added to system path
-from multiply_core.util import get_time_from_string
+from multiply_core.util import get_num_tiles, get_time_from_string
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
 # and add the calvalus-instances as content root to project structure
 from share.lib.pmonitor import PMonitor
-from typing import Dict, List
+from shapely.wkt import loads
+from typing import Dict, List, Tuple
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -27,9 +29,7 @@ def get_parameters(ctx):
 
 def get_inputs(ctx, parameters):
     time_range = parameters["timeRange"]
-    (minLon, minLat, maxLon, maxLat) = parameters["bbox"].split(",")
-    region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
-                                                                   minLon, maxLat, minLon, minLat)
+    region_wkt = parameters["roi"]
     input_types = parameters["inputTypes"]
     parameters["inputIdentifiers"] = {}
     for input_type in input_types:
@@ -40,41 +40,59 @@ def get_inputs(ctx, parameters):
 
 def submit_request(ctx, request) -> Dict:
     mangled_name = request['name'].replace(' ', '_')
-    id = mangled_name  # TODO generate simple unique IDs
+    id = mangled_name
+    job = ctx.get_job(mangled_name)
+    index = 0
+    while job is not None:
+        id = f'{mangled_name}_{index}'
+        job = ctx.get_job(id)
+        index += 1
     workdir_root = ctx.working_dir
     logging.info(f'working dir root from context {workdir_root}')
     workdir = workdir_root + '/' + id
     pm_request_file = f'{workdir}/{mangled_name}.json'
 
-    pm_request = _pm_request_of(request, workdir)
-    if not os.path.exists(workdir):
-        os.makedirs(workdir)
+    pm_request = _pm_request_of(request, workdir, id)
+    if os.path.exists(workdir):
+        shutil.rmtree(workdir)
+    os.makedirs(workdir)
     with open(pm_request_file, "w") as f:
         json.dump(pm_request, f)
     pm_request["requestFile"] = pm_request_file
 
     job = ctx.pm_server.submit_request(pm_request)
-    job_dict = {}
-    job_dict['id'] = id
-    job_dict['name'] = request['name']
-    job_dict['status'] = _translate_status(job.status)
-    tasks = _pm_workflow_of(job.pm)
-    job_dict['tasks'] = []
-    job_progress = 0
-    for task in tasks:
-        status = task['status']
-        progress = 0
-        if status is 'succeeded':
-            progress = 100
-        job_progress += progress
-        task_dict = {
-            'name': task['step'],
-            'status': status,
-            'progress': progress
-        }
-        job_dict['tasks'].append(task_dict)
-    job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100
-    return job_dict
+    return _get_job_dict(job, id, request['name'])
+
+
+def _translate_step(step: str) -> str:
+    step_parts = step.split(" ")
+    if step_parts[0] == "combine_hres_biophys_outputs.py":
+        return 'Assembling results from S2 inference'
+    if step_parts[0] == "data_access_get_static.py":
+        return f'Retrieving data required for all time steps'
+    if step_parts[0] == "data_access_put_s2_l2.py":
+        return f'Storing S2 Pre-processing results of time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "determine_s1_priors.py":
+        return f'Assembling Priors for S1 Retrieval for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "get_data_for_s1_preprocessing.py":
+        return f'Retrieving SAR data for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "get_data_for_s2_preprocessing.py":
+        return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "infer_s2_kafka.py":
+        return f'Inferring variables for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "infer_s1_kaska.py":
+        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "infer_s2_kaska.py":
+        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]}'
+    if step_parts[0] == "preprocess_s1.py":
+        return 'Preprocessing S1 data for all time steps'
+    if step_parts[0] == "preprocess_s2.py":
+        return f'Preprocessing S2 Data for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "retrieve_s2_priors.py":
+        return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "stack_s1.py":
+        return f'Creating S1 Stack for time step from {step_parts[2]} to {step_parts[3]}'
+    return step
 
 
 def _translate_status(pm_status: str) -> str:
@@ -82,7 +100,7 @@ def _translate_status(pm_status: str) -> str:
         return 'failed'
     if pm_status == 'RUNNING':
         return 'running'
-    if pm_status == 'DONE' or pm_status == 'SUCCEEDED':
+    if pm_status == 'DONE' or pm_status == 'SUCCEEDED' or pm_status == 'SUCCESS':
         return 'succeeded'
     if pm_status == 'CANCELLED':
         return 'cancelled'
@@ -90,34 +108,68 @@ def _translate_status(pm_status: str) -> str:
         return 'new'
 
 
-def _pm_request_of(request, workdir: str) -> Dict:
+def _pm_request_of(request, workdir: str, id: str) -> Dict:
     template_text = pkg_resources.resource_string(__name__, "resources/pm_request_template.json")
     pm_request = json.loads(template_text)
     pm_request['requestName'] = f"{workdir}/{request['name']}"
+    pm_request['requestId'] = id
     pm_request['productionType'] = _determine_workflow(request)
     pm_request['data_root'] = workdir
     pm_request['simulation'] = pm_request['simulation'] == 'True'
     pm_request['log_dir'] = f'{workdir}/log'
-    (minLon, minLat, maxLon, maxLat) = request["bbox"].split(",")
-    region_wkt = "POLYGON(({} {},{} {},{} {},{} {},{} {}))".format(minLon, minLat, maxLon, minLat, maxLon, maxLat,
-                                                                   minLon, maxLat, minLon, minLat)
-    pm_request['General']['roi'] = region_wkt
+    pm_request['General']['roi'] = request['roi']
     pm_request['General']['start_time'] = \
         datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y-%m-%d')
     pm_request['General']['end_time'] = \
         datetime.datetime.strftime(get_time_from_string(request['timeRange'][1]), '%Y-%m-%d')
     pm_request['General']['time_interval'] = request['timeStep']
     pm_request['General']['spatial_resolution'] = request['spatialResolution']
-    pm_request['Inference']['parameters'] = [ parameter[0] for parameter in request['parameters']]
+    pm_request['General']['tile_width'] = 512
+    pm_request['General']['tile_height'] = 512
+    num_tiles_x, num_tiles_y = _get_num_tiles_of_request(request)
+    pm_request['General']['num_tiles_x'] = num_tiles_x
+    pm_request['General']['num_tiles_y'] = num_tiles_y
     pm_request['Inference']['time_interval'] = request['timeStep']
+    forward_models = []
+    for model_dict in request['forwardModels']:
+        model = {"name": model_dict["name"],
+                 "type": model_dict["type"],
+                 "data_type": model_dict["modelDataType"],
+                 "required_priors": [prior for prior in model_dict["requiredPriors"]],
+                 "output_parameters": [parameter for parameter in model_dict["outputParameters"]]}
+        forward_models.append(model)
+    pm_request['Inference']['forward_models'] = forward_models
     pm_request['Prior']['output_directory'] = workdir + '/priors'
+    for user_prior_dict in request['userPriors']:
+        if 'mu' in user_prior_dict:
+            pm_request['Prior'][user_prior_dict['name']] = {'user': {'mu': user_prior_dict['mu']}}
+        if 'unc' in user_prior_dict:
+            if 'user' not in pm_request['Prior'][user_prior_dict['name']]:
+                pm_request['Prior'][user_prior_dict['name']]['user'] = {}
+            pm_request['Prior'][user_prior_dict['name']]['user']['unc'] = user_prior_dict['unc']
+    if 's1TemporalFilter' in request:
+        pm_request['SAR']['speckle_filter']['multi_temporal']['temporal_filter'] = request['s1TemporalFilter']
+        (min_lon, min_lat, max_lon, max_lat) = loads(request['roi']).bounds()
+        pm_request['SAR']['region']['ul']['lat'] = max_lat
+        pm_request['SAR']['region']['ul']['lon'] = min_lon
+        pm_request['SAR']['region']['lr']['lat'] = min_lat
+        pm_request['SAR']['region']['lr']['lon'] = max_lon
+        pm_request['SAR']['year'] = datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y')
+    if 's2ComputeRoi' in request:
+        pm_request['s2_pre_processing']['compute_only_roi'] = request['s2ComputeRoi']
     return pm_request
+
+
+def _get_num_tiles_of_request(request) -> Tuple:
+    roi = request['roi']
+    spatial_resolution = request['spatialResolution']
+    return get_num_tiles(spatial_resolution=spatial_resolution, roi=roi, tile_width=512, tile_height=512)
 
 
 def _determine_workflow(request) -> str:
     if "productionType" in request:
         return request["productionType"]
-    return 'only-get-data'
+    return 'multiply-full'
 
 
 def _pm_workflow_of(pm) -> List:
@@ -125,19 +177,22 @@ def _pm_workflow_of(pm) -> List:
     backlog = pm._backlog.copy()
     running = pm._running.copy()
     commands = pm._commands.copy()
+    cancelled = pm._cancelled.copy()
     failed = pm._failed.copy()
     for r in backlog:
         l = '{0} {1} {2} {3}\n'.format(PMonitor.Args.get_call(r.args),
                                        ' '.join(PMonitor.Args.get_parameters(r.args)),
                                        ' '.join(PMonitor.Args.get_inputs(r.args)),
                                        ' '.join(PMonitor.Args.get_outputs(r.args)))
-        accu.append({"step": l, "status": "initial", "progress": 0})
+        accu.append({"step": l, "status": "initial", "progress": 0, "logs": []})
     for l in running:
-        accu.append({"step": l, "status": "running", "progress": pm.get_progress(l)})
+        accu.append({"step": l, "status": "running", "progress": pm.get_progress(l), "logs": pm.get_logs(l)})
     for l in commands:
-        accu.append({"step": l, "status": "succeeded", "progress": 100})
+        accu.append({"step": l, "status": "succeeded", "progress": 100, "logs": pm.get_logs(l)})
+    for l in cancelled:
+        accu.append({"step": l, "status": "cancelled", "progress": pm.get_progress(l), "logs": pm.get_logs(l)})
     for l in failed:
-        accu.append({"step": l, "status": "failed", "progress": pm.get_progress(l)})
+        accu.append({"step": l, "status": "failed", "progress": pm.get_progress(l), "logs": pm.get_logs(l)})
     return accu
 
 
@@ -147,3 +202,34 @@ def set_earth_data_authentication(ctx, parameters):
 
 def set_mundi_authentication(ctx, parameters):
     ctx.set_mundi_authentication(parameters['access_key_id'], parameters['secret_access_key'])
+
+
+def get_job(ctx, id: str) -> Dict:
+    job = ctx.get_job(id)
+    request_name = job.request['requestName'].split('/')[-1]
+    return _get_job_dict(job, id, request_name)
+
+
+def _get_job_dict(job, request_id: str, request_name: str):
+    job_dict = {'id': request_id, 'name': request_name, 'status': _translate_status(job.status)}
+    tasks = _pm_workflow_of(job.pm)
+    job_dict['tasks'] = []
+    job_progress = 0
+    for task in tasks:
+        status = task['status']
+        progress = task['progress']
+        job_progress += progress
+        task_dict = {
+            'name': _translate_step(task['step']),
+            'status': status,
+            'progress': progress,
+            'logs': task['logs']
+        }
+        job_dict['tasks'].append(task_dict)
+    job_dict['progress'] = int(job_progress / len(tasks)) if len(tasks) > 0 else 100
+    return job_dict
+
+
+def cancel(ctx, id: str):
+    job = ctx.get_job(id)
+    job.pm.cancel()

@@ -17,6 +17,7 @@ VARIABLE_TYPE = TypeDef(object, properties=[
     PropertyDef('unit', TypeDef(str, optional=True)),
     PropertyDef('description', TypeDef(str, optional=True)),
     PropertyDef('valueRange', TypeDef(str, optional=True)),
+    PropertyDef('mayBeUserPrior', TypeDef(bool)),
     PropertyDef('applications', TypeDef(list, optional=True, item_type=TypeDef(str))),
 ])
 
@@ -27,6 +28,8 @@ FORWARD_MODEL_TYPE = TypeDef(object, properties=[
     PropertyDef('modelAuthors', TypeDef(str, optional=True)),
     PropertyDef('modelUrl', TypeDef(str, optional=True)),
     PropertyDef('inputType', TypeDef(str)),
+    PropertyDef('type', TypeDef(str)),
+    PropertyDef('requiredPriors', TypeDef(list, item_type=TypeDef(str))),
     PropertyDef('variables', TypeDef(list, item_type=TypeDef(str))),
 ])
 
@@ -56,6 +59,10 @@ class Variable:
     @property
     def description(self) -> Optional[str]:
         return self._data['description']
+
+    @property
+    def may_be_user_prior(self):
+        return self._data['mayBeUserPrior']
 
     def _repr_html_(self):
         return self.html_table([self])
@@ -111,6 +118,14 @@ class ForwardModel:
     @property
     def input_type(self):
         return self._data['inputType']
+
+    @property
+    def type(self):
+        return self._data['type']
+
+    @property
+    def requiredPriors(self):
+        return self._data['requiredPriors']
 
     @property
     def variables(self):
