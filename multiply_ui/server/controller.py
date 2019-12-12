@@ -149,7 +149,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
             pm_request['Prior'][user_prior_dict['name']]['user']['unc'] = user_prior_dict['unc']
     if 's1TemporalFilter' in request:
         pm_request['SAR']['speckle_filter']['multi_temporal']['temporal_filter'] = request['s1TemporalFilter']
-        (min_lon, min_lat, max_lon, max_lat) = loads(request['roi']).bounds()
+        (min_lon, min_lat, max_lon, max_lat) = loads(request['roi']).bounds
         pm_request['SAR']['region']['ul']['lat'] = max_lat
         pm_request['SAR']['region']['ul']['lon'] = min_lon
         pm_request['SAR']['region']['lr']['lat'] = min_lat
