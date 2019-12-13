@@ -129,7 +129,7 @@ class MultiplyFull(MultiplyMonitor):
         for tile_x in range(self._num_tiles_x):
             for tile_y in range(self._num_tiles_y):
                 self.execute('infer-s2-kaska.py', [sdrs, priors], [hres_biophys_output],
-                             parameters=[self._request_file, start, stop, tile_x, tile_y])
+                             parameters=[self._request_file, start, stop, f'{tile_x}', f'{tile_y}'])
         params_dict['hres_biophys_output'] = hres_biophys_output
         return params_dict
 
@@ -159,7 +159,7 @@ class MultiplyFull(MultiplyMonitor):
             for tile_x in range(self._num_tiles_x):
                 for tile_y in range(self._num_tiles_y):
                     self.execute('infer-s1-kaska.py', [s1_stack_for_date, s1_priors], [sar_biophys_output],
-                                 parameters=[self._request_file, date, next_date, tile_x, tile_y])
+                                 parameters=[self._request_file, date, next_date, f'{tile_x}', f'{tile_y}'])
         return params_dict
 
     # def _create_eo_post_processing_workflow(self, start: str, stop: str, params_dict: Dict):
