@@ -20,8 +20,8 @@ script_progress_logger.addHandler(script_progress_logging_handler)
 configuration_file = sys.argv[1]
 start_date = sys.argv[2]
 stop_date = sys.argv[3]
-tile_x = sys.argv[4]
-tile_y = sys.argv[5]
+tile_x = int(sys.argv[4])
+tile_y = int(sys.argv[5])
 sdrs_dir = sys.argv[6]
 priors_dir = sys.argv[7]
 output_dir = sys.argv[8]
