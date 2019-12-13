@@ -42,7 +42,9 @@ class MultiplyFull(MultiplyMonitor):
     def create_workflow(self):
         start = datetime.datetime.strftime(self._start, '%Y-%m-%d')
         stop = datetime.datetime.strftime(self._stop, '%Y-%m-%d')
-        params_dict = self._create_kafka_s2_inference_workflow(start, stop, {})
+        params_dict = {}
+        params_dict['hres_biophys_output'] = None
+        params_dict = self._create_kafka_s2_inference_workflow(start, stop, params_dict)
         params_dict = self._create_kaska_s2_inference_workflow(start, stop, params_dict)
         params_dict = self._create_kaska_s1_inference_workflow(start, stop, params_dict)
         # params_dict = self._create_eo_post_processing_workflow(start, stop, params_dict)
