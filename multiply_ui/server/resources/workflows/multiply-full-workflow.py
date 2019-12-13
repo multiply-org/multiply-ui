@@ -128,7 +128,7 @@ class MultiplyFull(MultiplyMonitor):
         self.execute('retrieve_s2_priors.py', [], [priors], parameters=[self._request_file, start, stop])
         for tile_x in range(self._num_tiles_x):
             for tile_y in range(self._num_tiles_y):
-                self.execute('infer-s2-kaska.py', [sdrs, priors], [hres_biophys_output],
+                self.execute('infer_s2_kaska.py', [sdrs, priors], [hres_biophys_output],
                              parameters=[self._request_file, start, stop, f'{tile_x}', f'{tile_y}'])
         params_dict['hres_biophys_output'] = hres_biophys_output
         return params_dict
