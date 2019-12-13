@@ -124,8 +124,8 @@ class MultiplyFull(MultiplyMonitor):
             self.execute('data_access_put_s2_l2.py', [sdrs, provided_sdrs], [],
                          parameters=[self._request_file, start, stop])
         self.execute('retrieve_s2_priors.py', [], [priors], parameters=[self._request_file, start, stop])
-        for tile_x in self._num_tiles_x:
-            for tile_y in self._num_tiles_y:
+        for tile_x in range(self._num_tiles_x):
+            for tile_y in range(self._num_tiles_y):
                 self.execute('infer-s2-kaska.py', [sdrs, priors], [hres_biophys_output],
                              parameters=[self._request_file, start, stop, tile_x, tile_y])
         params_dict['hres_biophys_output'] = hres_biophys_output
@@ -154,8 +154,8 @@ class MultiplyFull(MultiplyMonitor):
             s1_priors_for_date = s1_priors + '/' + date
             self.execute('determine_s1_priors.py', [hres_biophys_output], [s1_priors_for_date],
                          parameters=[self._request_file, date, next_date])
-            for tile_x in self._num_tiles_x:
-                for tile_y in self._num_tiles_y:
+            for tile_x in range(self._num_tiles_x):
+                for tile_y in range(self._num_tiles_y):
                     self.execute('infer-s1-kaska.py', [s1_stack_for_date, s1_priors], [sar_biophys_output],
                                  parameters=[self._request_file, date, next_date, tile_x, tile_y])
         return params_dict
