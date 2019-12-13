@@ -64,7 +64,7 @@ for i, directory in enumerate(dirs):
     if len(paths_to_mtd_tl) > 0:
         cmd4 = "cp `readlink " + paths_to_mtd_tl[0] + "` " + output_dir + "/MTD_TL.xml"
         os.system(cmd4)
-provided_sdr_files = glob.glob(os.path.join(provided_sdrs_dir, '*'))
+provided_sdr_files = os.listdir(provided_sdrs_dir)
 for provided_sdr_file in provided_sdr_files:
-    shutil.copytree(provided_sdr_file, output_root_dir)
+    shutil.copytree(os.path.join(provided_sdrs_dir, provided_sdr_file), os.path.join(output_root_dir, provided_sdr_file))
 script_progress_logger.info('100-100')
