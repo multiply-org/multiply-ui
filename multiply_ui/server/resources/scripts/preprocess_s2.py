@@ -66,5 +66,5 @@ for i, directory in enumerate(dirs):
         os.system(cmd4)
 provided_sdr_files = glob.glob(os.path.join(provided_sdrs_dir, '*'))
 for provided_sdr_file in provided_sdr_files:
-    shutil.copy(provided_sdr_file, output_root_dir)
+    shutil.copytree(provided_sdr_file, output_root_dir)
 script_progress_logger.info('100-100')
