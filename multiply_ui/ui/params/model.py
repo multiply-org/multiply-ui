@@ -208,6 +208,51 @@ class InputTypes:
         return InputType.html_table(list(self._input_types.values()), title="Input Types")
 
 
+class EoPostProcessor:
+    def __init__(self, data: Dict[str, Any]):
+        self._data = data
+
+    @property
+    def id(self) -> str:
+        return self._data['id']
+
+    @property
+    def name(self) -> str:
+        return self._data['name']
+
+    @property
+    def time_range(self) -> Tuple[Optional[str], Optional[str]]:
+        start, stop = self._data['timeRange']
+        return start, stop
+
+    def _repr_html_(self):
+        return self.html_table([self])
+
+    @classmethod
+    def html_table(cls, items: List['InputType'], title=None):
+        def data_row(item: InputType):
+            return [item.id, item.name, item.time_range]
+
+        return html_table(list(map(data_row, items)),
+                          header_row=['Id', 'Name', 'Time Range'],
+                          title=title)
+
+
+class EoPostProcessors:
+    def __init__(self, eo_post_processors: Dict[str, InputType]):
+        self._eo_post_processors = eo_post_processors
+
+    @property
+    def ids(self) -> List[str]:
+        return list(self._eo_post_processors.keys())
+
+    def get(self, it_id: str) -> InputType:
+        return self._eo_post_processors[it_id]
+
+    def _repr_html_(self):
+        return InputType.html_table(list(self._eo_post_processors.values()), title="EO Post Processors")
+
+
 class ProcessingParameters:
 
     def __init__(self, raw_data):
