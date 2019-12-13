@@ -29,8 +29,8 @@ with open(sys.argv[1]) as f:
     parameters = yaml.load(f)
 roi = parameters['General']['roi']
 spatial_resolution = parameters['General']['spatial_resolution']
-tile_width = parameters['General']['tile_width']
-tile_height = parameters['General']['tile_height']
+tile_width = int(parameters['General']['tile_width'])
+tile_height = int(parameters['General']['tile_height'])
 variables = []
 for model_dict in parameters['Inference']['forward_models']:
     if model_dict['type'] == 'kaska' and model_dict['data_type'] == 'Sentinel-1':

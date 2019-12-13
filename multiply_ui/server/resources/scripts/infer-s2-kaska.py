@@ -35,9 +35,9 @@ with open(configuration_file) as f:
 
 roi = parameters['General']['roi']
 spatial_resolution = parameters['General']['spatial_resolution']  # in m
-time_step = parameters['General']['time_interval']
-tile_width = parameters['General']['tile_width']
-tile_height = parameters['General']['tile_height']
+time_step = int(parameters['General']['time_interval'])
+tile_width = int(parameters['General']['tile_width'])
+tile_height = int(parameters['General']['tile_height'])
 
 forward_models = []
 requested_parameters = []
