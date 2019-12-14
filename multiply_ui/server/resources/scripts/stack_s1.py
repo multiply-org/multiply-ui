@@ -55,9 +55,9 @@ stack_creator = NetcdfStackCreator(input_folder=s1_stack_dir,
 stack_creator.create_netcdf_stack()
 
 # clean
-files = os.listdir(s1_grd_dir)
-for file in files:
-    if file != stack_file_name:
-        os.remove(os.path.join(s1_stack_dir, file))
+# files = os.listdir(s1_grd_dir)
+# for file in files:
+#     if file != stack_file_name:
+#         os.remove(os.path.join(s1_stack_dir, file))
 
 script_progress_logger.info('100-100')
