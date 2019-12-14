@@ -109,7 +109,7 @@
         "speckle_filter" : {
             "multi_temporal" : {
                 "apply" : "yes",
-                "temporal_filter" : "TEMPORAL_FILTER"
+                "files" : "TEMPORAL_FILTER"
             }
         },
         "region" : {

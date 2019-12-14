@@ -68,6 +68,10 @@ def _translate_step(step: str) -> str:
     step_parts = step.split(" ")
     if step_parts[0] == "combine_hres_biophys_outputs.py":
         return 'Assembling results from S2 inference'
+    if step_parts[0] == "create_s1_kaska_inference_output_files":
+        return f'Creating Output Files for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "create_s2_kaska_inference_output_files":
+        return f'Creating Output Files for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "data_access_get_static.py":
         return f'Retrieving data required for all time steps'
     if step_parts[0] == "data_access_put_s2_l2.py":
@@ -148,7 +152,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
                 pm_request['Prior'][user_prior_dict['name']]['user'] = {}
             pm_request['Prior'][user_prior_dict['name']]['user']['unc'] = user_prior_dict['unc']
     if 's1TemporalFilter' in request:
-        pm_request['SAR']['speckle_filter']['multi_temporal']['temporal_filter'] = request['s1TemporalFilter']
+        pm_request['SAR']['speckle_filter']['multi_temporal']['files'] = request['s1TemporalFilter']
         (min_lon, min_lat, max_lon, max_lat) = loads(request['roi']).bounds
         pm_request['SAR']['region']['ul']['lat'] = max_lat
         pm_request['SAR']['region']['ul']['lon'] = min_lon
