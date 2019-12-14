@@ -33,7 +33,7 @@ if not os.path.exists(s1_priors_dir):
     os.makedirs(s1_priors_dir)
 
 required_priors = []
-for model in parameters['Inference']:
+for model in parameters['Inference']['forward_models']:
     if model['type'] == 'kaska' and model['data_type'] == 'Sentinel-1':
         required_priors = model['required_priors']
 
