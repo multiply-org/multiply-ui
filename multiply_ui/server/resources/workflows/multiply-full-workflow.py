@@ -13,6 +13,7 @@ class MultiplyFull(MultiplyMonitor):
                                         ('data_access_put_s2_l2.py', 1), ('retrieve_s2_priors.py', 2),
                                         ('preprocess_s2.py', 2), ('combine_hres_biophys_outputs.py', 1),
                                         ('infer_s2_kafka.py', 2), ('infer_s2_kaska.py', 6),
+                                        ('create_s2_kaska_inference_output_files.py', 1),
                                         ('get_data_for_s1_preprocessing.py', 1), ('preprocess_s1.py', 1),
                                         ('stack_s1.py', 2), ('determine_s1_priors.py', 2), ('infer_s1_kaska.py', 6)
                                         ]
@@ -126,6 +127,8 @@ class MultiplyFull(MultiplyMonitor):
             self.execute('data_access_put_s2_l2.py', [sdrs, provided_sdrs], [],
                          parameters=[self._request_file, start, stop])
         self.execute('retrieve_s2_priors.py', [], [priors], parameters=[self._request_file, start, stop])
+        self.execute('create_s2_kaska_inference_output_files.py', [], [hres_biophys_output],
+                             parameters=[self._request_file, start, stop])
         for tile_x in range(self._num_tiles_x):
             for tile_y in range(self._num_tiles_y):
                 self.execute('infer_s2_kaska.py', [sdrs, priors], [hres_biophys_output],
