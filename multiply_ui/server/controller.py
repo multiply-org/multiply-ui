@@ -124,9 +124,9 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
         datetime.datetime.strftime(get_time_from_string(request['timeRange'][1]), '%Y-%m-%d')
     pm_request['General']['time_interval'] = request['timeStep']
     pm_request['General']['spatial_resolution'] = request['spatialResolution']
-    pm_request['General']['tile_width'] = 128
-    pm_request['General']['tile_height'] = 128
-    num_tiles_x, num_tiles_y = _get_num_tiles_of_request(request, 128, 128)
+    pm_request['General']['tile_width'] = 512
+    pm_request['General']['tile_height'] = 512
+    num_tiles_x, num_tiles_y = _get_num_tiles_of_request(request, 512, 512)
     pm_request['General']['num_tiles_x'] = num_tiles_x
     pm_request['General']['num_tiles_y'] = num_tiles_y
     pm_request['Inference']['time_interval'] = request['timeStep']
