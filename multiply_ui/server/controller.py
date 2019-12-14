@@ -68,9 +68,9 @@ def _translate_step(step: str) -> str:
     step_parts = step.split(" ")
     if step_parts[0] == "combine_hres_biophys_outputs.py":
         return 'Assembling results from S2 inference'
-    if step_parts[0] == "create_s1_kaska_inference_output_files":
+    if step_parts[0] == "create_s1_kaska_inference_output_files.py":
         return f'Creating Output Files for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
-    if step_parts[0] == "create_s2_kaska_inference_output_files":
+    if step_parts[0] == "create_s2_kaska_inference_output_files.py":
         return f'Creating Output Files for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "data_access_get_static.py":
         return f'Retrieving data required for all time steps'
