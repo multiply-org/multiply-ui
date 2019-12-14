@@ -12,9 +12,9 @@ class MultiplyFull(MultiplyMonitor):
                                  types=[('data_access_get_static.py', 1), ('get_data_for_s2_preprocessing.py', 2),
                                         ('data_access_put_s2_l2.py', 1), ('retrieve_s2_priors.py', 2),
                                         ('preprocess_s2.py', 2), ('combine_hres_biophys_outputs.py', 1),
-                                        ('infer_s2_kafka.py', 2), ('infer_s2_kaska.py', 2),
+                                        ('infer_s2_kafka.py', 2), ('infer_s2_kaska.py', 6),
                                         ('get_data_for_s1_preprocessing.py', 1), ('preprocess_s1.py', 1),
-                                        ('stack_s1.py', 2), ('determine_s1_priors.py', 2), ('infer_s1_kaska.py', 2)
+                                        ('stack_s1.py', 2), ('determine_s1_priors.py', 2), ('infer_s1_kaska.py', 6)
                                         ]
                                  )
         self._data_root = parameters['data_root']
