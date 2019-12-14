@@ -44,7 +44,7 @@ requested_parameters = []
 model_parameters = []
 required_priors = []
 for model_dict in parameters['Inference']['forward_models']:
-    if model_dict['type'] == 'kafka' and model_dict['data_type'] == 'Sentinel-2':
+    if model_dict['type'] == 'kaska' and model_dict['data_type'] == 'Sentinel-2':
         forward_models.append(model_dict['name'])
         requested_model_parameters = model_dict['output_parameters']
         for model_parameter in requested_model_parameters:
