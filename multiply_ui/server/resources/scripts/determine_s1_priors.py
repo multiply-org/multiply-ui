@@ -43,10 +43,13 @@ priors_to_be_retrieved = []
 start_time = datetime.datetime.strptime(start, '%Y-%m-%d')
 end_time = datetime.datetime.strptime(end, '%Y-%m-%d')
 for prior in required_priors:
-    expected_file_name = "%s_%s.tif" % (prior, start_time.strftime("A%Y%j"))
-    expected_file = os.path.join(hres_biophys_output, expected_file_name)
-    if os.path.exists(expected_file):
-        os.symlink(expected_file, os.path.join(s1_priors_dir, expected_file_name))
+    if hres_biophys_output != 'none':
+        expected_file_name = "%s_%s.tif" % (prior, start_time.strftime("A%Y%j"))
+        expected_file = os.path.join(hres_biophys_output, expected_file_name)
+        if os.path.exists(expected_file):
+            os.symlink(expected_file, os.path.join(s1_priors_dir, expected_file_name))
+        else:
+            priors_to_be_retrieved.append(prior)
     else:
         priors_to_be_retrieved.append(prior)
 
