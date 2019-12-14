@@ -44,8 +44,8 @@ num_before = 0
 script_progress_logger.info('0-0')
 while num_before < temporal_filter:
     if previous_num_before != num_before:
-        script_progress_logger.info(f'{(num_before / temporal_filter) * 50}-'
-                                    f'{((num_before + 1) / temporal_filter) * 50}')
+        script_progress_logger.info(f'{int((num_before / temporal_filter) * 50)}-'
+                                    f'{int(((num_before + 1) / temporal_filter) * 50)}')
     before -= one_day
     before_date = datetime.datetime.strftime(before, '%Y-%m-%d')
     data_urls_before = dac.get_data_urls(roi, before_date, start_date, 'S1_SLC')
@@ -66,8 +66,8 @@ previous_num_after = -1
 num_after = 0
 while num_after < temporal_filter and after < datetime.datetime.today():
     if previous_num_before != num_before:
-        script_progress_logger.info(f'{50 + ((num_after / temporal_filter) * 50)}-'
-                                    f'{50 + (((num_after + 1) / temporal_filter) * 50)}')
+        script_progress_logger.info(f'{50 + int(((num_after / temporal_filter) * 50))}-'
+                                    f'{50 + int((((num_after + 1) / temporal_filter) * 50))}')
     after += one_day
     after_date = datetime.datetime.strftime(after, '%Y-%m-%d')
     data_urls_after = dac.get_data_urls(roi, end_date, after_date, 'S1_SLC')
