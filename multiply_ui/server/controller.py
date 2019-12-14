@@ -126,7 +126,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
     pm_request['General']['spatial_resolution'] = request['spatialResolution']
     pm_request['General']['tile_width'] = 128
     pm_request['General']['tile_height'] = 128
-    num_tiles_x, num_tiles_y = _get_num_tiles_of_request(request)
+    num_tiles_x, num_tiles_y = _get_num_tiles_of_request(request, 128, 128)
     pm_request['General']['num_tiles_x'] = num_tiles_x
     pm_request['General']['num_tiles_y'] = num_tiles_y
     pm_request['Inference']['time_interval'] = request['timeStep']
@@ -160,10 +160,10 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
     return pm_request
 
 
-def _get_num_tiles_of_request(request) -> Tuple:
+def _get_num_tiles_of_request(request, tile_width, tile_height) -> Tuple:
     roi = request['roi']
     spatial_resolution = request['spatialResolution']
-    return get_num_tiles(spatial_resolution=spatial_resolution, roi=roi, tile_width=512, tile_height=512)
+    return get_num_tiles(spatial_resolution=spatial_resolution, roi=roi, tile_width=tile_width, tile_height=tile_height)
 
 
 def _determine_workflow(request) -> str:
