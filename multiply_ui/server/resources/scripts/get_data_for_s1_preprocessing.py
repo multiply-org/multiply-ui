@@ -26,7 +26,7 @@ s1_slc_dir = sys.argv[4]
 with open(configuration_file) as f:
     parameters = yaml.load(f)
 roi = parameters['General']['roi']
-temporal_filter = parameters['SAR']['speckle_filter']['multi_temporal']['files']
+temporal_filter = parameters['SAR']['speckle_filter']['multi_temporal']['temporal_filter']
 
 from multiply_data_access import DataAccessComponent
 dac = DataAccessComponent()
