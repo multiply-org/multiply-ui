@@ -158,7 +158,7 @@ class MultiplyFull(MultiplyMonitor):
                          parameters=[self._request_file, date, next_date])
             for tile_x in range(self._num_tiles_x):
                 for tile_y in range(self._num_tiles_y):
-                    self.execute('infer-s1-kaska.py', [s1_stack_for_date, s1_priors_for_date], [sar_biophys_output],
+                    self.execute('infer_s1_kaska.py', [s1_stack_for_date, s1_priors_for_date], [sar_biophys_output],
                                  parameters=[self._request_file, date, next_date, f'{tile_x}', f'{tile_y}'])
         return params_dict
 
