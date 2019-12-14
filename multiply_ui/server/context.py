@@ -55,7 +55,6 @@ class ServiceContext:
     def __init__(self):
         self._jobs = {}
         self.data_access_component = multiply_data_access.data_access_component.DataAccessComponent()
-        self._restrict_to_mundi_datastore()
         self.pm_server = pmserver.PMServer()
         self._python_dist = sys.executable
         config = _get_config()
@@ -77,14 +76,6 @@ class ServiceContext:
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']
         os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
-
-    # TODO: require an interface of data access to select data stores to be used
-    def _restrict_to_mundi_datastore(self):
-        for data_store in self.data_access_component._data_stores:
-            if data_store._id == "Mundi":
-                self.data_access_component._data_stores = [data_store]
-                return
-        raise ValueError('data store Mundi not found in configuration')
 
     @staticmethod
     def get_available_forward_models() -> List[dict]:
