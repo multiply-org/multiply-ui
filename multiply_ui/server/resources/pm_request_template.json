@@ -90,6 +90,16 @@
             "database" : {
                 "static_dir" : "same as General directory_data"
             }
+        },
+        "sm" : {
+            "temporary" : {
+                "dir" : "/data/auxiliary/priors/temporary/sm/"
+            }
+        },
+        "sr" : {
+            "temporary" : {
+                "dir" : "/data/auxiliary/priors/temporary/sr/"
+            }
         }
     },
     "SAR" : {
