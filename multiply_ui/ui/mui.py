@@ -2,7 +2,7 @@ from .auth.form import auth_form
 from .job.model import Job
 from .job.form import obs_job_form, obs_jobs_form
 from .params.api import fetch_processing_parameters
-from .params.model import ProcessingParameters, Variables, ForwardModels, InputTypes, EoPostProcessors
+from .params.model import ProcessingParameters, Variables, ForwardModels, InputTypes, PostProcessors
 from .req.form import sel_params_form
 
 
@@ -36,8 +36,12 @@ class MultiplyUI:
         return self.processing_parameters.input_types
 
     @property
-    def eo_post_processors(self) -> EoPostProcessors:
-        return self.processing_parameters.eo_post_processors
+    def post_processors(self) -> PostProcessors:
+        return self.processing_parameters.post_processors
+    
+    @property
+    def indicators(self) -> Variables:
+        return self.processing_parameters.indicators
 
     def sel_params(self, identifier='request', name='name', mock=False):
         return sel_params_form(self.processing_parameters, identifier, name, mock=mock)

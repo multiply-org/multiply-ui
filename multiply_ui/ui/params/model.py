@@ -33,10 +33,18 @@ FORWARD_MODEL_TYPE = TypeDef(object, properties=[
     PropertyDef('variables', TypeDef(list, item_type=TypeDef(str))),
 ])
 
+POST_PROCESSOR_TYPE = TypeDef(object, properties=[
+    PropertyDef('name', TypeDef(str)),
+    PropertyDef('description', TypeDef(str)),
+    PropertyDef('indicators', TypeDef(list, item_type=TypeDef(str))),
+])
+
 PARAMETERS_TYPE = TypeDef(object, properties=[
     PropertyDef("inputTypes", TypeDef(list, item_type=INPUT_TYPES_TYPE)),
     PropertyDef("variables", TypeDef(list, item_type=VARIABLE_TYPE)),
     PropertyDef("forwardModels", TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
+    PropertyDef("postProcessors", TypeDef(list, item_type=POST_PROCESSOR_TYPE)),
+    PropertyDef("indicators", TypeDef(list, item_type=VARIABLE_TYPE))
 ])
 
 
@@ -208,49 +216,48 @@ class InputTypes:
         return InputType.html_table(list(self._input_types.values()), title="Input Types")
 
 
-class EoPostProcessor:
+class PostProcessor:
     def __init__(self, data: Dict[str, Any]):
         self._data = data
-
-    @property
-    def id(self) -> str:
-        return self._data['id']
 
     @property
     def name(self) -> str:
         return self._data['name']
 
     @property
-    def time_range(self) -> Tuple[Optional[str], Optional[str]]:
-        start, stop = self._data['timeRange']
-        return start, stop
+    def description(self) -> str:
+        return self._data['description']
+
+    @property
+    def indicators(self):
+        return self._data['indicators']
 
     def _repr_html_(self):
         return self.html_table([self])
 
     @classmethod
-    def html_table(cls, items: List['InputType'], title=None):
-        def data_row(item: InputType):
-            return [item.id, item.name, item.time_range]
+    def html_table(cls, items: List['PostProcessor'], title=None):
+        def data_row(item: PostProcessor):
+            return [item.name, item.description]
 
         return html_table(list(map(data_row, items)),
-                          header_row=['Id', 'Name', 'Time Range'],
+                          header_row=['Name', 'Description'],
                           title=title)
 
 
-class EoPostProcessors:
-    def __init__(self, eo_post_processors: Dict[str, InputType]):
-        self._eo_post_processors = eo_post_processors
+class PostProcessors:
+    def __init__(self, post_processors: Dict[str, PostProcessor]):
+        self._post_processors = post_processors
 
     @property
-    def ids(self) -> List[str]:
-        return list(self._eo_post_processors.keys())
+    def names(self) -> List[str]:
+        return list(self._post_processors.keys())
 
-    def get(self, it_id: str) -> InputType:
-        return self._eo_post_processors[it_id]
+    def get(self, pp_name: str) -> PostProcessor:
+        return self._post_processors[pp_name]
 
     def _repr_html_(self):
-        return InputType.html_table(list(self._eo_post_processors.values()), title="EO Post Processors")
+        return PostProcessor.html_table(list(self._post_processors.values()), title="Post Processors")
 
 
 class ProcessingParameters:
@@ -263,6 +270,9 @@ class ProcessingParameters:
         input_types = raw_data['inputTypes']
         forward_models = raw_data['forwardModels']
         variables = {variable['id']: variable for variable in raw_data['variables']}
+        post_processors = raw_data['postProcessors']
+        # indicators = raw_data['indicators']
+        indicators = {indicator['id']: indicator for indicator in raw_data['indicators']}
 
         for forward_model in forward_models:
             forward_model_variable_ids = forward_model['variables']
@@ -280,6 +290,10 @@ class ProcessingParameters:
                                               for forward_model in forward_models})
         self._variables = Variables({variable['id']: Variable(variable)
                                      for variable in variables.values()})
+        self._post_processors = PostProcessors({post_processor['name'] : PostProcessor(post_processor)
+                                                for post_processor in post_processors})
+        self._indicators = Variables({indicator['id']: Variable(indicator)
+                                     for indicator in indicators.values()})
 
     @property
     def variables(self) -> Variables:
@@ -292,3 +306,11 @@ class ProcessingParameters:
     @property
     def input_types(self) -> InputTypes:
         return self._input_types
+    
+    @property
+    def post_processors(self) -> PostProcessors:
+        return self._post_processors
+    
+    @property
+    def indicators(self) -> Variables:
+        return self._indicators

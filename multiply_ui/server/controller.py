@@ -19,10 +19,14 @@ def get_parameters(ctx):
     input_type_dicts = ctx.get_available_input_types()
     variable_dicts = ctx.get_available_variables()
     forward_model_dicts = ctx.get_available_forward_models()
+    post_processor_dicts = ctx.get_available_post_processors(),
+    indicator_dicts = ctx.get_available_post_processor_indicators()
     parameters = {
         "inputTypes": input_type_dicts,
         "variables": variable_dicts,
-        "forwardModels": forward_model_dicts
+        "forwardModels": forward_model_dicts,
+        "postProcessors": post_processor_dicts,
+        "indicators": indicator_dicts
     }
     return parameters
 

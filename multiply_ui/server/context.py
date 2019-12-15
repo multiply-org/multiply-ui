@@ -11,6 +11,7 @@ import multiply_data_access.data_access_component
 from multiply_core.models import get_forward_models
 from multiply_core.observations import INPUT_TYPES
 from multiply_core.variables import get_registered_variables
+from multiply_post_processing import get_available_indicators, get_post_processor_creators
 from multiply_prior_engine.vegetation_prior_creator import SUPPORTED_VARIABLES as POSSIBLE_USER_PRIORS
 from vm_support import set_earth_data_authentication, set_mundi_authentication
 
@@ -116,6 +117,38 @@ class ServiceContext:
                 "valueRange": variable.range,
                 "mayBeUserPrior": variable.short_name in POSSIBLE_USER_PRIORS,
                 "applications": variable.applications
+            })
+        return dict_list
+
+    @staticmethod
+    def get_available_post_processor_indicators() -> List[dict]:
+        dict_list = []
+        indicators = get_available_indicators()
+        for indicator in indicators:
+            dict_list.append({
+                "id": indicator.short_name,
+                "name": indicator.display_name,
+                "unit": indicator.unit,
+                "description": indicator.description,
+                "valueRange": indicator.range,
+                "mayBeUserPrior": False,
+                "applications": indicator.applications
+            })
+        return dict_list
+
+    @staticmethod
+    def get_available_post_processors() -> List[dict]:
+        dict_list = []
+        post_processor_creators = get_post_processor_creators()
+        for post_processor_creator in post_processor_creators:
+            indicator_descriptions = post_processor_creator.get_indicator_descriptions()            
+            indicator_names = []
+            for indicator_description in indicator_descriptions:
+                indicator_names.append(indicator_description.short_name)
+            dict_list.append({
+                "name": post_processor_creator.get_name(),
+                "description": post_processor_creator.get_description(),
+                "indicators": indicator_names,
             })
         return dict_list
 
