@@ -326,7 +326,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         _validate_selection()
 
     # noinspection PyTypeChecker
-    variables_box = _wrap_variable_checkboxes_in_widget(variable_boxes_dict.values(), _handle_variable_selection)
+    variables_box = _wrap_variable_checkboxes_in_widget(variable_boxes_dict.values(), 4, _handle_variable_selection)
     clear_variable_selection_button = widgets.Button(description="Clear Variable Selection",
                                                      layout=widgets.Layout(left='60%', width='35%'))
     clear_variable_selection_button.on_click(_clear_variable_selection)
@@ -441,7 +441,49 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             return
         roi_validation.value = html_element('h3', att=dict(style=f'color:orange'),
                                             value=f'{message} Keep previously defined Region of Interest.')
+    
+    selected_indicators = []
+    
+    indicator_check_boxes = []
+    for indicator_id in processing_parameters.indicators.ids:
+        indicator = processing_parameters.indicators.get(indicator_id)
+        indicator_check_box = LabeledCheckbox(selected=False, label_text=indicator_id, tooltip=indicator.description, 
+                                              enabled=True)
+        indicator_check_boxes.append(indicator_check_box)
+    
+    def _handle_indicator_selection(change: dict):
+        if change['name'] is not '_property_lock':
+            return
+        indicator_id = change['owner'].label_text
+        if change['new']['selected']:
+            selected_indicators.append(indicator_id)
+        else:
+            selected_indicators.remove(indicator_id)
+        for post_processor_name in post_processor_checkbox_dict:
+            post_processor = processing_parameters.post_processors.get(post_processor_name)
+            post_processor_selected = False
+            for post_processor_indicator in post_processor.indicators:
+                if post_processor_indicator in selected_indicators:
+                    post_processor_selected = True
+                    break
+            post_processor_checkbox_dict[post_processor_name].selected = post_processor_selected
+    
+    indicators_box = _wrap_variable_checkboxes_in_widget(indicator_check_boxes, 3, _handle_indicator_selection)
+    
+    post_processor_checkbox_dict = {}
+    post_processor_checkboxes = []
+    for post_processor_name in processing_parameters.post_processors.names:
+        post_processor = processing_parameters.post_processors.get(post_processor_name)
+        post_processor_checkbox = LabeledCheckbox(selected=False, label_text=post_processor_name, 
+                                                   tooltip=post_processor.description, enabled=False)
+        post_processor_checkboxes.append(post_processor_checkbox)
+        post_processor_checkbox_dict[post_processor_name] = post_processor_checkbox
 
+    def _pass():
+        pass
+
+    post_processors_box = _wrap_variable_checkboxes_in_widget(post_processor_checkboxes, 2, _pass)
+        
     @debug_view.capture(clear_output=True)
     def _handle_roi_map_button_clicked(*args, **kwargs):
         try:
@@ -539,6 +581,25 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         computeOnlyRoi = None
         if preprocess_s2_only_roi_checkbox.enabled:
             computeOnlyRoi = preprocess_s2_only_roi_checkbox.selected
+        postProcessors = None
+        if len(selected_indicators) > 0:
+            postProcessors = []
+            for post_processor_name in processing_parameters.post_processors.names:
+                post_processor = processing_parameters.post_processors.get(post_processor_name)
+                selected_pp_indicators = []
+                for indicator in post_processor.indicators:
+                    if indicator in selected_indicators:
+                        selected_pp_indicators.append(indicator)
+                if len(selected_pp_indicators) > 0:
+                    post_processor_dict = dict(
+                        name=post_processor_name,
+                        type=post_processor.type,
+                        inputTypes=post_processor.input_types,
+                        indicatorNames=selected_pp_indicators,
+                        variableNames=selected_variables
+                    )
+                    postProcessors.append(post_processor_dict)
+                
         return InputRequest(dict(
             name=request_name.value,
             timeRange=[datetime.datetime.strftime(start_date.value, "%Y-%m-%d"),
@@ -551,7 +612,8 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             forwardModels=request_models,
             userPriors=user_priors_for_request_list,
             s1TemporalFilter=temporalFilter,
-            s2ComputeRoi=computeOnlyRoi
+            s2ComputeRoi=computeOnlyRoi,
+            postProcessors=postProcessors
         ))
 
     # noinspection PyUnusedLocal
@@ -642,6 +704,11 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         widgets.Box([leaflet_map], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Resolution (m)'), spatial_resolution], layout=form_item_layout),
         widgets.Box([roi_validation], layout=form_item_layout),
+        widgets.Box([widgets.HTML(value=html_element('h2', value='Post-Processing'))], layout=form_item_layout),        
+        widgets.Label(value='Indicators', layout=form_item_layout),
+        widgets.Box([indicators_box], layout=var_checks_layout),
+        widgets.Label(value='Post Processors', layout=form_item_layout),
+        widgets.Box([post_processors_box], layout=var_checks_layout),
         widgets.Box([widgets.Label(value='Request/job name'), request_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value='Python identifier'), python_var_name], layout=form_item_layout),
         widgets.Box([widgets.Label(value=''), widgets.Box([new_button, submit_button])], layout=form_item_layout),
@@ -705,13 +772,12 @@ def _wrap_user_priors_in_widget(user_prior_components: List[widgets.Widget]):
     return h_box
 
 
-def _wrap_variable_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], handle_selection) -> widgets.Widget:
-    num_cols = 4
+def _wrap_variable_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], num_columns: int, handle_selection) -> widgets.Widget:
     # noinspection PyUnusedLocal
-    v_box_item_lists = [[] for i in range(num_cols)]
+    v_box_item_lists = [[] for i in range(num_columns)]
     index = 0
     for checkbox in checkboxes:
-        col = index % num_cols
+        col = index % num_columns
         checkbox.observe(handle_selection)
         # noinspection PyTypeChecker
         v_box_item_lists[col].append(checkbox)

@@ -11,7 +11,7 @@ import multiply_data_access.data_access_component
 from multiply_core.models import get_forward_models
 from multiply_core.observations import INPUT_TYPES
 from multiply_core.variables import get_registered_variables
-from multiply_post_processing import get_available_indicators, get_post_processor_creators
+from multiply_post_processing import get_available_indicators, get_post_processor_creators, PostProcessorType
 from multiply_prior_engine.vegetation_prior_creator import SUPPORTED_VARIABLES as POSSIBLE_USER_PRIORS
 from vm_support import set_earth_data_authentication, set_mundi_authentication
 
@@ -145,9 +145,14 @@ class ServiceContext:
             indicator_names = []
             for indicator_description in indicator_descriptions:
                 indicator_names.append(indicator_description.short_name)
+            type = 0
+            if post_processor_creator.get_type() == PostProcessorType.EO_DATA_POST_PROCESSOR:
+                type = 1
             dict_list.append({
                 "name": post_processor_creator.get_name(),
                 "description": post_processor_creator.get_description(),
+                "type": type,
+                "inputTypes": post_processor_creator.get_required_input_data_types(),
                 "indicators": indicator_names,
             })
         return dict_list

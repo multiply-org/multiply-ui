@@ -19,7 +19,7 @@ def get_parameters(ctx):
     input_type_dicts = ctx.get_available_input_types()
     variable_dicts = ctx.get_available_variables()
     forward_model_dicts = ctx.get_available_forward_models()
-    post_processor_dicts = ctx.get_available_post_processors(),
+    post_processor_dicts = ctx.get_available_post_processors()
     indicator_dicts = ctx.get_available_post_processor_indicators()
     parameters = {
         "inputTypes": input_type_dicts,
@@ -169,9 +169,9 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
         pm_request['SAR']['year'] = datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y')
     if 's2ComputeRoi' in request:
         pm_request['S2-PreProcessing']['compute_only_roi'] = request['s2ComputeRoi']
-    if 'postProcessing' in request:
+    if 'postProcessors' in request:
         post_processor_list = []
-        for post_processor_dict in request['postProcessing']['postProcessors']:
+        for post_processor_dict in request['postProcessors']:
             pp_dict = {}
             pp_dict['name'] = post_processor_dict['name']
             pp_dict['type'] = post_processor_dict['type']

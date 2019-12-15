@@ -33,9 +33,9 @@ for i, post_processor_dict in enumerate(post_processor_dicts):
     script_progress_logger.info(f'{int((i / len(post_processor_dicts)) * 100)}-'
                                 f'{int(((i + 1) / len(post_processor_dicts)) * 100)}')
     name = post_processor_dict['name']
-    if post_processor_dict['type'] == PostProcessorType.VARIABLE_POST_PROCESSOR:
+    if post_processor_dict['type'] == 0:
         data_dir = biophys_params_dir
-    elif post_processor_dict['type'] == PostProcessorType.EO_DATA_POST_PROCESSOR and \
+    elif post_processor_dict['type'] == 1 and \
             'Sentinel-2' in post_processor_dict['input_types']:
         data_dir = sdrs_dir
     else:

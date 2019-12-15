@@ -29,8 +29,13 @@ class RequestModelTest(unittest.TestCase):
                                                    mu=1.3),
                                               dict(name='fzxh',
                                                    unc=0.01)],
-                                          s1TemporalFilter=4
-                                          )
+                                          s1TemporalFilter=4,
+                                          postProcessors=[
+                                              dict(name='APostProcessor',
+                                                   type=0,
+                                                   inputTypes=['Sentinel-2'],
+                                                   indicatorNames=['indicator_0', 'indicator_3'],
+                                                   variableNames=['variable_1', 'variable_2'])])
                                      )
 
         self.assertEqual('bibo', input_request.name)
@@ -57,6 +62,18 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual(0.01, input_request.user_priors[2]['unc'])
         self.assertEqual(4, input_request.s1_temporal_filter)
         self.assertIsNone(input_request.s2_compute_roi)
+        self.assertIsNotNone(input_request.post_processors)
+        self.assertEqual(1, len(input_request.post_processors))
+        self.assertEqual('APostProcessor', input_request.post_processors[0]['name'])
+        self.assertEqual(0, input_request.post_processors[0]['type'])
+        self.assertEqual(1, len(input_request.post_processors[0]['inputTypes']))
+        self.assertEqual('Sentinel-2', input_request.post_processors[0]['inputTypes'][0])
+        self.assertEqual(2, len(input_request.post_processors[0]['indicatorNames']))
+        self.assertEqual('indicator_0', input_request.post_processors[0]['indicatorNames'][0])
+        self.assertEqual('indicator_3', input_request.post_processors[0]['indicatorNames'][1])
+        self.assertEqual(2, len(input_request.post_processors[0]['variableNames']))
+        self.assertEqual('variable_1', input_request.post_processors[0]['variableNames'][0])
+        self.assertEqual('variable_2', input_request.post_processors[0]['variableNames'][1])
         self.assertIsNotNone(input_request._repr_html_())
 
     def test_processing_request(self):
@@ -85,6 +102,12 @@ class RequestModelTest(unittest.TestCase):
                                                    dict(name='fzxh',
                                                         unc=0.01)],
                                                s2ComputeRoi=False,
+                                               postProcessors=[
+                                                   dict(name='APostProcessor',
+                                                        type=0,
+                                                        inputTypes=['Sentinel-2'],
+                                                        indicatorNames=['indicator_0', 'indicator_3'],
+                                                        variableNames=['variable_1', 'variable_2'])],
                                                inputIdentifiers={'S2_L1C': ['IID1', 'IID2', 'IID3']}))
 
         self.assertEqual('bibo', input_request.name)
@@ -111,6 +134,18 @@ class RequestModelTest(unittest.TestCase):
         self.assertEqual(0.01, input_request.user_priors[2]['unc'])
         self.assertIsNone(input_request.s1_temporal_filter)
         self.assertFalse(input_request.s2_compute_roi)
+        self.assertIsNotNone(input_request.post_processors)
+        self.assertEqual(1, len(input_request.post_processors))
+        self.assertEqual('APostProcessor', input_request.post_processors[0]['name'])
+        self.assertEqual(0, input_request.post_processors[0]['type'])
+        self.assertEqual(1, len(input_request.post_processors[0]['inputTypes']))
+        self.assertEqual('Sentinel-2', input_request.post_processors[0]['inputTypes'][0])
+        self.assertEqual(2, len(input_request.post_processors[0]['indicatorNames']))
+        self.assertEqual('indicator_0', input_request.post_processors[0]['indicatorNames'][0])
+        self.assertEqual('indicator_3', input_request.post_processors[0]['indicatorNames'][1])
+        self.assertEqual(2, len(input_request.post_processors[0]['variableNames']))
+        self.assertEqual('variable_1', input_request.post_processors[0]['variableNames'][0])
+        self.assertEqual('variable_2', input_request.post_processors[0]['variableNames'][1])
         self.assertIsInstance(input_request.inputs, InputIdentifiers)
         self.assertIsNotNone(input_request._repr_html_())
 

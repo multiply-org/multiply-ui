@@ -36,6 +36,8 @@ FORWARD_MODEL_TYPE = TypeDef(object, properties=[
 POST_PROCESSOR_TYPE = TypeDef(object, properties=[
     PropertyDef('name', TypeDef(str)),
     PropertyDef('description', TypeDef(str)),
+    PropertyDef('type', TypeDef(int)),
+    PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
     PropertyDef('indicators', TypeDef(list, item_type=TypeDef(str))),
 ])
 
@@ -227,9 +229,17 @@ class PostProcessor:
     @property
     def description(self) -> str:
         return self._data['description']
+    
+    @property
+    def type(self) -> int:
+        return self._data['type']
+    
+    @property
+    def input_types(self) -> List[str]:
+        return self._data['inputTypes']
 
     @property
-    def indicators(self):
+    def indicators(self) -> List[str]:
         return self._data['indicators']
 
     def _repr_html_(self):
@@ -271,7 +281,6 @@ class ProcessingParameters:
         forward_models = raw_data['forwardModels']
         variables = {variable['id']: variable for variable in raw_data['variables']}
         post_processors = raw_data['postProcessors']
-        # indicators = raw_data['indicators']
         indicators = {indicator['id']: indicator for indicator in raw_data['indicators']}
 
         for forward_model in forward_models:
