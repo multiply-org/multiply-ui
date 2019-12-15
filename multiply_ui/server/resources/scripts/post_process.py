@@ -27,7 +27,7 @@ with open(configuration_file) as f:
 roi = parameters['General']['roi']
 spatial_resolution = parameters['General']['spatial_resolution'] # in m
 temporal_filter = parameters['SAR']['speckle_filter']['multi_temporal']['files']
-post_processor_dicts = parameters['PostProcessing']['PostProcessors']
+post_processor_dicts = parameters['post_processing']['post_processors']
 
 for i, post_processor_dict in enumerate(post_processor_dicts):
     script_progress_logger.info(f'{int((i / len(post_processor_dicts)) * 100)}-'
@@ -36,7 +36,7 @@ for i, post_processor_dict in enumerate(post_processor_dicts):
     if post_processor_dict['type'] == PostProcessorType.VARIABLE_POST_PROCESSOR:
         data_dir = biophys_params_dir
     elif post_processor_dict['type'] == PostProcessorType.EO_DATA_POST_PROCESSOR and \
-            'Sentinel-2' in post_processor_dict['inputTypes']:
+            'Sentinel-2' in post_processor_dict['input_types']:
         data_dir = sdrs_dir
     else:
         logging.getLogger().info(f'Could not determine data directory for post processor {name}. Will skip.')
@@ -44,8 +44,8 @@ for i, post_processor_dict in enumerate(post_processor_dicts):
     pp_output_dir = os.path.join(output_dir, name)
     if not os.path.exists(pp_output_dir):
         os.makedirs(pp_output_dir)
-    indicator_names = post_processor_dict['indicatorNames']
-    variable_names = post_processor_dict['variableNames']
+    indicator_names = post_processor_dict['indicator_names']
+    variable_names = post_processor_dict['variable_names']
 
     run_post_processor(name=name,
                        data_path=data_dir,

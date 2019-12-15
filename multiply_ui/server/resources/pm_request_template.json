@@ -126,6 +126,10 @@
     },
     "S2-PreProcessing" : {
         "compute_only_roi" : false
+    },
+    "post_processing" : {
+        "post_processors" : [
+        ]
     }
 }
 

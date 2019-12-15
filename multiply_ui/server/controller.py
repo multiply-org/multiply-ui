@@ -169,6 +169,17 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
         pm_request['SAR']['year'] = datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y')
     if 's2ComputeRoi' in request:
         pm_request['S2-PreProcessing']['compute_only_roi'] = request['s2ComputeRoi']
+    if 'postProcessing' in request:
+        post_processor_list = []
+        for post_processor_dict in request['postProcessing']['postProcessors']:
+            pp_dict = {}
+            pp_dict['name'] = post_processor_dict['name']
+            pp_dict['type'] = post_processor_dict['type']
+            pp_dict['input_types'] = [input_type for input_type in post_processor_dict["inputTypes"]]
+            pp_dict['indicator_names'] = [indicator_name for indicator_name in post_processor_dict["indicatorNames"]]
+            pp_dict['variable_names'] = [variable_name for variable_name in post_processor_dict["variableNames"]]
+            post_processor_list.append(post_processor_dict)
+        pm_request['post_processing']['post_processors'] = post_processor_list
     return pm_request
 
 
