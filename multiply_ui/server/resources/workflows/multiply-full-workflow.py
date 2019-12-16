@@ -41,7 +41,7 @@ class MultiplyFull(MultiplyMonitor):
                 self._infer_s2_kaska = True
             elif model['type'] == 'kaska' and model['data_type'] == 'Sentinel-1':
                 self._infer_s1_kaska = True
-        if len(parameters['PostProcessing']['PostProcessors']) > 0:
+        if 'PostProcessing' in parameters and len(parameters['PostProcessing']['PostProcessors']) > 0:
             self._post_process = True
         self._s2_preprocess_only_roi = parameters['S2-PreProcessing']['compute_only_roi']
 
