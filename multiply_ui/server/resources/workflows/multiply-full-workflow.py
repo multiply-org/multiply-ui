@@ -88,6 +88,7 @@ class MultiplyFull(MultiplyMonitor):
                 cursor = self._stop
             next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
             cursor += self._one_day_step
+            kafka_next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
 
             modis_for_date = modis + '/' + date
             cams_for_date = cams + '/' + date
@@ -111,7 +112,7 @@ class MultiplyFull(MultiplyMonitor):
             hres_biophys_output_per_dates.append(hres_biophys_output_per_date)
             self.execute('infer_s2_kafka.py', [priors_for_date, sdrs_for_date],
                          [hres_biophys_output_per_date, updated_state],
-                         parameters=[self._request_file, date, next_date, hres_state])
+                         parameters=[self._request_file, date, kafka_next_date, hres_state])
             hres_state = updated_state
         self.execute('combine_hres_biophys_outputs.py', hres_biophys_output_per_dates, [hres_biophys_output],
                      parameters=[self._request_file])
