@@ -87,8 +87,9 @@ class Variable:
 
 
 class Variables:
-    def __init__(self, variables: Dict[str, Variable]):
+    def __init__(self, variables: Dict[str, Variable], html_table_title: Optional[str] = 'Variables'):
         self._variables = variables
+        self._title = html_table_title
 
     @property
     def ids(self) -> List[str]:
@@ -98,7 +99,7 @@ class Variables:
         return self._variables[var_id]
 
     def _repr_html_(self):
-        return Variable.html_table(list(self._variables.values()), title='Variables')
+        return Variable.html_table(list(self._variables.values()), title=self._title)
 
 
 class ForwardModel:
@@ -302,7 +303,8 @@ class ProcessingParameters:
         self._post_processors = PostProcessors({post_processor['name'] : PostProcessor(post_processor)
                                                 for post_processor in post_processors})
         self._indicators = Variables({indicator['id']: Variable(indicator)
-                                     for indicator in indicators.values()})
+                                     for indicator in indicators.values()},
+                                     html_table_title='Post Processor Indicators')
 
     @property
     def variables(self) -> Variables:
