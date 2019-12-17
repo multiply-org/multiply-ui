@@ -75,11 +75,11 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "combine_hres_biophys_outputs.py":
         return 'Assembling results from S2 inference'
     if step_parts[0] == "create_s1_kaska_inference_output_files.py":
-        return f'Creating Output Files for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Creating Output Files for S1 Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "create_s2_kaska_inference_output_files.py":
-        return f'Creating Output Files for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Creating Output Files S2 for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "data_access_get_static.py":
-        return f'Retrieving data required for all time steps'
+        return f'Retrieving data required for all time steps of S2-Pre-Processing'
     if step_parts[0] == "data_access_put_s2_l2.py":
         return f'Storing S2 Pre-processing results of time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "determine_s1_priors.py":
@@ -87,13 +87,13 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "get_data_for_s1_preprocessing.py":
         return f'Retrieving SAR data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "get_data_for_s2_preprocessing.py":
-        return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Retrieving S2 data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s2_kafka.py":
-        return f'Inferring variables for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Inferring variables from S2 inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s1_kaska.py":
-        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Inferring variables from S1 inference for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s2_kaska.py":
-        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]}'
+        return f'Inferring variables from S1 inference for tile {step_parts[4]}, {step_parts[5]}'
     if step_parts[0] == "preprocess_s1.py":
         return 'Preprocessing S1 data for all time steps'
     if step_parts[0] == "preprocess_s2.py":
