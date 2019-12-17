@@ -387,11 +387,20 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             user_prior_components.append(user_prior_component(prior.id, prior.unit, _handle_user_prior_change, mu, unc))
         user_priors_box.children = [_wrap_user_priors_in_widget(user_prior_components)]
 
+    def _must_preprocess(it: str) -> bool:
+        must_preprocess = it in selected_forward_model_per_type and selected_forward_model_per_type[it] is not None
+        if not must_preprocess:
+            for post_processor_name in post_processor_checkbox_dict:
+                if post_processor_checkbox_dict[post_processor_name].selected:
+                    post_processor = processing_parameters.post_processors.get(post_processor_name)
+                    if it in post_processor.input_types:
+                        must_preprocess = True
+                        break
+        return must_preprocess
+
     def _update_preprocessing_states():
-        preprocess_s1_temporal_filter.disabled = 'Sentinel-1' not in selected_forward_model_per_type or \
-                                                 selected_forward_model_per_type['Sentinel-1'] is None
-        preprocess_s2_only_roi_checkbox.enabled = 'Sentinel-2' in selected_forward_model_per_type and \
-                                                  selected_forward_model_per_type['Sentinel-2'] is not None
+        preprocess_s1_temporal_filter.disabled = _must_preprocess('Sentinel-1')
+        preprocess_s2_only_roi_checkbox.enabled = _must_preprocess('Sentinel-2')
 
     preprocess_s1_temporal_filter = widgets.BoundedIntText(value=5, min=2, max=15, step=1, disabled=True)
     preprocess_s2_only_roi_checkbox = LabeledCheckbox(selected=False, label_text='Only preprocess Region of Interest',
