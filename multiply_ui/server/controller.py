@@ -99,7 +99,7 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "preprocess_s2.py":
         return f'Preprocessing S2 Data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "post_process.py":
-        return 'Conduct post processing'
+        return 'Conduct post-processing'
     if step_parts[0] == "retrieve_s2_priors.py":
         return f'Retrieving priors for S2 inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "stack_s1.py":
