@@ -77,7 +77,7 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "create_s1_kaska_inference_output_files.py":
         return f'Creating Output Files for S1 Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "create_s2_kaska_inference_output_files.py":
-        return f'Creating Output Files S2 for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Creating Output Files for S2 Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "data_access_get_static.py":
         return f'Retrieving data required for all time steps of S2-Pre-Processing'
     if step_parts[0] == "data_access_put_s2_l2.py":
@@ -101,7 +101,7 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "post_process.py":
         return 'Conduct post processing'
     if step_parts[0] == "retrieve_s2_priors.py":
-        return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Retrieving priors for S2 inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "stack_s1.py":
         return f'Creating S1 Stack for time step from {step_parts[2]} to {step_parts[3]}'
     return step
