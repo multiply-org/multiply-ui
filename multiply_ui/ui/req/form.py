@@ -358,10 +358,19 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     @debug_view.capture(clear_output=True)
     def _setup_user_priors():
         possible_user_priors = []
-        for selected_forward_model_id in selected_forward_models:
-            selected_forward_model = processing_parameters.forward_models.get(selected_forward_model_id)
+        s2_output_variables = []
+        if selected_forward_model_per_type['Sentinel-2'] is not None:
+            selected_forward_model = \
+                processing_parameters.forward_models.get(selected_forward_model_per_type['Sentinel-2'])
             for prior in selected_forward_model.requiredPriors:
                 if prior not in possible_user_priors:
+                    possible_user_priors.append(prior)
+            s2_output_variables = selected_forward_model.variables
+        if selected_forward_model_per_type['Sentinel-1'] is not None:
+            selected_forward_model = \
+                processing_parameters.forward_models.get(selected_forward_model_per_type['Sentinel-1'])
+            for prior in selected_forward_model.requiredPriors:
+                if prior not in possible_user_priors and prior not in s2_output_variables:
                     possible_user_priors.append(prior)
         user_prior_components = []
         for possible_user_prior_id in possible_user_priors:
