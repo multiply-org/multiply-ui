@@ -387,6 +387,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
             user_prior_components.append(user_prior_component(prior.id, prior.unit, _handle_user_prior_change, mu, unc))
         user_priors_box.children = [_wrap_user_priors_in_widget(user_prior_components)]
 
+    @debug_view.capture(clear_output=True)
     def _must_preprocess(it: str) -> bool:
         must_preprocess = it in selected_forward_model_per_type and selected_forward_model_per_type[it] is not None
         if not must_preprocess:
@@ -399,7 +400,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         return must_preprocess
 
     def _update_preprocessing_states():
-        preprocess_s1_temporal_filter.disabled = _must_preprocess('Sentinel-1')
+        preprocess_s1_temporal_filter.disabled = not _must_preprocess('Sentinel-1')
         preprocess_s2_only_roi_checkbox.enabled = _must_preprocess('Sentinel-2')
 
     preprocess_s1_temporal_filter = widgets.BoundedIntText(value=5, min=2, max=15, step=1, disabled=True)
@@ -468,23 +469,26 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         indicator_check_box = LabeledCheckbox(selected=False, label_text=indicator_id, tooltip=indicator.description, 
                                               enabled=True)
         indicator_check_boxes.append(indicator_check_box)
-    
+
+    @debug_view.capture(clear_output=True)
     def _handle_indicator_selection(change: dict):
-        if change['name'] is not '_property_lock':
+        if change['name'] is not '_property_lock' or not 'selected' in change['new']:
             return
         indicator_id = change['owner'].label_text
         if change['new']['selected']:
             selected_indicators.append(indicator_id)
         else:
             selected_indicators.remove(indicator_id)
-        for post_processor_name in post_processor_checkbox_dict:
-            post_processor = processing_parameters.post_processors.get(post_processor_name)
+        for inner_post_processor_name in post_processor_checkbox_dict:
+            inner_post_processor = processing_parameters.post_processors.get(inner_post_processor_name)
             post_processor_selected = False
-            for post_processor_indicator in post_processor.indicators:
+            for post_processor_indicator in inner_post_processor.indicators:
                 if post_processor_indicator in selected_indicators:
                     post_processor_selected = True
                     break
-            post_processor_checkbox_dict[post_processor_name].selected = post_processor_selected
+            if post_processor_checkbox_dict[inner_post_processor_name].selected != post_processor_selected:
+                post_processor_checkbox_dict[inner_post_processor_name].selected = post_processor_selected
+        _update_preprocessing_states()
     
     indicators_box = _wrap_variable_checkboxes_in_widget(indicator_check_boxes, 3, _handle_indicator_selection)
     
@@ -492,15 +496,12 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
     post_processor_checkboxes = []
     for post_processor_name in processing_parameters.post_processors.names:
         post_processor = processing_parameters.post_processors.get(post_processor_name)
-        post_processor_checkbox = LabeledCheckbox(selected=False, label_text=post_processor_name, 
-                                                   tooltip=post_processor.description, enabled=False)
+        post_processor_checkbox = LabeledCheckbox(selected=False, label_text=post_processor_name,
+                                                  tooltip=post_processor.description, enabled=False)
         post_processor_checkboxes.append(post_processor_checkbox)
         post_processor_checkbox_dict[post_processor_name] = post_processor_checkbox
 
-    def _pass():
-        pass
-
-    post_processors_box = _wrap_variable_checkboxes_in_widget(post_processor_checkboxes, 2, _pass)
+    post_processors_box = _wrap_variable_checkboxes_in_widget(post_processor_checkboxes, 2, None)
         
     @debug_view.capture(clear_output=True)
     def _handle_roi_map_button_clicked(*args, **kwargs):
@@ -796,7 +797,8 @@ def _wrap_variable_checkboxes_in_widget(checkboxes: List[widgets.Checkbox], num_
     index = 0
     for checkbox in checkboxes:
         col = index % num_columns
-        checkbox.observe(handle_selection)
+        if handle_selection is not None:
+            checkbox.observe(handle_selection)
         # noinspection PyTypeChecker
         v_box_item_lists[col].append(checkbox)
         index += 1
