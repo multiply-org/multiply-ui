@@ -41,8 +41,8 @@ class MultiplyFull(MultiplyMonitor):
                 self._infer_s2_kaska = True
             elif model['type'] == 'kaska' and model['data_type'] == 'Sentinel-1':
                 self._infer_s1_kaska = True
-        # if 'PostProcessing' in parameters and len(parameters['PostProcessing']['PostProcessors']) > 0:
-        #     self._post_process = True
+        if 'post_processing' in parameters and len(parameters['post_processing']['post_processors']) > 0:
+            self._post_process = True
         self._s2_preprocess_only_roi = parameters['S2-PreProcessing']['compute_only_roi']
 
     def create_workflow(self):
@@ -88,6 +88,7 @@ class MultiplyFull(MultiplyMonitor):
                 cursor = self._stop
             next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
             cursor += self._one_day_step
+            kafka_next_date = datetime.datetime.strftime(cursor, '%Y-%m-%d')
 
             modis_for_date = modis + '/' + date
             cams_for_date = cams + '/' + date
@@ -111,7 +112,7 @@ class MultiplyFull(MultiplyMonitor):
             hres_biophys_output_per_dates.append(hres_biophys_output_per_date)
             self.execute('infer_s2_kafka.py', [priors_for_date, sdrs_for_date],
                          [hres_biophys_output_per_date, updated_state],
-                         parameters=[self._request_file, date, next_date, hres_state])
+                         parameters=[self._request_file, date, kafka_next_date, hres_state])
             hres_state = updated_state
         self.execute('combine_hres_biophys_outputs.py', hres_biophys_output_per_dates, [hres_biophys_output],
                      parameters=[self._request_file])

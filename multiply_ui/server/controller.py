@@ -75,11 +75,11 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "combine_hres_biophys_outputs.py":
         return 'Assembling results from S2 inference'
     if step_parts[0] == "create_s1_kaska_inference_output_files.py":
-        return f'Creating Output Files for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Creating Output Files for S1 Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "create_s2_kaska_inference_output_files.py":
-        return f'Creating Output Files for Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Creating Output Files for S2 Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "data_access_get_static.py":
-        return f'Retrieving data required for all time steps'
+        return f'Retrieving data required for all time steps of S2-Pre-Processing'
     if step_parts[0] == "data_access_put_s2_l2.py":
         return f'Storing S2 Pre-processing results of time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "determine_s1_priors.py":
@@ -87,21 +87,21 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "get_data_for_s1_preprocessing.py":
         return f'Retrieving SAR data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "get_data_for_s2_preprocessing.py":
-        return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Retrieving S2 data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s2_kafka.py":
-        return f'Inferring variables for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Inferring variables from S2 inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s1_kaska.py":
-        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Inferring variables from S1 inference for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s2_kaska.py":
-        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]}'
+        return f'Inferring variables from S1 inference for tile {step_parts[4]}, {step_parts[5]}'
     if step_parts[0] == "preprocess_s1.py":
         return 'Preprocessing S1 data for all time steps'
     if step_parts[0] == "preprocess_s2.py":
         return f'Preprocessing S2 Data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "post_process.py":
-        return 'Conduct post processing'
+        return 'Conduct post-processing'
     if step_parts[0] == "retrieve_s2_priors.py":
-        return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Retrieving priors for S2 inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "stack_s1.py":
         return f'Creating S1 Stack for time step from {step_parts[2]} to {step_parts[3]}'
     return step
@@ -169,17 +169,17 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
         pm_request['SAR']['year'] = datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y')
     if 's2ComputeRoi' in request:
         pm_request['S2-PreProcessing']['compute_only_roi'] = request['s2ComputeRoi']
-    # if 'postProcessors' in request:
-    #     post_processor_list = []
-    #     for post_processor_dict in request['postProcessors']:
-    #         pp_dict = {}
-    #         pp_dict['name'] = post_processor_dict['name']
-    #         pp_dict['type'] = post_processor_dict['type']
-    #         pp_dict['input_types'] = [input_type for input_type in post_processor_dict["inputTypes"]]
-    #         pp_dict['indicator_names'] = [indicator_name for indicator_name in post_processor_dict["indicatorNames"]]
-    #         pp_dict['variable_names'] = [variable_name for variable_name in post_processor_dict["variableNames"]]
-    #         post_processor_list.append(post_processor_dict)
-    #     pm_request['post_processing']['post_processors'] = post_processor_list
+    if 'postProcessors' in request:
+        post_processor_list = []
+        for post_processor_dict in request['postProcessors']:
+            pp_dict = {}
+            pp_dict['name'] = post_processor_dict['name']
+            pp_dict['type'] = post_processor_dict['type']
+            pp_dict['input_types'] = [input_type for input_type in post_processor_dict["inputTypes"]]
+            pp_dict['indicator_names'] = [indicator_name for indicator_name in post_processor_dict["indicatorNames"]]
+            pp_dict['variable_names'] = [variable_name for variable_name in post_processor_dict["variableNames"]]
+            post_processor_list.append(post_processor_dict)
+        pm_request['post_processing']['post_processors'] = post_processor_list
     return pm_request
 
 

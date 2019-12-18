@@ -92,8 +92,8 @@
             }
         },
         "sm" : {
-            "temporary" : {
-                "dir" : "/data/auxiliary/priors/temporary/sm/"
+            "climatology" : {
+                "dir" : "/data/auxiliary/priors/climatology/soil_moisture/"
             }
         },
         "sr" : {

@@ -1,5 +1,4 @@
 import ipywidgets as widgets
-import logging
 import threading
 import time
 
@@ -15,6 +14,7 @@ from ..info import InfoComponent
 def obs_job_form(job: Job, mock=False):
     get_job_func = _get_job_func(job, mock)
 
+    info = InfoComponent()
     job_header_id_label = widgets.HTML(value = f"<b>Job ID</b>")
     job_header_name_label = widgets.HTML(value = f"<b>Job Name</b>")
     job_header_progress_label = widgets.HTML(value = f"<b>Progress</b>")
@@ -23,13 +23,16 @@ def obs_job_form(job: Job, mock=False):
     job_status_label = widgets.Label(job.status)
     job_id_label = widgets.Label(job.id)
     job_name_label = widgets.Label(job.name)
+    job_cancel_button = widgets.Button(description="Cancel", icon="times-circle")
+    job_cancel_button.on_click(_get_handle_cancel_button_clicked(job.id, info.message_func, mock))
     job_grid_box = widgets.GridBox(children=[job_header_id_label, job_header_name_label,
-                                             job_header_progress_label, job_header_status_label,
-                                             job_id_label, job_name_label, job_progress_bar, job_status_label],
+                                             job_header_progress_label, job_header_status_label, job_cancel_button,
+                                             job_id_label, job_name_label, job_progress_bar, job_status_label,
+                                             widgets.Label()],
                                    layout=widgets.Layout(
                                        width='100%',
                                        grid_template_rows='auto auto',
-                                       grid_template_columns='22% 21% 43% 14%'
+                                       grid_template_columns = '22% 21% 27% 10% 20%'
                                    )
                                    )
     task_header_name_label = widgets.HTML(value = f"<b>Task</b>")
@@ -101,7 +104,7 @@ def obs_job_form(job: Job, mock=False):
     info = InfoComponent()
     job_monitor = widgets.VBox([job_grid_box, tasks_gridbox, info.as_widget(100)])
 
-    def monitor(progress_bar, status_bar):
+    def monitor(progress_bar, status_bar, cancel_button):
         while job.status not in ['succeeded', 'cancelled', 'failed']:
             time.sleep(10)
             job_state = get_job_func(job, info.message_func)
@@ -110,10 +113,12 @@ def obs_job_form(job: Job, mock=False):
             progress_bar.value = job.progress
             status_bar.value = job.status
             grid_box = _get_tasks_gridbox(job)
+            if job.status != 'new' and job.status != 'running':
+                cancel_button.disabled = True
             job_monitor.children = ([job_grid_box, grid_box, info.as_widget(100)])
 
 
-    monitor_components = (job_progress_bar, job_status_label)
+    monitor_components = (job_progress_bar, job_status_label, job_cancel_button)
     _monitor(monitor, job_monitor, monitor_components)
 
 
