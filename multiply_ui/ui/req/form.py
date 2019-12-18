@@ -600,7 +600,7 @@ def sel_params_form(processing_parameters: ProcessingParameters, identifier='ide
         computeOnlyRoi = None
         if preprocess_s2_only_roi_checkbox.enabled:
             computeOnlyRoi = preprocess_s2_only_roi_checkbox.selected
-        postProcessors = None
+        postProcessors = []
         if len(selected_indicators) > 0:
             postProcessors = []
             for post_processor_name in processing_parameters.post_processors.names:
