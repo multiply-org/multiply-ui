@@ -93,7 +93,7 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "infer_s1_kaska.py":
         return f'Inferring variables from S1 inference for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s2_kaska.py":
-        return f'Inferring variables from S1 inference for tile {step_parts[4]}, {step_parts[5]}'
+        return f'Inferring variables from S2 inference for tile {step_parts[4]}, {step_parts[5]}'
     if step_parts[0] == "preprocess_s1.py":
         return 'Preprocessing S1 data for all time steps'
     if step_parts[0] == "preprocess_s2.py":
