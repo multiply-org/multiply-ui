@@ -262,14 +262,15 @@ def cancel(ctx, id: str):
 
 def visualize(ctx, id: str):
     job = ctx.get_job(id)
-    output_dir = os.path.join(job.pm._data_root, 'biophys')
-    process = subprocess.Popen(['/software/miniconda/envs/multiply_vis/bin/python',
-                                '/software/MULTIPLYVisualisation/MVis.py',
-                                output_dir, 'False', '8080'], bufsize=1, stdout=subprocess.PIPE)
-    server = ''
-    while server == '':
-        line = str(process.stdout.readline())
-        if line.find("Running on") >= 0:
-            server = line.split(" ")[-1].split('\\')[0]
-    process.stdout.close()
-    webbrowser.open(server)
+    if job.status == 'DONE' or job.pm.status == 'SUCCEEDED':
+        output_dir = os.path.join(job.pm._data_root, 'biophys')
+        process = subprocess.Popen(['/software/miniconda/envs/multiply_vis/bin/python',
+                                    '/software/MULTIPLYVisualisation/MVis.py',
+                                    output_dir, 'False', '8080'], bufsize=1, stdout=subprocess.PIPE)
+        server = ''
+        while server == '':
+            line = str(process.stdout.readline())
+            if line.find("Running on") >= 0:
+                server = line.split(" ")[-1].split('\\')[0]
+        process.stdout.close()
+        webbrowser.open(server)
