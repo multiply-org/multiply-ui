@@ -5,7 +5,7 @@ import os
 import sys
 import yaml
 
-from multiply_post_processing import run_post_processor, PostProcessorType
+from multiply_post_processing import run_post_processor
 
 script_progress_logger = logging.getLogger('ScriptProgress')
 script_progress_logger.setLevel(logging.INFO)
@@ -26,7 +26,6 @@ with open(configuration_file) as f:
     parameters = yaml.load(f)
 roi = parameters['General']['roi']
 spatial_resolution = parameters['General']['spatial_resolution'] # in m
-temporal_filter = parameters['SAR']['speckle_filter']['multi_temporal']['files']
 post_processor_dicts = parameters['post_processing']['post_processors']
 
 for i, post_processor_dict in enumerate(post_processor_dicts):
