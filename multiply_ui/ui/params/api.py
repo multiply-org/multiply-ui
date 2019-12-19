@@ -12,4 +12,4 @@ def fetch_processing_parameters():
     def apply_func(json_obj: Dict) -> ProcessingParameters:
         return ProcessingParameters(json_obj)
 
-    return call_api(GET_PROC_PARAMS_URL, apply_func)
+    return call_api(GET_PROC_PARAMS_URL, apply_func=apply_func)

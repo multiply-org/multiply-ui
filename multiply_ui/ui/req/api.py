@@ -10,4 +10,4 @@ def fetch_inputs(input_request: InputRequest, message_func):
     def _apply_func(response) -> ProcessingRequest:
         return ProcessingRequest(response)
 
-    return call_api(GET_INPUTS_URL, _apply_func, input_request.as_dict(), message_func)
+    return call_api(GET_INPUTS_URL, apply_func=_apply_func, data=input_request.as_dict(), message_func=message_func)

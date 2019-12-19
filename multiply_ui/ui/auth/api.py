@@ -16,8 +16,8 @@ def _write_to_command_line(message: str, stack_trace: List[str]=[]):
 
 
 def set_earth_data_authentication(earth_data_auth: dict, message_func=_write_to_command_line):
-    return call_api(POST_EARTH_AUTH_URL, None, earth_data_auth, message_func=message_func)
+    return call_api(POST_EARTH_AUTH_URL, data=earth_data_auth, message_func=message_func)
 
 
 def set_mundi_authentication(mundi_auth: dict, message_func=_write_to_command_line):
-    return call_api(POST_MUNDI_AUTH_URL, None, mundi_auth, message_func=message_func)
+    return call_api(POST_MUNDI_AUTH_URL, data=mundi_auth, message_func=message_func)
