@@ -17,11 +17,9 @@ script_progress_logger.addHandler(script_progress_logging_handler)
 
 # setup parameters
 configuration_file = sys.argv[1]
-start_date = sys.argv[2]
-end_date = sys.argv[3]
-sdrs_dir = sys.argv[4]
-biophys_params_dir = sys.argv[5]
-output_dir = sys.argv[6]
+sdrs_dir = sys.argv[2]
+biophys_params_dir = sys.argv[3]
+output_dir = sys.argv[4]
 with open(configuration_file) as f:
     parameters = yaml.load(f)
 roi = parameters['General']['roi']
