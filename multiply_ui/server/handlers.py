@@ -145,3 +145,10 @@ class PostMundiAuthHandler(ServiceRequestHandler):
         self.set_header('Content-Type', 'application/json')
         parameters = self.get_body_as_json_object()
         controller.set_mundi_authentication(self.ctx, parameters)
+
+
+# noinspection PyAbstractClass
+class VisualizeHandler(ServiceRequestHandler):
+    def get(self, job_id: str):
+        self.set_header('Content-Type', 'application/json')
+        controller.visualize(self.ctx, job_id)

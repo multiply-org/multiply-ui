@@ -1,5 +1,6 @@
 from .auth.form import auth_form
 from .clear.api import ClearanceType, clear
+from .job.api import visualize_output
 from .job.model import Job
 from .job.form import obs_job_form, obs_jobs_form
 from .params.api import fetch_processing_parameters
@@ -67,6 +68,9 @@ class MultiplyUI:
 
     def clear_archive(self):
         clear(ClearanceType.ARCHIVED_DATA)
+
+    def visualize(self, job: Job):
+        visualize_output(job.id)
 
 
 mui = MultiplyUI()

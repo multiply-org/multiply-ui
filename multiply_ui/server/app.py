@@ -1,7 +1,7 @@
 import tornado.web
 
 from .handlers import ClearHandler, GetParametersHandler, GetInputsHandler, GetJobHandler, ExecuteJobsHandler, \
-    CancelHandler, PostEarthDataAuthHandler, PostMundiAuthHandler
+    CancelHandler, PostEarthDataAuthHandler, PostMundiAuthHandler, VisualizeHandler
 
 
 def new_application():
@@ -12,6 +12,7 @@ def new_application():
         (r"/multiply/api/jobs/execute", ExecuteJobsHandler),
         (url_pattern(r"/multiply/api/jobs/get/{{job_id}}"), GetJobHandler),
         (url_pattern(r"/multiply/api/jobs/cancel/{{job_id}}"), CancelHandler),
+        (url_pattern(r"/multiply/api/jobs/visualize/{{job_id}}"), VisualizeHandler),
         (r"/multiply/api/processing/inputs", GetInputsHandler),
         (r"/multiply/api/processing/parameters", GetParametersHandler),
     ])

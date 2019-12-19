@@ -4,6 +4,7 @@ import logging
 import pkg_resources
 import os
 import shutil
+import subprocess
 from .context import ServiceContext #import to ensure calvalus-instances is added to system path
 from multiply_core.util import get_num_tiles, get_time_from_string
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
@@ -256,3 +257,10 @@ def _get_job_dict(job, request_id: str, request_name: str):
 def cancel(ctx, id: str):
     job = ctx.get_job(id)
     job.pm.cancel()
+
+
+def visualize(ctx, id: str):
+    job = ctx.get_job(id)
+    output_dir = os.path.join(job.pm._data_root(), 'biophys')
+    subprocess.Popen(['/software/miniconda/envs/multiply_vis/bin/python', '/software/MULTIPLYVisualisation/MVis.py',
+                      output_dir, False, 8080])

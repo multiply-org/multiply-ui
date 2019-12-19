@@ -12,6 +12,7 @@ URL_BASE = "http://localhost:9090/"
 CANCEL_URL = URL_BASE + "multiply/api/jobs/cancel/{}"
 GET_JOB_URL = URL_BASE + "multiply/api/jobs/get/{}"
 SUBMIT_PROCESSING_REQUEST_URL = URL_BASE + "multiply/api/jobs/execute"
+VISUALIZE_URL = URL_BASE + "multiply/api/jobs/visualize/{}"
 
 
 def _write_to_command_line(message: str, stack_trace: List[str]=[]):
@@ -93,3 +94,7 @@ def get_job(job: Job, message_func ) -> Optional[Job]:
     def _apply_func(response) -> Job:
         return Job(response)
     return call_api(GET_JOB_URL.format(job.id), apply_func=_apply_func, message_func=message_func)
+
+
+def visualize_output(job_id: str, message_func):
+    call_api(VISUALIZE_URL.format(job_id), message_func=message_func)
