@@ -2,6 +2,7 @@ import glob
 import inspect
 import logging
 import os
+import shutil
 import sys
 import yaml
 from pathlib import Path
@@ -197,3 +198,20 @@ class ServiceContext:
         for job in self.pm_server.queue:
             if job.request['requestId'] == id:
                 return job
+
+    def clear(self, type: str):
+        if type == 'cache':
+            self.data_access_component.clear_caches()
+        elif type == 'working':
+            working_dirs = glob.glob('/data/working_dirs/*')
+            for working_dir in working_dirs:
+                shutil.rmtree(working_dir)
+        elif type == 'archive':
+            archive_dirs = glob.glob('/data/archive/*')
+            for archive_dir in archive_dirs:
+                shutil.rmtree(archive_dir)
+        elif type == 'aux':
+            aux_files = glob.glob('/data/auxiliary/**', recursive=True)
+            for aux_file in aux_files:
+                if os.path.isfile(aux_file) and not aux_file.endswith('bucket_info.json'):
+                    os.remove(aux_file)

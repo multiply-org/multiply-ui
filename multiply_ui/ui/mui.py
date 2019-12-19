@@ -1,4 +1,5 @@
 from .auth.form import auth_form
+from .clear.api import ClearanceType, clear
 from .job.model import Job
 from .job.form import obs_job_form, obs_jobs_form
 from .params.api import fetch_processing_parameters
@@ -54,6 +55,18 @@ class MultiplyUI:
 
     def set_auth(self):
         return auth_form()
+
+    def clear_caches(self):
+        clear(ClearanceType.CACHE)
+
+    def clear_working_dirs(self):
+        clear(ClearanceType.WORKING_DIRS)
+
+    def clear_auxiliary(self):
+        clear(ClearanceType.AUXILIARY_DATA)
+
+    def clear_archive(self):
+        clear(ClearanceType.ARCHIVED_DATA)
 
 
 mui = MultiplyUI()
