@@ -23,11 +23,11 @@ biophys_output = sys.argv[4]
 script_progress_logger.info('0-100')
 if not os.path.exists(biophys_output):
     os.makedirs(biophys_output)
-if hres_biophys_output is not 'none':
+if hres_biophys_output != 'none':
     files = os.listdir(hres_biophys_output)
     for file in files:
         os.symlink(os.path.join(hres_biophys_output, file), os.path.join(biophys_output, file))
-if sar_biophys_output is not 'none':
+if sar_biophys_output != 'none':
     files = os.listdir(sar_biophys_output)
     for file in files:
         os.symlink(os.path.join(sar_biophys_output, file), os.path.join(biophys_output, file))
