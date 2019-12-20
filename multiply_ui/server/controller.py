@@ -262,7 +262,7 @@ def cancel(ctx, id: str):
 
 def visualize(ctx, id: str):
     job = ctx.get_job(id)
-    if job.status == 'DONE' or job.pm.status == 'SUCCEEDED':
+    if job.status == 'DONE' or job.status == 'SUCCEEDED':
         output_dir = os.path.join(job.pm._data_root, 'biophys')
         process = subprocess.Popen(['/software/miniconda/envs/multiply_vis/bin/python',
                                     '/software/MULTIPLYVisualisation/MVis.py',
