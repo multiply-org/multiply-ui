@@ -2,6 +2,7 @@ import glob
 import inspect
 import logging
 import os
+import shutil
 import sys
 import yaml
 from pathlib import Path
@@ -11,6 +12,7 @@ import multiply_data_access.data_access_component
 from multiply_core.models import get_forward_models
 from multiply_core.observations import INPUT_TYPES
 from multiply_core.variables import get_registered_variables
+from multiply_post_processing import get_available_indicators, get_post_processor_creators, PostProcessorType
 from multiply_prior_engine.vegetation_prior_creator import SUPPORTED_VARIABLES as POSSIBLE_USER_PRIORS
 from vm_support import set_earth_data_authentication, set_mundi_authentication
 
@@ -55,7 +57,6 @@ class ServiceContext:
     def __init__(self):
         self._jobs = {}
         self.data_access_component = multiply_data_access.data_access_component.DataAccessComponent()
-        self._restrict_to_mundi_datastore()
         self.pm_server = pmserver.PMServer()
         self._python_dist = sys.executable
         config = _get_config()
@@ -77,14 +78,6 @@ class ServiceContext:
         sys.path.insert(0, path_to_bin_dir)
         path = os.environ['PATH']
         os.environ['PATH'] = f'{path_to_bin_dir}:{path}'
-
-    # TODO: require an interface of data access to select data stores to be used
-    def _restrict_to_mundi_datastore(self):
-        for data_store in self.data_access_component._data_stores:
-            if data_store._id == "Mundi":
-                self.data_access_component._data_stores = [data_store]
-                return
-        raise ValueError('data store Mundi not found in configuration')
 
     @staticmethod
     def get_available_forward_models() -> List[dict]:
@@ -129,6 +122,43 @@ class ServiceContext:
         return dict_list
 
     @staticmethod
+    def get_available_post_processor_indicators() -> List[dict]:
+        dict_list = []
+        indicators = get_available_indicators()
+        for indicator in indicators:
+            dict_list.append({
+                "id": indicator.short_name,
+                "name": indicator.display_name,
+                "unit": indicator.unit,
+                "description": indicator.description,
+                "valueRange": indicator.range,
+                "mayBeUserPrior": False,
+                "applications": indicator.applications
+            })
+        return dict_list
+
+    @staticmethod
+    def get_available_post_processors() -> List[dict]:
+        dict_list = []
+        post_processor_creators = get_post_processor_creators()
+        for post_processor_creator in post_processor_creators:
+            indicator_descriptions = post_processor_creator.get_indicator_descriptions()            
+            indicator_names = []
+            for indicator_description in indicator_descriptions:
+                indicator_names.append(indicator_description.short_name)
+            type = 0
+            if post_processor_creator.get_type() == PostProcessorType.EO_DATA_POST_PROCESSOR:
+                type = 1
+            dict_list.append({
+                "name": post_processor_creator.get_name(),
+                "description": post_processor_creator.get_description(),
+                "type": type,
+                "inputTypes": post_processor_creator.get_required_input_data_types(),
+                "indicators": indicator_names,
+            })
+        return dict_list
+
+    @staticmethod
     def set_earth_data_authentication(username: str, password: str):
         set_earth_data_authentication(username, password)
 
@@ -168,3 +198,20 @@ class ServiceContext:
         for job in self.pm_server.queue:
             if job.request['requestId'] == id:
                 return job
+
+    def clear(self, type: str):
+        if type == 'cache':
+            self.data_access_component.clear_caches()
+        elif type == 'working':
+            working_dirs = glob.glob('/data/working_dirs/*')
+            for working_dir in working_dirs:
+                shutil.rmtree(working_dir)
+        elif type == 'archive':
+            archive_dirs = glob.glob('/data/archive/*')
+            for archive_dir in archive_dirs:
+                shutil.rmtree(archive_dir)
+        elif type == 'aux':
+            aux_files = glob.glob('/data/auxiliary/**', recursive=True)
+            for aux_file in aux_files:
+                if os.path.isfile(aux_file) and not aux_file.endswith('bucket_info.json'):
+                    os.remove(aux_file)

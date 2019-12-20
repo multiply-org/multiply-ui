@@ -16,6 +16,13 @@ USER_PRIOR_TYPE = TypeDef(object, properties=[PropertyDef('name', TypeDef(str)),
                                               PropertyDef('unc', TypeDef(float, optional=True))
 ])
 
+POST_PROCESSOR_TYPE = TypeDef(object, properties=[PropertyDef('name', TypeDef(str)),
+                                                  PropertyDef('type', TypeDef(int)),
+                                                  PropertyDef('inputTypes', TypeDef(list, item_type=TypeDef(str))),
+                                                  PropertyDef('indicatorNames', TypeDef(list, item_type=TypeDef(str))),
+                                                  PropertyDef('variableNames', TypeDef(list, item_type=TypeDef(str))),
+                                                  ])
+
 INPUT_IDENTIFIERS_TYPE = TypeDef(dict,
                                  key_type=TypeDef(str),
                                  item_type=TypeDef(list, item_type=TypeDef(str)))
@@ -31,7 +38,8 @@ INPUT_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
     PropertyDef('userPriors', TypeDef(list, item_type=USER_PRIOR_TYPE)),
     PropertyDef('s1TemporalFilter', TypeDef(int, optional=True)),
-    PropertyDef('s2ComputeRoi', TypeDef(bool, optional=True))
+    PropertyDef('s2ComputeRoi', TypeDef(bool, optional=True)),
+    PropertyDef('postProcessors', TypeDef(list, item_type=POST_PROCESSOR_TYPE, optional=True))    
 ])
 
 PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
@@ -46,7 +54,8 @@ PROCESSING_REQUEST_TYPE = TypeDef(object, properties=[
     PropertyDef('forwardModels', TypeDef(list, item_type=FORWARD_MODEL_TYPE)),
     PropertyDef('userPriors', TypeDef(list, item_type=USER_PRIOR_TYPE)),
     PropertyDef('s1TemporalFilter', TypeDef(int, optional=True)),
-    PropertyDef('s2ComputeRoi', TypeDef(bool, optional=True))
+    PropertyDef('s2ComputeRoi', TypeDef(bool, optional=True)),
+    PropertyDef('postProcessors', TypeDef(list, item_type=POST_PROCESSOR_TYPE, optional=True))
 ])
 
 
@@ -135,6 +144,14 @@ class InputRequestMixin:
             return self._data['s2ComputeRoi']
         return None
 
+    @property
+    def post_processors(self) -> Optional[List[Dict]]:
+        # noinspection PyUnresolvedReferences
+        if 'postProcessors' in self._data:
+            # noinspection PyUnresolvedReferences
+            return self._data['postProcessors']
+        return None
+
     def as_dict(self) -> Dict:
         # noinspection PyUnresolvedReferences
         return dict(self._data)
@@ -157,6 +174,12 @@ class InputRequestMixin:
         compute_roi_part = ''
         if self.s2_compute_roi is not None:
             compute_roi_part = f'<br/>Compute only ROI during S2-Pre-Processing: {self.s2_compute_roi}'
+        post_processors_part = ''
+        if self.post_processors is not None:
+            post_processor_names = []
+            for post_processor in self.post_processors:
+                post_processor_names.append(post_processor['name'])
+            post_processors_part = f'<br/>Post Processors: {", ".join(post_processor_names)}'
         return f'<p>' \
                f'Name: {self.name}<br/>' \
                f'Time range: {self.time_range}<br/>' \
@@ -169,6 +192,7 @@ class InputRequestMixin:
                f'User priors: {", ".join(user_prior_names)}' \
                f'{temporal_filter_part}' \
                f'{compute_roi_part}' \
+               f'{post_processors_part}' \
                f'</p>'
 
 

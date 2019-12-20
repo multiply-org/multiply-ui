@@ -41,5 +41,18 @@
         }
     ],
     "s1TemporalFilter": 4,
-    "s2ComputeRoi": false
+    "s2ComputeRoi": false,
+    "postProcessing": {
+        "postProcessors": [
+            {
+                "name": "APostProcessor",
+                "type": 0,
+                "inputTypes" : ["Sentinel-1"],
+                "indicatorNames" : ["indicator_0", "indicator_3"],
+                "variableNames" : ["variable_1", "variable_2"]
+            }
+        ]
+    }
+
+
 }

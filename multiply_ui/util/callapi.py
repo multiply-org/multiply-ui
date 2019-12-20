@@ -9,7 +9,7 @@ def _write_to_command_line(message: str, stack_trace: List[str]=[]):
         print(line)
 
 
-def call_api(url: str, apply_func=None, data=None, message_func=_write_to_command_line) -> Any:
+def call_api(url: str, apply_func=None, data=None, params=None, message_func=_write_to_command_line) -> Any:
     """
     Call some external API.
 
@@ -20,7 +20,7 @@ def call_api(url: str, apply_func=None, data=None, message_func=_write_to_comman
     :return: response JSON object, usually a dictionary.
     """
     if data is None:
-        response = requests.get(url)
+        response = requests.get(url, params=params)
     else:
         response = requests.post(url, json=data)
     try:

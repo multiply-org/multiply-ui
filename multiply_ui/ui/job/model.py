@@ -121,6 +121,10 @@ class Job:
         if self.id == new_state['id'] and self.name == new_state['name']:
             self._data = new_state
 
+    def visualize(self):
+        from ..job.api import visualize_output
+        visualize_output(self.id)
+
     def _repr_html_(self):
         job_html = html_table([
             ['Name:', self.name],

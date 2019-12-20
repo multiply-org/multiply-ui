@@ -2,6 +2,7 @@
 # example syntax: determine_s1_priors.py workshop-test.yaml 2018-09-01 2018-09-05 /data/m5/biophys_output
 # /data/m5/s1_priors
 
+from multiply_core.observations import get_valid_files
 from multiply_prior_engine import PriorEngine
 import datetime
 import logging
@@ -33,7 +34,7 @@ if not os.path.exists(s1_priors_dir):
     os.makedirs(s1_priors_dir)
 
 required_priors = []
-for model in parameters['Inference']:
+for model in parameters['Inference']['forward_models']:
     if model['type'] == 'kaska' and model['data_type'] == 'Sentinel-1':
         required_priors = model['required_priors']
 
@@ -43,10 +44,13 @@ priors_to_be_retrieved = []
 start_time = datetime.datetime.strptime(start, '%Y-%m-%d')
 end_time = datetime.datetime.strptime(end, '%Y-%m-%d')
 for prior in required_priors:
-    expected_file_name = "%s_%s.tif" % (prior, start_time.strftime("A%Y%j"))
-    expected_file = os.path.join(hres_biophys_output, expected_file_name)
-    if os.path.exists(expected_file):
-        os.symlink(expected_file, os.path.join(s1_priors_dir, expected_file_name))
+    if hres_biophys_output != 'none':
+        prior_file_refs = get_valid_files(hres_biophys_output, [prior])
+        if len(prior_file_refs) > 0:
+            for prior_file in prior_file_refs:
+                os.symlink(prior_file.url, os.path.join(s1_priors_dir, prior_file.url.split('/')[-1]))
+        else:
+            priors_to_be_retrieved.append(prior)
     else:
         priors_to_be_retrieved.append(prior)
 

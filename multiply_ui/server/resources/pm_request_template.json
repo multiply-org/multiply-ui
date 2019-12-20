@@ -90,6 +90,16 @@
             "database" : {
                 "static_dir" : "same as General directory_data"
             }
+        },
+        "sm" : {
+            "climatology" : {
+                "dir" : "/data/auxiliary/priors/climatology/soil_moisture/"
+            }
+        },
+        "sr" : {
+            "temporary" : {
+                "dir" : "/data/auxiliary/priors/temporary/sr/"
+            }
         }
     },
     "SAR" : {
@@ -99,7 +109,7 @@
         "speckle_filter" : {
             "multi_temporal" : {
                 "apply" : "yes",
-                "temporal_filter" : "TEMPORAL_FILTER"
+                "files" : "TEMPORAL_FILTER"
             }
         },
         "region" : {
@@ -116,6 +126,10 @@
     },
     "S2-PreProcessing" : {
         "compute_only_roi" : false
+    },
+    "post_processing" : {
+        "post_processors" : [
+        ]
     }
 }
 

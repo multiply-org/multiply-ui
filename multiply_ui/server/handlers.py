@@ -81,6 +81,14 @@ class ServiceRequestHandler(tornado.web.RequestHandler):
 
 
 # noinspection PyAbstractClass
+class ClearHandler(ServiceRequestHandler):
+    def get(self):
+        clear_type = self.get_query_argument("clearance")
+        logging.info(f'Retrieved clearance type {clear_type}')
+        self.ctx.clear(clear_type)
+
+
+# noinspection PyAbstractClass
 class GetParametersHandler(ServiceRequestHandler):
     def get(self):
         self.set_header('Content-Type', 'application/json')
@@ -141,115 +149,9 @@ class PostMundiAuthHandler(ServiceRequestHandler):
 
 
 # noinspection PyAbstractClass
-class ExecuteHandler(ServiceRequestHandler):
-    def get(self):
-        duration = int(self.get_query_argument("duration"))
-
-        job = self.ctx.new_job(duration)
-        _EXECUTOR.submit(job.execute)
-
-        self.set_header('Content-Type', 'application/json')
-        self.write(job.to_dict())
-
-
-# noinspection PyAbstractClass
-class StatusHandler(ServiceRequestHandler):
+class VisualizeHandler(ServiceRequestHandler):
     def get(self, job_id: str):
-        job_id = int(job_id)
-
-        job = self.ctx.get_job(job_id)
-        if job is None:
-            self.send_error(404, reason="Job not found")
-            return
-
         self.set_header('Content-Type', 'application/json')
-        self.write(job.to_dict())
-
-
-# noinspection PyAbstractClass
-# class CancelHandler(ServiceRequestHandler):
-#     def get(self, job_id: str):
-#         job_id = int(job_id)
-#
-#         job = self.ctx.get_job(job_id)
-#         if job is None:
-#             self.send_error(404, reason="Job not found")
-#             return
-#         job.cancel()
-#
-#         self.set_header('Content-Type', 'application/json')
-#         self.write(job.to_dict())
-
-
-# noinspection PyAbstractClass
-class ListHandler(ServiceRequestHandler):
-    def get(self):
-        self.set_header('Content-Type', 'application/json')
-        self.write(dict(jobs=self.ctx.get_jobs()))
-
-
-# noinspection PyAbstractClass
-class ResultsFromJobHandler(ServiceRequestHandler):
-    def get(self, job_id: str):
-        job_id = int(job_id)
-
-        job = self.ctx.get_job(job_id)
-        if job is None:
-            self.send_error(404, reason="Job not found")
-            return
-
-        results = job.results()
-        if results is None:
-            self.send_error(404, reason="No results provided yet")
-            return
-
-        self.set_header('Content-Type', 'application/json')
-        self.write(results.to_dict())
-
-
-# noinspection PyAbstractClass
-class ResultHandler(ServiceRequestHandler):
-    def get(self, job_id: str):
-        job_id = int(job_id)
-        parameter = self.get_query_argument("parameter")
-        try:
-            parameter = int(parameter)
-        except (ValueError, TypeError):
-            parameter = parameter
-
-        job = self.ctx.get_job(job_id)
-        if job is None:
-            self.send_error(404, reason="Job not found")
-            return
-
-        results = job.results()
-        if results is None:
-            self.send_error(404, reason="No results provided yet")
-            return
-
-        result = results.get_result_as_dict(parameter)
-        if result is None:
-            self.send_error(404, reason=f"No result for parameter {parameter} provided")
-            return
-
-        self.set_header('Content-Type', 'application/json')
-        self.write(result)
-
-
-# noinspection PyAbstractClass
-class ResultsOpenHandler(ServiceRequestHandler):
-    def get(self, job_id: str):
-        job_id = int(job_id)
-
-        job = self.ctx.get_job(job_id)
-        if job is None:
-            self.send_error(404, reason="Job not found")
-            return
-
-        results = job.results()
-        if results is None:
-            self.send_error(404, reason="No results provided yet")
-            return
-
-        self.set_header('Content-Type', 'application/json')
-        self.write(results.open())
+        ip_dict = controller.visualize(self.ctx, job_id)
+        json.dump(ip_dict, self)
+        self.finish()

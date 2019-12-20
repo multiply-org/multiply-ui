@@ -1,8 +1,10 @@
 from .auth.form import auth_form
+from .clear.api import ClearanceType, clear
+from .job.api import visualize_output
 from .job.model import Job
 from .job.form import obs_job_form, obs_jobs_form
 from .params.api import fetch_processing_parameters
-from .params.model import ProcessingParameters, Variables, ForwardModels, InputTypes
+from .params.model import ProcessingParameters, Variables, ForwardModels, InputTypes, PostProcessors
 from .req.form import sel_params_form
 
 
@@ -35,6 +37,14 @@ class MultiplyUI:
     def itypes(self) -> InputTypes:
         return self.processing_parameters.input_types
 
+    @property
+    def post_processors(self) -> PostProcessors:
+        return self.processing_parameters.post_processors
+    
+    @property
+    def indicators(self) -> Variables:
+        return self.processing_parameters.indicators
+
     def sel_params(self, identifier='request', name='name', mock=False):
         return sel_params_form(self.processing_parameters, identifier, name, mock=mock)
 
@@ -46,6 +56,21 @@ class MultiplyUI:
 
     def set_auth(self):
         return auth_form()
+
+    def clear_caches(self):
+        clear(ClearanceType.CACHE)
+
+    def clear_working_dirs(self):
+        clear(ClearanceType.WORKING_DIRS)
+
+    def clear_auxiliary(self):
+        clear(ClearanceType.AUXILIARY_DATA)
+
+    def clear_archive(self):
+        clear(ClearanceType.ARCHIVED_DATA)
+
+    def visualize(self, job: Job):
+        visualize_output(job.id)
 
 
 mui = MultiplyUI()

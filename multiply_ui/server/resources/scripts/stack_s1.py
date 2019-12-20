@@ -35,22 +35,29 @@ start = start - time_delta
 end = datetime.datetime.strptime(end_date, '%Y-%m-%d')
 end = end + time_delta
 
-s1_grd_files = os.listdir(s1_grd_dir)
+if not os.path.exists(s1_stack_dir):
+    os.makedirs(s1_stack_dir)
+
+output_step1_dir = os.path.join(s1_grd_dir, 'step1')
+output_step3_dir = os.path.join(s1_grd_dir, 'step3')
+
+s1_grd_files = os.listdir(output_step3_dir)
 for s1_grd_file in s1_grd_files:
     date = datetime.datetime.strptime(s1_grd_file[17:25], '%Y%m%d')
     if date > start and date < end:
-        os.symlink(os.path.join(s1_grd_dir, s1_grd_file), os.path.join(s1_stack_dir, s1_grd_file))
+        os.symlink(os.path.join(output_step3_dir, s1_grd_file), os.path.join(s1_stack_dir, s1_grd_file))
 
 stack_file_name = f's1_nc_stack_{start_date}'
 stack_creator = NetcdfStackCreator(input_folder=s1_stack_dir,
                                    output_path=s1_stack_dir,
+                                   step1_folder=output_step1_dir,
                                    output_filename=stack_file_name)
 stack_creator.create_netcdf_stack()
 
 # clean
-files = os.listdir(s1_grd_dir)
-for file in files:
-    if file != stack_file_name:
-        os.remove(os.path.join(s1_stack_dir, file))
+# files = os.listdir(s1_grd_dir)
+# for file in files:
+#     if file != stack_file_name:
+#         os.remove(os.path.join(s1_stack_dir, file))
 
 script_progress_logger.info('100-100')

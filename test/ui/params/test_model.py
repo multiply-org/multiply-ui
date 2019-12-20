@@ -3,7 +3,7 @@ import unittest
 
 import pkg_resources
 
-from multiply_ui.ui.params.model import ProcessingParameters, Variables, ForwardModels, InputTypes
+from multiply_ui.ui.params.model import ProcessingParameters, Variables, ForwardModels, InputTypes, PostProcessors
 
 RAW_DATA = json.loads(pkg_resources.resource_string("multiply_ui", "server/resources/processing-parameters.json"))
 
@@ -28,3 +28,13 @@ class ProcessingParametersTest(unittest.TestCase):
                          proc_params.input_types.ids)
         self.assertIsInstance(proc_params.input_types, InputTypes)
         self.assertIsNotNone(proc_params.input_types._repr_html_())
+
+        self.assertIsInstance(proc_params.post_processors, PostProcessors)
+        self.assertEqual(['MyFirstPostProcessor', 'MySecondPostProcessor'],
+                         proc_params.post_processors.names)
+        self.assertIsNotNone(proc_params.post_processors._repr_html_())
+
+        self.assertIsInstance(proc_params.indicators, Variables)
+        self.assertEqual(['rdshfc', 'hzrgnbhznt', 'jdfgbzt'],
+                         proc_params.indicators.ids)
+        self.assertIsNotNone(proc_params.indicators._repr_html_())

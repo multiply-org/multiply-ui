@@ -1,6 +1,6 @@
 #!{PYTHON}
 
-from multiply_inference_engine import infer_kaska_s2
+from multiply_inference_engine import create_kaska_s2_inference_output_files
 from multiply_core.models import get_forward_model
 
 import logging
@@ -20,11 +20,7 @@ script_progress_logger.addHandler(script_progress_logging_handler)
 configuration_file = sys.argv[1]
 start_date = sys.argv[2]
 stop_date = sys.argv[3]
-tile_x = sys.argv[4]
-tile_y = sys.argv[5]
-sdrs_dir = sys.argv[6]
-priors_dir = sys.argv[7]
-output_dir = sys.argv[8]
+output_dir = sys.argv[4]
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -35,16 +31,16 @@ with open(configuration_file) as f:
 
 roi = parameters['General']['roi']
 spatial_resolution = parameters['General']['spatial_resolution']  # in m
-time_step = parameters['General']['time_interval']
-tile_width = parameters['General']['tile_width']
-tile_height = parameters['General']['tile_height']
+time_step = int(parameters['General']['time_interval'])
+tile_width = int(parameters['General']['tile_width'])
+tile_height = int(parameters['General']['tile_height'])
 
 forward_models = []
 requested_parameters = []
 model_parameters = []
 required_priors = []
 for model_dict in parameters['Inference']['forward_models']:
-    if model_dict['type'] == 'kafka' and model_dict['data_type'] == 'Sentinel-2':
+    if model_dict['type'] == 'kaska' and model_dict['data_type'] == 'Sentinel-2':
         forward_models.append(model_dict['name'])
         requested_model_parameters = model_dict['output_parameters']
         for model_parameter in requested_model_parameters:
@@ -62,18 +58,13 @@ for prior in required_priors:
         requested_parameters.append(prior)
 
 script_progress_logger.info('0-100')
-infer_kaska_s2(start_time=start_date,
-               end_time=stop_date,
-               time_step=time_step,
-               datasets_dir=sdrs_dir,
-               forward_models=forward_models,
-               output_directory=output_dir,
-               parameters=requested_parameters,
-               roi=roi,
-               spatial_resolution=spatial_resolution,
-               tile_index_x=tile_x,
-               tile_index_y=tile_y,
-               tile_width=tile_width,
-               tile_height=tile_height
+create_kaska_s2_inference_output_files(start_time=start_date,
+                                       end_time=stop_date,
+                                       time_step=time_step,
+                                       forward_models=forward_models,
+                                       output_directory=output_dir,
+                                       parameters=requested_parameters,
+                                       roi=roi,
+                                       spatial_resolution=spatial_resolution
                )
 script_progress_logger.info('100-100')

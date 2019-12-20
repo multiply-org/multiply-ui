@@ -110,5 +110,50 @@
       "requiredPriors": ["lai", "cab", "cb", "sm", "sr"],
       "type": "kaska"
     }
+  ],
+  "postProcessors": [
+    {
+      "name": "MyFirstPostProcessor",
+      "description": "It processes post",
+      "type": 0,
+      "inputTypes" : ["Sentinel-1"],
+      "indicators": ["rdshfc", "hzrgnbhznt"]
+    },
+    {
+      "name": "MySecondPostProcessor",
+      "description": "This is a description.",
+      "type": 1,
+      "inputTypes" : [],
+      "indicators": ["jdfgbzt"]
+    }
+  ],
+  "indicators": [
+    {
+      "id": "rdshfc",
+      "name": "Average Leaf Angle",
+      "unit": "degrees",
+      "description": "Average Leaf Angle",
+      "valueRange": "",
+      "mayBeUserPrior": true,
+      "applications": []
+    },
+        {
+      "id": "hzrgnbhznt",
+      "name": "Soil Brightness",
+      "unit": "",
+      "description": "Soil Brightness Parameter",
+      "valueRange": "",
+      "mayBeUserPrior": true,
+      "applications": []
+    },
+    {
+      "id": "jdfgbzt",
+      "name": "Leaf Dry Mass",
+      "unit": "g/cm2",
+      "description": "Leaf Dry Mass",
+      "valueRange": "",
+      "mayBeUserPrior": true,
+      "applications": []
+    }
   ]
 }

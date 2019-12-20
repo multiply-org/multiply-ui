@@ -4,6 +4,9 @@ import logging
 import pkg_resources
 import os
 import shutil
+import subprocess
+import urllib.request
+import webbrowser
 from .context import ServiceContext #import to ensure calvalus-instances is added to system path
 from multiply_core.util import get_num_tiles, get_time_from_string
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
@@ -19,10 +22,14 @@ def get_parameters(ctx):
     input_type_dicts = ctx.get_available_input_types()
     variable_dicts = ctx.get_available_variables()
     forward_model_dicts = ctx.get_available_forward_models()
+    post_processor_dicts = ctx.get_available_post_processors()
+    indicator_dicts = ctx.get_available_post_processor_indicators()
     parameters = {
         "inputTypes": input_type_dicts,
         "variables": variable_dicts,
-        "forwardModels": forward_model_dicts
+        "forwardModels": forward_model_dicts,
+        "postProcessors": post_processor_dicts,
+        "indicators": indicator_dicts
     }
     return parameters
 
@@ -66,10 +73,16 @@ def submit_request(ctx, request) -> Dict:
 
 def _translate_step(step: str) -> str:
     step_parts = step.split(" ")
+    if step_parts[0] == "combine_biophys_outputs.py":
+        return 'Assembling results from inference'
     if step_parts[0] == "combine_hres_biophys_outputs.py":
         return 'Assembling results from S2 inference'
+    if step_parts[0] == "create_s1_kaska_inference_output_files.py":
+        return f'Creating Output Files for S1 Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "create_s2_kaska_inference_output_files.py":
+        return f'Creating Output Files for S2 Kaska Inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "data_access_get_static.py":
-        return f'Retrieving data required for all time steps'
+        return f'Retrieving data required for all time steps of S2-Pre-Processing'
     if step_parts[0] == "data_access_put_s2_l2.py":
         return f'Storing S2 Pre-processing results of time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "determine_s1_priors.py":
@@ -77,19 +90,21 @@ def _translate_step(step: str) -> str:
     if step_parts[0] == "get_data_for_s1_preprocessing.py":
         return f'Retrieving SAR data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "get_data_for_s2_preprocessing.py":
-        return f'Retrieving data for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Retrieving S2 data for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s2_kafka.py":
-        return f'Inferring variables for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Inferring variables from S2 inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s1_kaska.py":
-        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Inferring variables from S1 inference for tile {step_parts[4]}, {step_parts[5]} and time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "infer_s2_kaska.py":
-        return f'Inferring variables for tile {step_parts[4]}, {step_parts[5]}'
+        return f'Inferring variables from S2 inference for tile {step_parts[4]}, {step_parts[5]}'
     if step_parts[0] == "preprocess_s1.py":
         return 'Preprocessing S1 data for all time steps'
     if step_parts[0] == "preprocess_s2.py":
         return f'Preprocessing S2 Data for time step from {step_parts[2]} to {step_parts[3]}'
+    if step_parts[0] == "post_process.py":
+        return 'Conduct post-processing'
     if step_parts[0] == "retrieve_s2_priors.py":
-        return f'Retrieving priors for time step from {step_parts[2]} to {step_parts[3]}'
+        return f'Retrieving priors for S2 inference for time step from {step_parts[2]} to {step_parts[3]}'
     if step_parts[0] == "stack_s1.py":
         return f'Creating S1 Stack for time step from {step_parts[2]} to {step_parts[3]}'
     return step
@@ -126,7 +141,7 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
     pm_request['General']['spatial_resolution'] = request['spatialResolution']
     pm_request['General']['tile_width'] = 512
     pm_request['General']['tile_height'] = 512
-    num_tiles_x, num_tiles_y = _get_num_tiles_of_request(request)
+    num_tiles_x, num_tiles_y = _get_num_tiles_of_request(request, 512, 512)
     pm_request['General']['num_tiles_x'] = num_tiles_x
     pm_request['General']['num_tiles_y'] = num_tiles_y
     pm_request['Inference']['time_interval'] = request['timeStep']
@@ -148,22 +163,33 @@ def _pm_request_of(request, workdir: str, id: str) -> Dict:
                 pm_request['Prior'][user_prior_dict['name']]['user'] = {}
             pm_request['Prior'][user_prior_dict['name']]['user']['unc'] = user_prior_dict['unc']
     if 's1TemporalFilter' in request:
-        pm_request['SAR']['speckle_filter']['multi_temporal']['temporal_filter'] = request['s1TemporalFilter']
-        (min_lon, min_lat, max_lon, max_lat) = loads(request['roi']).bounds()
+        pm_request['SAR']['speckle_filter']['multi_temporal']['files'] = request['s1TemporalFilter']
+        (min_lon, min_lat, max_lon, max_lat) = loads(request['roi']).bounds
         pm_request['SAR']['region']['ul']['lat'] = max_lat
         pm_request['SAR']['region']['ul']['lon'] = min_lon
         pm_request['SAR']['region']['lr']['lat'] = min_lat
         pm_request['SAR']['region']['lr']['lon'] = max_lon
         pm_request['SAR']['year'] = datetime.datetime.strftime(get_time_from_string(request['timeRange'][0]), '%Y')
     if 's2ComputeRoi' in request:
-        pm_request['s2_pre_processing']['compute_only_roi'] = request['s2ComputeRoi']
+        pm_request['S2-PreProcessing']['compute_only_roi'] = request['s2ComputeRoi']
+    if 'postProcessors' in request:
+        post_processor_list = []
+        for post_processor_dict in request['postProcessors']:
+            pp_dict = {}
+            pp_dict['name'] = post_processor_dict['name']
+            pp_dict['type'] = post_processor_dict['type']
+            pp_dict['input_types'] = [input_type for input_type in post_processor_dict["inputTypes"]]
+            pp_dict['indicator_names'] = [indicator_name for indicator_name in post_processor_dict["indicatorNames"]]
+            pp_dict['variable_names'] = [variable_name for variable_name in post_processor_dict["variableNames"]]
+            post_processor_list.append(pp_dict)
+        pm_request['post_processing']['post_processors'] = post_processor_list
     return pm_request
 
 
-def _get_num_tiles_of_request(request) -> Tuple:
+def _get_num_tiles_of_request(request, tile_width, tile_height) -> Tuple:
     roi = request['roi']
     spatial_resolution = request['spatialResolution']
-    return get_num_tiles(spatial_resolution=spatial_resolution, roi=roi, tile_width=512, tile_height=512)
+    return get_num_tiles(spatial_resolution=spatial_resolution, roi=roi, tile_width=tile_width, tile_height=tile_height)
 
 
 def _determine_workflow(request) -> str:
@@ -233,3 +259,19 @@ def _get_job_dict(job, request_id: str, request_name: str):
 def cancel(ctx, id: str):
     job = ctx.get_job(id)
     job.pm.cancel()
+
+
+def visualize(ctx, id: str) -> Dict:
+    job = ctx.get_job(id)
+    output_dir = os.path.join(job.pm._data_root, 'biophys')
+    subprocess.Popen(['/software/miniconda/envs/multiply_vis/bin/python',
+                      '/software/MULTIPLYVisualisation/MVis.py',
+                      output_dir, 'False', '8080'])
+    # server = ''
+    # while server == '':
+    #     line = str(process.stdout.readline())
+    #     if line.find("Running on") >= 0:
+    #         server = line.split(" ")[-1].split('\\')[0]
+    # process.stdout.close()
+    external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+    return {'ip': f'http://{external_ip}/8080'}
