@@ -84,6 +84,7 @@ class ServiceRequestHandler(tornado.web.RequestHandler):
 class ClearHandler(ServiceRequestHandler):
     def get(self):
         clear_type = self.get_query_argument("clearance")
+        logging.info(f'Retrieved clearance type {clear_type}')
         self.ctx.clear(clear_type)
 
 
