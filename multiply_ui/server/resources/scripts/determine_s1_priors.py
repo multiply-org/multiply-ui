@@ -48,7 +48,7 @@ for prior in required_priors:
         prior_file_refs = get_valid_files(hres_biophys_output, [prior])
         if len(prior_file_refs) > 0:
             for prior_file in prior_file_refs:
-                os.symlink(prior_file.url, os.path.join(s1_priors_dir, prior_file.url))
+                os.symlink(prior_file.url, os.path.join(s1_priors_dir, prior_file.url.split('/')[-1]))
         else:
             priors_to_be_retrieved.append(prior)
     else:
