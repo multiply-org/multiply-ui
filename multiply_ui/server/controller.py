@@ -5,6 +5,7 @@ import pkg_resources
 import os
 import shutil
 import subprocess
+import webbrowser
 from .context import ServiceContext #import to ensure calvalus-instances is added to system path
 from multiply_core.util import get_num_tiles, get_time_from_string
 # check out with git clone -b share https://github.com/bcdev/calvalus-instances
@@ -261,6 +262,15 @@ def cancel(ctx, id: str):
 
 def visualize(ctx, id: str):
     job = ctx.get_job(id)
-    output_dir = os.path.join(job.pm._data_root(), 'biophys')
-    subprocess.Popen(['/software/miniconda/envs/multiply_vis/bin/python', '/software/MULTIPLYVisualisation/MVis.py',
-                      output_dir, False, 8080])
+    if job.status == 'DONE' or job.pm.status == 'SUCCEEDED':
+        output_dir = os.path.join(job.pm._data_root, 'biophys')
+        process = subprocess.Popen(['/software/miniconda/envs/multiply_vis/bin/python',
+                                    '/software/MULTIPLYVisualisation/MVis.py',
+                                    output_dir, 'False', '8080'], bufsize=1, stdout=subprocess.PIPE)
+        server = ''
+        while server == '':
+            line = str(process.stdout.readline())
+            if line.find("Running on") >= 0:
+                server = line.split(" ")[-1].split('\\')[0]
+        process.stdout.close()
+        webbrowser.open(server)
