@@ -83,7 +83,7 @@ class ServiceRequestHandler(tornado.web.RequestHandler):
 # noinspection PyAbstractClass
 class ClearHandler(ServiceRequestHandler):
     def get(self):
-        clear_type = self.get_query_argument("clearType")
+        clear_type = self.get_query_argument("clearance")
         self.ctx.clear(clear_type)
 
 
