@@ -5,6 +5,7 @@ import pkg_resources
 import os
 import shutil
 import subprocess
+import urllib.request
 import webbrowser
 from .context import ServiceContext #import to ensure calvalus-instances is added to system path
 from multiply_core.util import get_num_tiles, get_time_from_string
@@ -272,4 +273,5 @@ def visualize(ctx, id: str):
         if line.find("Running on") >= 0:
             server = line.split(" ")[-1].split('\\')[0]
     process.stdout.close()
-    webbrowser.open(server)
+    external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+    webbrowser.open(f'http://{external_ip}/8080')
