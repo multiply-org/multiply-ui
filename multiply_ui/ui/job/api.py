@@ -97,4 +97,6 @@ def get_job(job: Job, message_func ) -> Optional[Job]:
 
 
 def visualize_output(job_id: str, message_func=_write_to_command_line):
-    call_api(VISUALIZE_URL.format(job_id), message_func=message_func)
+    def _apply_func(response):
+        print(response['ip'])
+    call_api(VISUALIZE_URL.format(job_id), apply_func=_apply_func, message_func=message_func)

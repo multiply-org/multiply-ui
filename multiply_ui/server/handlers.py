@@ -151,4 +151,6 @@ class PostMundiAuthHandler(ServiceRequestHandler):
 class VisualizeHandler(ServiceRequestHandler):
     def get(self, job_id: str):
         self.set_header('Content-Type', 'application/json')
-        controller.visualize(self.ctx, job_id)
+        ip_dict = controller.visualize(self.ctx, job_id)
+        json.dump(ip_dict, self)
+        self.finish()
