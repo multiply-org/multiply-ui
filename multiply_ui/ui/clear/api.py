@@ -6,7 +6,7 @@ __author__ = 'Tonio Fincke (Brockmann Consult GmbH)'
 
 URL_BASE = "http://localhost:9090/"
 
-CLEAR_URL = URL_BASE + "multiply/api/clear"
+CLEAR_URL = URL_BASE + "multiply/api/clear/{}"
 
 
 class ClearanceType(Enum):
@@ -17,13 +17,14 @@ class ClearanceType(Enum):
 
 
 def clear(clearance_type: ClearanceType):
-    type_dict = {}
     if clearance_type == ClearanceType.CACHE:
-        type_dict['clearance'] = 'cache'
-    if clearance_type == ClearanceType.WORKING_DIRS:
-        type_dict['clearance'] = 'working'
-    if clearance_type == ClearanceType.AUXILIARY_DATA:
-        type_dict['clearance'] = 'aux'
-    if clearance_type == ClearanceType.ARCHIVED_DATA:
-        type_dict['clearance'] = 'archive'
-    return call_api(CLEAR_URL, params=type_dict)
+        clearance = 'cache'
+    elif clearance_type == ClearanceType.WORKING_DIRS:
+        clearance = 'working'
+    elif clearance_type == ClearanceType.AUXILIARY_DATA:
+        clearance = 'aux'
+    elif clearance_type == ClearanceType.ARCHIVED_DATA:
+        clearance = 'archive'
+    else:
+        return
+    return call_api(CLEAR_URL.format(clearance))

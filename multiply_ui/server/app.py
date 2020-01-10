@@ -8,7 +8,7 @@ def new_application():
     return tornado.web.Application([
         (r"/multiply/api/auth/earthdata", PostEarthDataAuthHandler),
         (r"/multiply/api/auth/mundi", PostMundiAuthHandler),
-        (url_pattern(r"/multiply/api/clear}}"), ClearHandler),
+        (url_pattern(r"/multiply/api/clear/{{clear_type}}"), ClearHandler),
         (r"/multiply/api/jobs/execute", ExecuteJobsHandler),
         (url_pattern(r"/multiply/api/jobs/get/{{job_id}}"), GetJobHandler),
         (url_pattern(r"/multiply/api/jobs/cancel/{{job_id}}"), CancelHandler),
