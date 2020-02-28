@@ -1,3 +1,7 @@
+### Version 0.1.1
+
+- Updated notebook
+
 ### Version 0.1
 
 ### Initial software
